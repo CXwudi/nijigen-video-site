@@ -6,6 +6,6 @@
     }
   ],
   "settings": {
-    "terminal.integrated.cwd": "${workspaceFolder:workspace-root}"
+    "terminal.integrated.cwd": "${workspaceFolder:project-root}"
   }
 }
