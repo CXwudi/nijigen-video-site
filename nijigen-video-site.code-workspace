@@ -1,0 +1,11 @@
+{
+  "folders": [
+    {
+      "name": "nijigen-video-site-root",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "terminal.integrated.cwd": "${workspaceFolder:workspace-root}"
+  }
+}
