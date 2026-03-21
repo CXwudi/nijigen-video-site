@@ -1,169 +1,71 @@
-# ADR-001: Repository Structure and Workspace Layout
+# ADR-001: Project Structure Baseline
 
 - **Status:** Accepted
-- **Date:** 2026-03-20
+- **Date:** 2026-03-21
 
-## Context
+## Why this file exists
 
-This project is a one-person practice project for a full-stack video site with danmaku support.
-
-### Backend stack
+This project is a one-person practice project, but the stack is intentionally realistic:
 
 - Spring Boot 4.x
 - Java 25
+- Spring JDBC
 - PostgreSQL
 - Redis
 - RustFS
 - Flyway
 - AutoMQ
 - LGTM stack
-- Spring Security for now
-- Envoy API Gateway and Ory are planned for the future
+- TanStack Start + React
 
-### Frontend stack
+Even though the feature scope is reduced, I still want the project structure to feel like a real production-shaped system.
 
-- TanStack Start
-- React
-- pnpm
+This document records the repo structure decision so I do not keep rethinking it later.
 
-### Constraints and preferences
+---
 
-- Flyway must run **standalone** and must **not** be managed by Spring Boot.
-- The system should run in Docker Compose now and remain easy to move to Kubernetes later.
-- `apps/worker` is highly likely to be needed and should be reserved now.
-- Frontend and backend should have their own roots.
-- Gradle and pnpm control files should **not** live in the repository root.
-- The product scope is intentionally simplified, but the infrastructure and stack should remain realistic.
-
-## Decision
+## The decision
 
 We will use a **split-root monorepo**.
 
-- `backend/` is the Gradle root for all JVM code.
-- `frontend/` is the pnpm workspace root for all Node/React code.
-- `database/flyway/` is the standalone migration root.
-- `infra/` contains deployment and operations assets.
-- The repository root remains lightweight and does not contain Gradle or pnpm control files.
+That means:
 
-## Architecture shape
+- `backend/` is the home of all JVM / Gradle code
+- `frontend/` is the home of all Node / pnpm code
+- `database/flyway/` is the home of standalone migrations
+- `infra/` is the home of deployment and ops files
+- the repo root stays clean and lightweight
 
-This project will **not** start as microservices.
+I do **not** want Gradle and pnpm files mixed together in the repository root.
 
-Instead, the backend will use a **modular monolith with multiple runtime entrypoints**:
+---
 
-- `backend/apps/api` for synchronous HTTP-facing application logic
-- `backend/apps/worker` for asynchronous and background processing
-- `backend/modules/*` for reusable shared business modules
+## What kind of backend this is
 
-This gives us separate deployables without premature service fragmentation.
+This project is **not** starting as microservices.
 
-## Frontend workspace design
+Instead, the backend is:
 
-The frontend is intentionally organized as a **pnpm workspace root** plus one actual application package.
+- one codebase
+- shared feature modules
+- two runtime entrypoints
 
-This means the following files have different jobs and are **not duplicates**:
+Those two runtime apps are:
 
-| Path | Role |
-| --- | --- |
-| `frontend/pnpm-workspace.yaml` | Declares the pnpm workspace root and tells pnpm which packages belong to the workspace |
-| `frontend/package.json` | Thin workspace-root manifest used for frontend-wide scripts and workspace-level metadata; this is **not** another app |
-| `frontend/apps/web/package.json` | The manifest of the actual TanStack Start web application |
+- `backend/apps/api`
+- `backend/apps/worker`
 
-### Why `frontend/pnpm-workspace.yaml` exists
+So the shape is:
 
-This file marks `frontend/` as the pnpm workspace root.
+- **API app** for request/response work
+- **Worker app** for async/background work
+- **Shared modules** for reusable business logic
 
-Its purpose is to define which package directories pnpm should treat as members of the workspace.
+This keeps things realistic without overcomplicating a solo practice project.
 
-Example:
+---
 
-```yaml
-packages:
-  - apps/*
-```
-
-This means pnpm should treat `frontend/apps/web` as a workspace package.
-
-### Why `frontend/package.json` exists
-
-The root `frontend/package.json` is a **workspace control file**, not a second frontend application.
-
-It exists so that we can:
-
-- run frontend-wide scripts from `frontend/`
-- keep workspace-level metadata in one place
-- avoid needing to `cd frontend/apps/web` for common commands
-- add future shared frontend packages later without changing the workspace shape
-
-Typical use for this file:
-
-- `dev`
-- `build`
-- `lint`
-- `typecheck`
-
-This file should stay **thin**.
-
-It should **not** become another app and should **not** duplicate the real application's runtime dependencies.
-
-### Why `frontend/apps/web/package.json` exists
-
-This is the manifest for the actual web app.
-
-It owns:
-
-- TanStack Start dependencies
-- React dependencies
-- app-specific scripts
-- app-specific build configuration
-- app-level metadata
-
-In other words:
-
-- `frontend/package.json` = workspace control
-- `frontend/apps/web/package.json` = real web app package
-
-### Why we keep a workspace even with one frontend app
-
-Even though there is only one frontend app today, the workspace structure is still useful because this project may later need frontend-side shared packages such as:
-
-- a generated TypeScript SDK
-- a shared UI package
-- frontend-only utilities
-
-We are **not** creating those packages yet, but the workspace layout avoids a future repo restructure.
-
-### Simplification rule
-
-If the frontend permanently remains a single app with no shared frontend packages, we may simplify later by collapsing the workspace.
-
-That is **not** the accepted structure today.
-
-Today, the accepted decision is to keep:
-
-- `frontend/pnpm-workspace.yaml`
-- `frontend/package.json`
-- `frontend/apps/web/package.json`
-
-## Backend build layout
-
-The backend follows the same general idea, but in Gradle terms.
-
-| Path | Role |
-| --- | --- |
-| `backend/settings.gradle.kts` | Declares the Gradle build root and includes backend subprojects |
-| `backend/build.gradle.kts` | Shared backend build configuration |
-| `backend/apps/api/build.gradle.kts` | API application module build |
-| `backend/apps/worker/build.gradle.kts` | Worker application module build |
-| `backend/modules/*/build.gradle.kts` | Shared feature module builds |
-
-This means:
-
-- `backend/` is the backend build root
-- `backend/apps/*` are deployable applications
-- `backend/modules/*` are reusable shared modules
-
-## Repository layout
+## Final repo layout
 
 ```text
 video-site/
@@ -193,6 +95,7 @@ video-site/
 │  │  ├─ openapi/
 │  │  └─ events/
 │  └─ README.md
+│
 ├─ frontend/
 │  ├─ pnpm-workspace.yaml
 │  ├─ package.json
@@ -203,12 +106,14 @@ video-site/
 │  │     ├─ Dockerfile
 │  │     └─ src/
 │  └─ README.md
+│
 ├─ database/
 │  └─ flyway/
 │     ├─ conf/
 │     ├─ sql/
 │     ├─ callbacks/
 │     └─ README.md
+│
 ├─ infra/
 │  ├─ compose/
 │  ├─ k8s/
@@ -217,11 +122,13 @@ video-site/
 │  │  └─ envoy/
 │  └─ auth/
 │     └─ ory/
+│
 ├─ docs/
 │  ├─ adr/
 │  ├─ domain/
 │  ├─ api/
 │  └─ deployment/
+│
 ├─ scripts/
 ├─ Makefile
 ├─ .env.example
@@ -229,42 +136,52 @@ video-site/
 └─ README.md
 ```
 
-## Responsibilities by area
+---
 
-### `backend/apps/api`
+## Why this structure feels right for this project
 
-Owns:
+### 1. Backend and frontend live in their own worlds
 
-- HTTP API
-- request/response DTOs
-- Spring Security integration
-- synchronous application flows
-- request-driven danmaku endpoints and transport adapters
+I do not want:
 
-Does **not** own:
+- Gradle files at repo root
+- pnpm files at repo root
+- mixed Java and Node setup in the same top-level workspace
 
-- long-running background jobs
-- message consumption loops
-- retry orchestration
-- periodic cleanup or reconciliation jobs
+Keeping `backend/` and `frontend/` separate makes the project easier to reason about.
 
-### `backend/apps/worker`
+When I work on backend stuff, I stay in `backend/`.
 
-Owns:
+When I work on frontend stuff, I stay in `frontend/`.
+
+That is simple and clean.
+
+---
+
+### 2. `worker` is reserved now, not later
+
+`backend/apps/worker` is included from the beginning because it is very likely this project will need it.
+
+Examples:
 
 - AutoMQ consumers
-- background processing
-- retries and dead-letter handling
-- scheduled cleanup, reconciliation, and backfill jobs
-- future async media and danmaku workflows
+- retries
+- cleanup jobs
+- async media tasks
+- danmaku-related background processing
+- reconciliation or backfill tasks
 
-`apps/worker` is reserved **now** as a real application module, even if the initial implementation is minimal.
+I would rather reserve this now than do a repo reshape later.
 
-### `backend/modules/*`
+The worker can start minimal, but it should exist as a real app.
 
-Own reusable domain/application/infrastructure code shared by `api` and `worker`.
+---
 
-These modules are organized **by feature**, not by global technical layer.
+### 3. Shared backend logic should not live inside the API app
+
+If both `api` and `worker` need business logic, that logic should live in `backend/modules/*`, not be trapped inside `backend/apps/api`.
+
+That is why there is a `modules/` directory.
 
 Examples:
 
@@ -272,73 +189,246 @@ Examples:
 - `modules/media`
 - `modules/danmaku`
 
-We explicitly avoid a backend root organized as:
+This is the main thing that keeps the project from turning messy once the worker becomes real.
 
-- `controller/`
-- `service/`
-- `repository/`
-- `entity/`
+---
 
-That style tends to become hard to maintain as the project grows.
+### 4. Flyway should stay truly standalone
 
-### `frontend/apps/web`
+Flyway is **not** owned by Spring Boot in this project.
 
-Owns the TanStack Start web application.
+Migrations live under:
 
-Recommended internal organization:
+```text
+database/flyway/
+```
 
-- `src/routes` for route entry points
-- `src/features` for product/domain UI logic
-- `src/components` for reusable UI
-- `src/lib` for API clients, environment helpers, and utilities
+not inside the Spring app resources.
+
+This is intentional.
+
+The application should depend on the schema being there, but it should **not** be the thing that creates or migrates it during startup.
+
+---
+
+## Frontend workspace: why there are multiple pnpm files
+
+This part is easy to misunderstand, so here is the rule.
+
+The frontend uses a **pnpm workspace layout**, even though there is only one app right now.
+
+That means these files have different roles:
+
+### `frontend/pnpm-workspace.yaml`
+
+This defines the pnpm workspace itself.
+
+It tells pnpm which packages belong to the frontend workspace.
+
+Example:
+
+```yaml
+packages:
+  - apps/*
+```
+
+That tells pnpm that `frontend/apps/web` is part of the workspace.
+
+---
+
+### `frontend/package.json`
+
+This is **not** a second frontend app.
+
+It is just the **workspace root package**.
+
+Its job is to hold:
+
+- frontend-wide scripts
+- lightweight workspace metadata
+- commands I want to run from `frontend/`
+
+For example, this file might contain scripts like:
+
+- `dev`
+- `build`
+- `lint`
+- `typecheck`
+
+This file should stay **thin**.
+
+It should not become a second application and should not duplicate the app’s real dependencies.
+
+---
+
+### `frontend/apps/web/package.json`
+
+This is the **actual web app package**.
+
+This is where the real app dependencies live:
+
+- TanStack Start
+- React
+- app-specific scripts
+- app-specific build config
+
+So the mental model is:
+
+- `frontend/pnpm-workspace.yaml` = defines the workspace
+- `frontend/package.json` = controls the frontend workspace
+- `frontend/apps/web/package.json` = the actual app
+
+---
+
+### Why keep the workspace if there is only one app?
+
+Because there is a good chance I will want one or more of these later:
+
+- generated TypeScript SDK
+- shared UI package
+- frontend utilities shared across packages
+
+I do **not** need to create those now.
+
+But keeping the workspace structure now avoids another restructure later.
+
+If the frontend stays permanently tiny, I can simplify it later.  
+But for now, the workspace stays.
+
+---
+
+## Backend layout
+
+The backend has three levels:
+
+### `backend/apps/api`
+
+This is the synchronous app.
+
+It owns things like:
+
+- HTTP endpoints
+- request/response DTOs
+- Spring Security integration
+- request-driven danmaku endpoints
+- normal application entrypoints
+
+It should **not** become the place for every background or async concern.
+
+---
+
+### `backend/apps/worker`
+
+This is the async/background app.
+
+It owns things like:
+
+- AutoMQ consumers
+- retry flows
+- cleanup jobs
+- scheduled tasks
+- future async media workflows
+- future danmaku background workflows
+
+This app can start small, but it exists on purpose.
+
+---
+
+### `backend/modules/*`
+
+This is where reusable backend logic lives.
+
+The modules are organized by **feature**, not by generic technical folders.
+
+Good examples:
+
+- `modules/auth`
+- `modules/video`
+- `modules/media`
+- `modules/danmaku`
+
+I do **not** want the classic structure like:
+
+```text
+controller/
+service/
+repository/
+entity/
+```
+
+That usually looks simple at first and gets ugly later.
+
+Feature-based modules are a better fit here.
+
+---
+
+## Data access decision
+
+This project uses **Spring JDBC**, not JPA/Hibernate.
+
+That means:
+
+- SQL is written explicitly
+- data access is intentional
+- schema is managed separately through Flyway
+- there is no ORM-driven schema generation
+- domain design should not depend on JPA annotations or JPA lifecycle behavior
+
+This matches the style I want for this project:
+
+- simpler persistence mental model
+- fewer ORM surprises
+- tighter control over SQL and schema
+
+---
 
 ## Database migration policy
 
-Flyway is **standalone** and is **not managed by Spring Boot**.
+Flyway is **standalone**.
 
 Rules:
 
-- SQL migrations live under `database/flyway/`
-- Spring Boot applications must **not** execute Flyway migrations at startup
-- migrations are executed explicitly through Compose, CI, or a Kubernetes Job
+- migrations live in `database/flyway/`
+- Spring Boot must **not** run Flyway automatically at app startup
+- schema changes are executed explicitly
+- Docker Compose / CI / Kubernetes Job can run migrations
+- application code must not auto-manage schema
 
-If Hibernate/JPA is used, schema mutation must remain disabled at runtime. Application startup should validate schema compatibility instead of creating or modifying schema.
-
-Example Spring configuration:
+Example config:
 
 ```yaml
 spring:
   flyway:
     enabled: false
-
-  jpa:
-    hibernate:
-      ddl-auto: validate
 ```
 
-> If JPA/Hibernate is not used for a given module, the equivalent rule still applies: application code must not own schema migration.
+Because this project uses Spring JDBC, schema ownership belongs fully to Flyway.
+
+---
 
 ## Deployment policy
 
-### Docker Compose
+### Docker Compose first
 
-Docker Compose is the first-class local deployment target.
+Docker Compose is the main local deployment target.
 
-Expected services include:
+Expected services:
 
 - postgres
 - redis
 - rustfs
 - automq
-- flyway migration runner
+- flyway runner
 - api
 - worker
 - web
-- LGTM-related services as needed
+- LGTM-related services
 
-### Kubernetes
+---
 
-Kubernetes is a future deployment target and the layout should remain compatible with it.
+### Kubernetes later
+
+Kubernetes is not the first target, but the layout should make that move straightforward.
 
 Expected mapping:
 
@@ -347,68 +437,71 @@ Expected mapping:
 - `web` -> Deployment
 - `flyway` -> Job
 
-## Future additions
+---
 
-The following are planned but do not need to be fully materialized immediately:
+## Future things that are expected, but not urgent
 
-- `infra/gateway/envoy` for Envoy API Gateway
-- `infra/auth/ory` for Ory-based authentication and authorization
+These are likely later additions:
 
-These should be added when implementation starts, rather than creating large empty structures too early.
+- `infra/gateway/envoy`
+- `infra/auth/ory`
 
-If the frontend later needs shared packages, they should be added under `frontend/packages/`, but that directory does **not** need to exist before there is an actual package to place there.
+They are part of the long-term direction, but I do not need to overbuild them right now.
 
-## Rationale
+Also, if I later need shared frontend packages, they should go under:
 
-This structure was chosen because it gives us:
+```text
+frontend/packages/
+```
 
-1. clear separation between backend and frontend tooling
-2. a clean repository root without mixed ecosystem build files
-3. standalone, explicit database migration ownership
-4. a reserved worker runtime without forcing microservices too early
-5. reusable backend feature modules shared between API and worker
-6. a clear and intentional pnpm workspace layout
-7. a straightforward path from local Compose to future Kubernetes deployment
-8. enough realism for practice without unnecessary operational complexity
+But I do not need to create that folder until there is a real package to put there.
 
-## Consequences
+---
 
-### Positive
+## Things I am deliberately not doing
 
-- tooling boundaries are easy to understand
-- backend shared code stays in one place
-- async workloads have a proper home from day one
-- Flyway ownership is explicit and operationally clean
-- the frontend workspace is ready for future shared packages
-- the meaning of root vs app-level pnpm files is explicit
+Right now, I am **not** doing these things:
 
-### Negative
+- splitting into microservices
+- putting Gradle files in the repo root
+- putting pnpm files in the repo root
+- letting Spring Boot own Flyway migrations
+- using JPA/Hibernate
+- creating a huge number of empty future-only modules
+- treating `frontend/package.json` as another app
 
-- the repository has slightly more nesting than a flat root-level monorepo
-- the frontend has both a workspace root manifest and an app manifest, which must be understood correctly
-- shared contracts and generated SDKs require deliberate coordination across `backend/` and `frontend/`
-- Docker build contexts must be configured carefully because the build roots are not at the repository root
+This project is supposed to be realistic, not overengineered.
 
-## Non-goals
+---
 
-At this stage, we are **not**:
+## Why this is a good fit for a solo practice project
 
-- splitting the backend into multiple microservices
-- allowing Spring Boot to own schema migrations
-- putting Gradle or pnpm control files at the repository root
-- treating `frontend/package.json` as a second frontend app
-- creating large empty future-only modules unless there is a near-term implementation reason
+This structure gives me:
 
-## Implementation notes
+- realistic separation of concerns
+- room for async/backend growth
+- explicit DB migration ownership
+- clear frontend/backend boundaries
+- a clean repo root
+- a place for future infrastructure without forcing it too early
 
-- Start with `backend/apps/api`, `backend/apps/worker`, and `frontend/apps/web`
-- Keep `apps/worker` minimal at first, but present
-- Keep Flyway configuration and SQL migrations under `database/flyway`
-- Keep `frontend/package.json` thin and workspace-oriented
-- Put actual web-app dependencies in `frontend/apps/web/package.json`
-- Add `frontend/packages/*` only when a real shared frontend package exists
-- Keep the repo root focused on project-level documentation and orchestration only
+It is more structured than a tiny demo repo, but still much simpler than a full-blown microservice platform.
 
-## Status summary
+That is exactly the balance I want.
 
-This decision is accepted and will be used as the baseline repository structure for the project.
+---
+
+## Final summary
+
+This repository will use:
+
+- a **split-root monorepo**
+- a **Gradle-rooted backend** under `backend/`
+- a **pnpm-rooted frontend workspace** under `frontend/`
+- a **standalone Flyway setup** under `database/flyway/`
+- a **modular backend** with:
+  - `backend/apps/api`
+  - `backend/apps/worker`
+  - `backend/modules/*`
+
+This is the baseline structure for the project unless there is a strong reason to change it later.
