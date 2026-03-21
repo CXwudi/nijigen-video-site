@@ -14,13 +14,15 @@ This project is a one-person practice project, but the stack is intentionally re
 - Redis
 - RustFS
 - Flyway
-- AutoMQ
+- Apache Pulsar
 - LGTM stack
 - TanStack Start + React
 
-Even though the feature scope is reduced, I still want the project structure to feel like a real production-shaped system.
+Even though the feature scope is reduced, I still want the project
+structure to feel like a real production-shaped system.
 
-This document records the repo structure decision so I do not keep rethinking it later.
+This document records the repo structure decision so I do not keep
+rethinking it later.
 
 ---
 
@@ -160,11 +162,12 @@ That is simple and clean.
 
 ### 2. `worker` is reserved now, not later
 
-`backend/apps/worker` is included from the beginning because it is very likely this project will need it.
+`backend/apps/worker` is included from the beginning because it is very
+likely this project will need it.
 
 Examples:
 
-- AutoMQ consumers
+- Apache Pulsar consumers
 - retries
 - cleanup jobs
 - async media tasks
@@ -179,7 +182,8 @@ The worker can start minimal, but it should exist as a real app.
 
 ### 3. Shared backend logic should not live inside the API app
 
-If both `api` and `worker` need business logic, that logic should live in `backend/modules/*`, not be trapped inside `backend/apps/api`.
+If both `api` and `worker` need business logic, that logic should live
+in `backend/modules/*`, not be trapped inside `backend/apps/api`.
 
 That is why there is a `modules/` directory.
 
@@ -189,7 +193,8 @@ Examples:
 - `modules/media`
 - `modules/danmaku`
 
-This is the main thing that keeps the project from turning messy once the worker becomes real.
+This is the main thing that keeps the project from turning messy once
+the worker becomes real.
 
 ---
 
@@ -207,7 +212,8 @@ not inside the Spring app resources.
 
 This is intentional.
 
-The application should depend on the schema being there, but it should **not** be the thing that creates or migrates it during startup.
+The application should depend on the schema being there, but it should
+**not** be the thing that creates or migrates it during startup.
 
 ---
 
@@ -215,7 +221,8 @@ The application should depend on the schema being there, but it should **not** b
 
 This part is easy to misunderstand, so here is the rule.
 
-The frontend uses a **pnpm workspace layout**, even though there is only one app right now.
+The frontend uses a **pnpm workspace layout**, even though there is only
+one app right now.
 
 That means these files have different roles:
 
@@ -257,7 +264,8 @@ For example, this file might contain scripts like:
 
 This file should stay **thin**.
 
-It should not become a second application and should not duplicate the app’s real dependencies.
+It should not become a second application and should not duplicate the
+app’s real dependencies.
 
 ---
 
@@ -323,7 +331,7 @@ This is the async/background app.
 
 It owns things like:
 
-- AutoMQ consumers
+- Apache Pulsar consumers
 - retry flows
 - cleanup jobs
 - scheduled tasks
@@ -446,7 +454,8 @@ These are likely later additions:
 - `infra/gateway/envoy`
 - `infra/auth/ory`
 
-They are part of the long-term direction, but I do not need to overbuild them right now.
+They are part of the long-term direction, but I do not need to
+overbuild them right now.
 
 Also, if I later need shared frontend packages, they should go under:
 
@@ -485,7 +494,8 @@ This structure gives me:
 - a clean repo root
 - a place for future infrastructure without forcing it too early
 
-It is more structured than a tiny demo repo, but still much simpler than a full-blown microservice platform.
+It is more structured than a tiny demo repo, but still much simpler than
+a full-blown microservice platform.
 
 That is exactly the balance I want.
 
@@ -504,4 +514,5 @@ This repository will use:
   - `backend/apps/worker`
   - `backend/modules/*`
 
-This is the baseline structure for the project unless there is a strong reason to change it later.
+This is the baseline structure for the project unless there is a strong
+reason to change it later.
