@@ -3,9 +3,17 @@
     {
       "name": "root",
       "path": "."
+    },
+    {
+      "name": "docs",
+      "path": "docs"
+    },
+    {
+      "name": "backend",
+      "path": "backend"
     }
   ],
   "settings": {
-    "terminal.integrated.cwd": "${workspaceFolder:root}"
+    // "terminal.integrated.cwd": "${workspaceFolder:root}" // set to whatever the project we are opening for now
   }
 }
