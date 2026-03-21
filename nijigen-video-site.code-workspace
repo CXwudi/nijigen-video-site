@@ -1,11 +1,11 @@
 {
   "folders": [
     {
-      "name": "project-root",
+      "name": "root",
       "path": "."
     }
   ],
   "settings": {
-    "terminal.integrated.cwd": "${workspaceFolder:project-root}"
+    "terminal.integrated.cwd": "${workspaceFolder:root}"
   }
 }
