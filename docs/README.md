@@ -4,4 +4,5 @@ This is the common documentation for both Human and AI agents.
 
 ## Structure
 
-TBD
+- `adr/`: architecture decision records
+- `dev/`: development environment and contributor tooling guides
