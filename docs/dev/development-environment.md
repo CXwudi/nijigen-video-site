@@ -1,14 +1,11 @@
 # Development Environment
 
-This document describes the local development tooling for `nijigen-video-site`.
+Before any development work, make sure to have:
 
-## Official tool manager
+1. mise
+2. docker
 
-We use [`mise`](https://mise.jdx.dev/) as the official development tool manager for this repository.
-
-The repo-local tool configuration lives in [`/.mise.toml`](../../.mise.toml). See that file for the exact tools and versions installed for this repository.
-
-Using `mise` keeps the development environment reproducible across machines and CI-like environments that support it.
+`mise` manages almost all tools needed for development, see [`.mise.toml`](../../.mise.toml) for the complete list.
 
 ## Getting started
 

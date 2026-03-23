@@ -1,7 +1,7 @@
 # Development Docs
 
-This folder contains documentation for the local development environment and contributor tooling.
+This folder contains documentation for developer.
 
 ## Files
 
-- `development-environment.md`: setup and usage guidance for the repository toolchain managed through `mise`.
+- `development-environment.md`: guides for setting up the development environment.
