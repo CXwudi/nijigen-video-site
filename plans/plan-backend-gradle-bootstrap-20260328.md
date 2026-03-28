@@ -202,17 +202,17 @@ and declarative.
 
 Task 2
 
-- [ ] **Step 1:** Implement `my.jvm-common` to apply Java and Kotlin JVM,
+- [x] **Step 1:** Implement `my.jvm-common` to apply Java and Kotlin JVM,
   configure Java 25 toolchains, enable `-parameters`, apply shared Kotlin
   compiler flags, and add baseline test dependencies such as JUnit and MockK.
-- [ ] **Step 2:** Implement `my.lib` to apply `my.jvm-common`, add
+- [x] **Step 2:** Implement `my.lib` to apply `my.jvm-common`, add
   `java-library` conventions such as `withSourcesJar()`, and keep any
   library-specific dependency wiring focused on reusable modules.
-- [ ] **Step 3:** Implement `my.spring-app` to apply `my.jvm-common`, apply the
+- [x] **Step 3:** Implement `my.spring-app` to apply `my.jvm-common`, apply the
   Spring Boot and GraalVM plugins, avoid the Spring dependency-management
   plugin, and instead attach the Spring BOM to the `implementation` and
   `annotationProcessor` configurations.
-- [ ] **Step 4:** Keep plugin scripts dependent on generated version-catalog
+- [x] **Step 4:** Keep plugin scripts dependent on generated version-catalog
   constants instead of attempting to read the TOML file directly from the
   precompiled script layer.
 
