@@ -1,4 +1,4 @@
-# Development Environment
+# Environment Setup
 
 Before any development work, make sure to have:
 
@@ -6,7 +6,7 @@ Before any development work, make sure to have:
 2. docker
 
 `mise` manages almost all tools needed for development, see
-[`.mise.toml`](../../.mise.toml) for the complete list.
+[`.mise.toml`](../.mise.toml) for the complete list.
 
 ## Getting started
 
