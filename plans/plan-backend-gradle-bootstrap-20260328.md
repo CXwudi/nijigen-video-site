@@ -158,18 +158,18 @@ plugins and the generated version-catalog access layer.
 
 Task 1
 
-- [ ] **Step 1:** Configure `backend/gradle/plugins/settings.gradle.kts` to
+- [x] **Step 1:** Configure `backend/gradle/plugins/settings.gradle.kts` to
   import `../libs.versions.toml` as a `libs` catalog and auto-include the
   plugin submodules that belong to this internal build.
-- [ ] **Step 2:** Create `version-catalog/build.gradle.kts` using
+- [x] **Step 2:** Create `version-catalog/build.gradle.kts` using
   `embedded-kotlin` and `com.github.gmazzo.buildconfig`, following the
   `realworld-cmp-decompose-mvikotlin-app` pattern so generated Kotlin objects
   expose selected versions, libraries, and BOM coordinates to other plugin
   modules.
-- [ ] **Step 3:** Create `backend/build.gradle.kts` with `kotlin-dsl` and
+- [x] **Step 3:** Create `backend/build.gradle.kts` with `kotlin-dsl` and
   dependencies on `:version-catalog` plus the plugin artifacts needed to apply
   Kotlin, Spring Boot, and GraalVM from precompiled script plugins.
-- [ ] **Step 4:** Create the settings plugin module with `kotlin-dsl` and
+- [x] **Step 4:** Create the settings plugin module with `kotlin-dsl` and
   dependencies on the Develocity and Foojay resolver plugin artifacts, then add
   the precompiled `*.settings.gradle.kts` script that applies them.
 

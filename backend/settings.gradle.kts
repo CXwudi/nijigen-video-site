@@ -4,9 +4,11 @@ pluginManagement {
     mavenCentral()
   }
 
-  // The root build is shaped around an internal composite build, but we defer
-  // enabling it until Task 2 creates the actual plugin build under gradle/plugins.
-  // includeBuild("gradle/plugins")
+  includeBuild("gradle/plugins")
+}
+
+plugins {
+  id("my.root-settings-plugins")
 }
 
 dependencyResolutionManagement {
@@ -20,6 +22,16 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "nijigen-video-site-backend"
+
+develocity {
+  buildScan {
+    termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+    termsOfUseAgree = "yes"
+    publishing.onlyIf {
+      System.getenv("CI") != null
+    }
+  }
+}
 
 include("apps:api")
 include("modules:common")
