@@ -248,15 +248,15 @@ is usable beyond the plugin build itself.
 
 Task 3
 
-- [ ] **Step 1:** Add `backend/apps/api` and `backend/modules/common` to the
+- [x] **Step 1:** Add `backend/apps/api` and `backend/modules/common` to the
   root settings include list using the desired project path style.
-- [ ] **Step 2:** Configure `apps/api/build.gradle.kts` to apply
+- [x] **Step 2:** Configure `apps/api/build.gradle.kts` to apply
   `my.spring-app`, depend on `:modules:common`, and declare only module-local
   dependencies that are truly specific to the API runtime.
-- [ ] **Step 3:** Configure `modules/common/build.gradle.kts` to apply
+- [x] **Step 3:** Configure `modules/common/build.gradle.kts` to apply
   `my.lib`, add the Spring BOM to `implementation` as requested by issue #2,
   and keep it ready for shared domain or infrastructure helpers.
-- [ ] **Step 4:** Keep these modules as Gradle skeletons only for now, which
+- [x] **Step 4:** Keep these modules as Gradle skeletons only for now, which
   means creating the module directories and build files without adding
   placeholder runtime source code yet.
 
