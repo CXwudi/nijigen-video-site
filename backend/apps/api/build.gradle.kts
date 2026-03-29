@@ -6,12 +6,6 @@ application {
   mainClass = "io.github.cxwudi.nijigenvideosite.apps.api.ApiAppKt"
 }
 
-configurations {
-  compileOnly {
-    extendsFrom(configurations.annotationProcessor.get())
-  }
-}
-
 dependencies {
   implementation(project(":modules:common"))
   implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -27,6 +21,7 @@ dependencies {
   implementation("tools.jackson.module:jackson-module-kotlin")
   implementation(libs.dep.springdocOpenapiStarterWebmvcUi)
 
+  compileOnly("org.springframework.boot:spring-boot-configuration-processor")
   runtimeOnly("org.postgresql:postgresql")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

@@ -23,5 +23,6 @@ tasks.named<CreateStartScripts>("startScripts") {
 
 dependencies {
   implementation(platform(Libs.SpringBootBom))
+  compileOnly(platform(Libs.SpringBootBom))
   annotationProcessor(platform(Libs.SpringBootBom))
 }
