@@ -18,7 +18,6 @@ buildConfig {
   forClass(packageName = "my.catalog", className = "Libs") {
     buildConfigStringField("SpringBootBom", libs.bom.springBoot)
     buildConfigStringField("JunitBom", libs.bom.junit)
-    buildConfigStringField("JunitJupiter", libs.dep.junitJupiter)
     buildConfigStringField("Mockk", libs.dep.mockk)
   }
 }

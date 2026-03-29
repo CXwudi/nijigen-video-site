@@ -4,6 +4,7 @@ import org.gradle.jvm.application.tasks.CreateStartScripts
 plugins {
   id("my.jvm-common")
   application
+  kotlin("plugin.spring")
   id("org.springframework.boot")
   id("org.graalvm.buildtools.native")
 }
