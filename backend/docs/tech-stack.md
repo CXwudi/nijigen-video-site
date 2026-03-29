@@ -7,6 +7,9 @@ This document lists the current committed backend stack.
 - Java `25` (GraalVM)
 - [Kotlin](https://kotlinlang.org/docs/home.html)
 - [Spring Boot](https://docs.spring.io/spring-boot/reference/)
+  - For AI Agents: be aware that we are on Spring Boot `4.x`. Many things you
+    used to know are not applicable anymore. Make sure to always check the
+    latest documentation.
 
 ## Build and Dependency Management
 
