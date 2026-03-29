@@ -1,2 +1,6 @@
 .gemini/
 gha-creds-*.json
+.codex
+
+spec/
+plans/
