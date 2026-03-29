@@ -1,0 +1,29 @@
+[versions]
+# Add a version here only when it is reused in more than one place.
+# Keep single-use versions inline in the entry itself for clarity.
+kotlin = "2.3.20"
+spring-boot = "4.0.5"
+graalvm-native = "1.0.0"
+develocity = "4.4.0"
+foojay-resolver = "1.0.0"
+
+[libraries]
+bom-springBoot = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+bom-junit = "org.junit:junit-bom:6.0.3"
+dep-junitJupiter = { module = "org.junit.jupiter:junit-jupiter" }
+dep-mockk = "io.mockk:mockk:1.14.9"
+
+pluginDep-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+pluginDep-springBoot = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+pluginDep-graalvmNative = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "graalvm-native" }
+
+settingDep-develocity = { module = "com.gradle.develocity:com.gradle.develocity.gradle.plugin", version.ref = "develocity" }
+settingDep-foojayResolver = { module = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin", version.ref = "foojay-resolver" }
+
+[plugins]
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+springBoot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+graalvmNative = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-native" }
+develocity = { id = "com.gradle.develocity", version.ref = "develocity" }
+foojayResolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver" }
+buildConfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
