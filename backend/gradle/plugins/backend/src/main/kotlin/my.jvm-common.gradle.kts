@@ -24,7 +24,7 @@ tasks.withType<JavaCompile>().configureEach {
 kotlin {
   compilerOptions {
     javaParameters = true
-    freeCompilerArgs.set(freeCompilerArgs.get() + listOf("-Xjsr305=strict"))
+    freeCompilerArgs.addAll("-Xjsr305=strict")
   }
 }
 
