@@ -1,4 +1,6 @@
 [versions]
+# Add a version here only when it is reused in more than one place.
+# Keep single-use versions inline in the entry itself for clarity.
 kotlin = "2.3.20"
 spring-boot = "4.0.5"
 graalvm-native = "1.0.0"
