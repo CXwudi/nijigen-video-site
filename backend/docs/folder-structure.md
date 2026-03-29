@@ -89,4 +89,4 @@ Currently implemented:
 
 ## Notes
 
-More modules will likely be added in the near future
+More modules will likely be added in the near future.
