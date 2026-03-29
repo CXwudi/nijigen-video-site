@@ -49,7 +49,7 @@ Holds backend runtime entrypoint modules.
 
 Currently implemented:
 
-- `api/`
+- `api/` request/response Spring Boot application for the backend HTTP API
 
 ### `docs/`
 
@@ -61,12 +61,9 @@ Holds shared Gradle assets for the backend workspace.
 
 Inside `gradle/`:
 
-- `libs.versions.toml`
-  shared version catalog
-- `plugins/`
-  internal Gradle plugin build
-- `wrapper/`
-  Gradle wrapper distribution files
+- `libs.versions.toml` shared version catalog
+- `plugins/` internal Gradle plugin build
+- `wrapper/` Gradle wrapper distribution files
 
 ### `modules/`
 
@@ -78,14 +75,10 @@ Currently implemented:
 
 ### Root-Level Gradle Files
 
-- `gradlew` and `gradlew.bat`
-  backend Gradle wrapper scripts
-- `settings.gradle.kts`
-  root Gradle settings file
-- `build.gradle.kts`
-  root Gradle build file
-- `gradle.properties`
-  backend-wide Gradle properties file
+- `gradlew` and `gradlew.bat` backend Gradle wrapper scripts
+- `settings.gradle.kts` root Gradle settings file
+- `build.gradle.kts` root Gradle build file
+- `gradle.properties` backend-wide Gradle properties file
 
 ## Notes
 

@@ -21,6 +21,8 @@ The backend root is intentionally thin:
 - plugin coordinates
 
 The catalog is shared by the main backend build and the internal plugin build.
+When a BOM is cataloged, it becomes the source of truth for the versions it
+manages, so those libraries should not also get individual catalog entries.
 
 ## Internal Plugin Build
 
@@ -29,8 +31,9 @@ The backend uses an included build at `gradle/plugins/` for shared Gradle logic.
 That internal build contains:
 
 - `version-catalog/` generates Kotlin constants under `my.catalog` so
-  precompiled script plugins can consume catalog values from the TOML
-  file. This is a workaround for [gradle/gradle#15383](https://github.com/gradle/gradle/issues/15383)
+  precompiled script plugins can consume catalog values from the TOML file. This
+  is a workaround for
+  [gradle/gradle#15383](https://github.com/gradle/gradle/issues/15383)
 - `backend/` contains the backend convention plugins used by backend modules
 - `settings/` contains the backend settings plugin used by the root settings
   file
@@ -43,12 +46,18 @@ The current backend convention plugins are:
   test setup
 - `my.lib` reusable library-module conventions layered on top of `my.jvm-common`
 - `my.spring-app` application-module conventions layered on top of
-  `my.jvm-common`, plus Spring Boot and GraalVM native support
+  `my.jvm-common`, plus the Kotlin Spring plugin, Spring Boot, GraalVM native
+  support, and the Spring BOM
 
 The backend settings plugin is:
 
 - `my.root-settings-plugins` wraps the Develocity and Foojay settings plugins
   for backend settings
+
+In the current backend workspace:
+
+- modules under `apps/` use `my.spring-app`
+- reusable modules under `modules/` use `my.lib`
 
 ## Build Environment
 
