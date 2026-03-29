@@ -1,0 +1,12 @@
+[tools]
+# We mostly use floating version unless there is a specific reason to pin the version.
+
+# Essential
+just = "latest"
+
+# Backend
+java = "lts" # This is only needed for running Gradle itself. For building, Gradle java toolchain is configured to use graalvm to build native image
+
+# Frontend
+node = "lts"
+pnpm = "latest"
