@@ -8,12 +8,16 @@ develocity = "4.4.0"
 foojay-resolver = "1.0.0"
 
 [libraries]
+# When a BOM is listed here, it becomes the version source of truth for the
+# libraries it manages. Do not add separate catalog entries for BOM-managed
+# libraries unless they intentionally need to live outside that BOM.
 bom-springBoot = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 bom-junit = "org.junit:junit-bom:6.0.3"
-dep-junitJupiter = { module = "org.junit.jupiter:junit-jupiter" }
 dep-mockk = "io.mockk:mockk:1.14.9"
+dep-springdocOpenapiStarterWebmvcUi = "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2"
 
 pluginDep-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+pluginDep-kotlinSpring = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
 pluginDep-springBoot = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 pluginDep-graalvmNative = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "graalvm-native" }
 

@@ -4,6 +4,7 @@ import org.gradle.jvm.application.tasks.CreateStartScripts
 plugins {
   id("my.jvm-common")
   application
+  kotlin("plugin.spring")
   id("org.springframework.boot")
   id("org.graalvm.buildtools.native")
 }
@@ -22,5 +23,6 @@ tasks.named<CreateStartScripts>("startScripts") {
 
 dependencies {
   implementation(platform(Libs.SpringBootBom))
+  compileOnly(platform(Libs.SpringBootBom))
   annotationProcessor(platform(Libs.SpringBootBom))
 }

@@ -34,6 +34,6 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
   testImplementation(platform(Libs.JunitBom))
-  testImplementation(Libs.JunitJupiter)
+  testImplementation("org.junit.jupiter:junit-jupiter")
   testImplementation(Libs.Mockk)
 }
