@@ -1,10 +1,14 @@
 # Documentation
 
-This folder is the entry point for all documentation. All AI agents and humans
+This is the entry point for all documentation. All AI agents and humans
 shall share the same documentation.
 
 Updates to documentation should be made in a way that benefits both AI agents
 and humans.
+
+This folder is the documentation for the entire repository,
+for frontend, backend, and infrastructure specific documentation,
+please refer to the respective folders.
 
 ## Structure
 
