@@ -27,6 +27,7 @@ settingDep-foojayResolver = { module = "org.gradle.toolchains.foojay-resolver-co
 [plugins]
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 springBoot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+kotlinSpring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 graalvmNative = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-native" }
 develocity = { id = "com.gradle.develocity", version.ref = "develocity" }
 foojayResolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver" }
