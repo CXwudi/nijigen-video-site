@@ -12,12 +12,12 @@ please refer to the respective folders.
 
 ## Structure
 
-- [`adr/`](adr/): architecture decisions that affect the repository or major
+- [`ADR`](adr/): architecture decisions that affect the repository or major
   boundaries across backend, frontend, and infra.
   > Note that they shall not be used as documentation,
   > but they are kept for recording our design decisions and rationale.
   > They may be outdated as the project evolves.
-- [`environment-setup.md`](environment-setup.md): shared development environment setup for working in
+- [`Environment Setup`](environment-setup.md): shared development environment setup for working in
   this repository
 - [`../backend/docs/`](../backend/docs/): backend-specific documentations
 - [`../frontend/docs/`](../frontend/docs/): frontend-specific documentations
