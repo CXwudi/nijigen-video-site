@@ -91,8 +91,8 @@ established in `docs/README.md`.
 ## Decision Constraints
 
 This spec supersedes the earlier Task 5 wording in
-`plans/plan-backend-gradle-bootstrap-20260328.md` where the documentation work
-was framed primarily as updating `backend/README.md`.
+`ref/plans/plan-backend-gradle-bootstrap-20260328.md` where the documentation
+work was framed primarily as updating `backend/README.md`.
 
 The approved Task 5 direction is now:
 
@@ -168,29 +168,29 @@ The resulting documentation should be considered successful if:
 
 ## References
 
-- ![plans/plan-backend-gradle-bootstrap-20260328.md](../plans/plan-backend-gradle-bootstrap-20260328.md)
+- [plans/plan-backend-gradle-bootstrap-20260328.md](../plans/plan-backend-gradle-bootstrap-20260328.md)
   Implementation plan that defines Task 5 as the backend documentation follow-up
   to the Gradle bootstrap work. Important.
-- ![adr/0001-project-structure-baseline.md](../adr/0001-project-structure-baseline.md)
+- [adr/0001-project-structure-baseline.md](../adr/0001-project-structure-baseline.md)
   Accepted ADR describing the split-root monorepo and the intended high-level
   backend structure; its documentation tree example is older than the current
   docs layout. Important.
-- ![docs/README.md](../../docs/README.md) Root documentation index that routes
+- [docs/README.md](../../docs/README.md) Root documentation index that routes
   readers to backend-specific documentation. Must Read.
-- ![backend/docs/README.md](../../backend/docs/README.md) Existing backend docs
+- [backend/docs/README.md](../../backend/docs/README.md) Existing backend docs
   landing page that should become the index for the new backend documents. Must
   Read.
-- ![backend/README.md](../../backend/README.md) Backend landing page that should
+- [backend/README.md](../../backend/README.md) Backend landing page that should
   stay short and act as a navigation entry point. Must Read.
-- ![backend/settings.gradle.kts](../../backend/settings.gradle.kts) Current
+- [backend/settings.gradle.kts](../../backend/settings.gradle.kts) Current
   backend module declarations and included plugin build that the
   folder-structure doc should reflect accurately. Important.
-- ![backend/gradle/libs.versions.toml](../../backend/gradle/libs.versions.toml)
+- [backend/gradle/libs.versions.toml](../../backend/gradle/libs.versions.toml)
   Current backend stack and version catalog source of truth that the tech-stack
   doc should describe. Important.
-- ![backend/apps/api/build.gradle.kts](../../backend/apps/api/build.gradle.kts)
+- [backend/apps/api/build.gradle.kts](../../backend/apps/api/build.gradle.kts)
   Current API module skeleton showing the first application module and its
   dependency on `modules:common`. Important.
-- ![backend/modules/common/build.gradle.kts](../../backend/modules/common/build.gradle.kts)
+- [backend/modules/common/build.gradle.kts](../../backend/modules/common/build.gradle.kts)
   Current shared module skeleton showing the initial reusable backend module.
   Important.
