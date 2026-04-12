@@ -1,0 +1,13 @@
+*
+!backend/
+!backend/**
+
+# Keep the repo-root build context focused on the backend workspace used by the
+# shared JVM and native image targets.
+backend/.gradle/
+backend/.kotlin/
+backend/**/build/
+backend/**/out/
+backend/**/.idea/
+backend/**/.vscode/
+backend/**/*.iml
