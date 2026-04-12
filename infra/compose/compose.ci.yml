@@ -1,0 +1,63 @@
+# CI and local verification Docker Compose configuration
+# requires `compose.base.yml`
+
+services:
+  backend-verify-jvm:
+    build:
+      context: ../..
+      dockerfile: backend/apps/api/Dockerfile
+      target: jvm-gradle
+    command:
+      - :apps:api:testClasses
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      SPRING_APPLICATION_NAME: ${API_APPLICATION_NAME:-apps-api}
+      SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    networks:
+      - app
+    restart: "no"
+    volumes:
+      - gradle-verify-cache:/root/.gradle
+
+  backend-verify-native:
+    build:
+      context: ../..
+      dockerfile: backend/apps/api/Dockerfile
+      target: native-build
+    command:
+      - :apps:api:nativeTest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      SPRING_APPLICATION_NAME: ${API_APPLICATION_NAME:-apps-api}
+      SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    networks:
+      - app
+    restart: "no"
+    volumes:
+      - gradle-verify-cache:/root/.gradle
+
+volumes:
+  gradle-verify-cache:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-gradle-verify-cache

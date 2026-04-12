@@ -1,0 +1,99 @@
+# Base Docker Compose configuration for nijigen-video-site
+
+name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
+
+x-api-env: &api-env
+  SPRING_APPLICATION_NAME: ${API_APPLICATION_NAME:-apps-api}
+  SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+  SPRING_DATA_REDIS_HOST: redis
+  SPRING_DATA_REDIS_PORT: "6379"
+
+x-flyway-env: &flyway-env
+  FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+  FLYWAY_USER: ${POSTGRES_USER}
+  FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+  FLYWAY_CONNECT_RETRIES: "60"
+  FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: backend/apps/api/Dockerfile
+      target: jvm-runtime
+    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      <<: *api-env
+    networks:
+      - app
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17
+    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    networks:
+      - app
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:8
+    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    networks:
+      - app
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  flyway:
+    image: flyway/flyway:11
+    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-flyway
+    command: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *flyway-env
+    networks:
+      - app
+    restart: "no"
+    volumes:
+      - ../flyway/sql/baseline:/flyway/sql/baseline:ro
+
+networks:
+  app:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-app
+
+volumes:
+  postgres-data:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres-data
+  redis-data:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis-data

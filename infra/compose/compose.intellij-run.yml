@@ -1,0 +1,7 @@
+# Intellij Run specific Docker Compose configuration
+# requires `compose.base.yml` and `compose.local.yml`
+
+services:
+  api:
+    command:
+      - exec sleep infinity

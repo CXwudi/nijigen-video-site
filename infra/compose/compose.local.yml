@@ -1,0 +1,36 @@
+# Local development Docker Compose configuration
+# requires `compose.base.yml`
+
+services:
+  api:
+    build:
+      target: jvm-dev
+    entrypoint:
+      - bash
+      - -lc
+    command:
+      - ./gradlew --no-daemon :apps:api:installDist && export JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" && exec apps/api/build/install/api/api
+    ports:
+      - ${API_HTTP_PORT:-8080}:8080
+      - ${API_DEBUG_PORT:-5005}:5005
+    volumes:
+      - ../../backend:/workspace/backend
+      - gradle-cache:/root/.gradle
+
+  postgres:
+    ports:
+      - ${POSTGRES_HOST_PORT:-5432}:5432
+
+  redis:
+    ports:
+      - ${REDIS_HOST_PORT:-6379}:6379
+
+  flyway:
+    environment:
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline,filesystem:/flyway/sql/local
+    volumes:
+      - ../flyway/sql/local:/flyway/sql/local:ro
+
+volumes:
+  gradle-cache:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-gradle-cache

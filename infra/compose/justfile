@@ -1,0 +1,125 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+compose_dir := justfile_directory()
+
+local-up:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.local.yml \
+    up --build -d api
+
+local-down:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.local.yml \
+    down --remove-orphans
+
+fallback-up:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.local.yml \
+    up -d postgres redis flyway
+
+fallback-down:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.local.yml \
+    down --remove-orphans
+
+prod-up:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.prod.yml \
+    up --build -d api
+
+prod-down:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.prod.yml \
+    down --remove-orphans
+
+config-local:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.local.yml \
+    config
+
+config-ci:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.ci.yml \
+    config
+
+config-prod:
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.prod.yml \
+    config
+
+verify-jvm:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cleanup() {
+    docker compose \
+      --env-file {{compose_dir}}/.env \
+      -f {{compose_dir}}/compose.base.yml \
+      -f {{compose_dir}}/compose.ci.yml \
+      down --remove-orphans
+  }
+  trap cleanup EXIT
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.ci.yml \
+    run --build --rm backend-verify-jvm
+
+verify-native-test:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cleanup() {
+    docker compose \
+      --env-file {{compose_dir}}/.env \
+      -f {{compose_dir}}/compose.base.yml \
+      -f {{compose_dir}}/compose.ci.yml \
+      down --remove-orphans
+  }
+  trap cleanup EXIT
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.ci.yml \
+    run --build --rm backend-verify-native :apps:api:nativeTest
+
+verify-native-compile:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cleanup() {
+    docker compose \
+      --env-file {{compose_dir}}/.env \
+      -f {{compose_dir}}/compose.base.yml \
+      -f {{compose_dir}}/compose.ci.yml \
+      down --remove-orphans
+  }
+  trap cleanup EXIT
+  docker compose \
+    --env-file {{compose_dir}}/.env \
+    -f {{compose_dir}}/compose.base.yml \
+    -f {{compose_dir}}/compose.ci.yml \
+    run --build --rm backend-verify-native :apps:api:nativeCompile
+
+verify-native:
+  just --justfile {{compose_dir}}/justfile verify-native-test
+  just --justfile {{compose_dir}}/justfile verify-native-compile
+
+verify-all:
+  just --justfile {{compose_dir}}/justfile verify-jvm
+  just --justfile {{compose_dir}}/justfile verify-native

@@ -1,0 +1,7 @@
+# Production Docker Compose configuration
+# requires `compose.base.yml`
+
+services:
+  api:
+    build:
+      target: ${API_PROD_RUNTIME_TARGET:-native-runtime}

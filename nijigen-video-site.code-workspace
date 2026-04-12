@@ -19,6 +19,10 @@
     {
       "name": "frontend",
       "path": "frontend"
+    },
+    {
+      "name": "infra",
+      "path": "infra"
     }
   ],
   "settings": {
