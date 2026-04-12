@@ -1,0 +1,111 @@
+name: 'Backend Verify'
+
+on:
+  pull_request:
+    paths:
+      - '.dockerignore'
+      - '.github/workflows/backend-verify.yml'
+      - 'backend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+  push:
+    paths:
+      - '.dockerignore'
+      - '.github/workflows/backend-verify.yml'
+      - 'backend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  verify-jvm:
+    name: 'Verify JVM Compile Health'
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 20
+    permissions:
+      contents: 'read'
+    steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v6'
+
+      - name: 'Prepare Compose env file'
+        run: 'cp infra/compose/.env.example infra/compose/.env'
+
+      - name: 'Render CI Compose stack'
+        run: |-
+          docker compose \
+            --env-file infra/compose/.env \
+            -f infra/compose/compose.base.yml \
+            -f infra/compose/compose.ci.yml \
+            config
+
+      - name: 'Run JVM verification lane'
+        run: |-
+          docker compose \
+            --env-file infra/compose/.env \
+            -f infra/compose/compose.base.yml \
+            -f infra/compose/compose.ci.yml \
+            run --build --rm backend-verify-jvm
+
+      - name: 'Tear down CI Compose stack'
+        if: ${{ always() }}
+        run: |-
+          docker compose \
+            --env-file infra/compose/.env \
+            -f infra/compose/compose.base.yml \
+            -f infra/compose/compose.ci.yml \
+            down --remove-orphans
+
+  verify-native:
+    name: 'Verify Native Build And Tests'
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 60
+    permissions:
+      contents: 'read'
+    steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v6'
+
+      - name: 'Prepare Compose env file'
+        run: 'cp infra/compose/.env.example infra/compose/.env'
+
+      - name: 'Render CI Compose stack'
+        run: |-
+          docker compose \
+            --env-file infra/compose/.env \
+            -f infra/compose/compose.base.yml \
+            -f infra/compose/compose.ci.yml \
+            config
+
+      - name: 'Run native test lane'
+        run: |-
+          docker compose \
+            --env-file infra/compose/.env \
+            -f infra/compose/compose.base.yml \
+            -f infra/compose/compose.ci.yml \
+            run --build --rm backend-verify-native :apps:api:nativeTest
+
+      - name: 'Run native compile lane'
+        run: |-
+          docker compose \
+            --env-file infra/compose/.env \
+            -f infra/compose/compose.base.yml \
+            -f infra/compose/compose.ci.yml \
+            run --build --rm backend-verify-native :apps:api:nativeCompile
+
+      - name: 'Tear down CI Compose stack'
+        if: ${{ always() }}
+        run: |-
+          docker compose \
+            --env-file infra/compose/.env \
+            -f infra/compose/compose.base.yml \
+            -f infra/compose/compose.ci.yml \
+            down --remove-orphans
