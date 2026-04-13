@@ -3,10 +3,12 @@
 Before any development work, make sure to have:
 
 1. mise
-2. docker
+1. docker
+1. just
+1. git-bash for Windows users
 
-`mise` manages almost all tools needed for development, see
-[`.mise.toml`](../.mise.toml) for the complete list.
+`mise` will manage the rest of the tools needed for development,
+see [`.mise.toml`](../.mise.toml) for the complete list.
 
 ## Getting started
 

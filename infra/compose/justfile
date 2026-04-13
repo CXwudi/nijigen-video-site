@@ -1,68 +1,110 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
+set windows-shell := ["bash", "-euo", "pipefail", "-c"]
 
-compose_dir := justfile_directory()
-
-local-up:
+[arg('profile', help='Compose profile: dev-local, dev-container-debug, dev-container-jb, or prod', pattern='dev-local|dev-container-debug|dev-container-jb|prod')]
+up profile='prod':
+  #!/usr/bin/env bash
+  set -euo pipefail
+  compose_file=''
+  profile_args=()
+  up_args=(-d)
+  case "{{profile}}" in
+    dev-local)
+      compose_file='compose.dev.yml'
+      ;;
+    dev-container-debug)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-debug)
+      up_args=(--build -d)
+      ;;
+    dev-container-jb)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-jb)
+      up_args=(--build -d)
+      ;;
+    prod)
+      compose_file='compose.prod.yml'
+      up_args=(--build -d)
+      ;;
+    *)
+      echo "Unknown profile: {{profile}}" >&2
+      echo "Available profiles: dev-local, dev-container-debug, dev-container-jb, prod" >&2
+      exit 1
+      ;;
+  esac
   docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.local.yml \
-    up --build -d api
+    --env-file .env \
+    -f "$compose_file" \
+    "${profile_args[@]}" \
+    up "${up_args[@]}"
 
-local-down:
+[arg('profile', help='Compose profile: dev-local, dev-container-debug, dev-container-jb, or prod', pattern='dev-local|dev-container-debug|dev-container-jb|prod')]
+down profile='prod':
+  #!/usr/bin/env bash
+  set -euo pipefail
+  compose_file=''
+  profile_args=()
+  case "{{profile}}" in
+    dev-local)
+      compose_file='compose.dev.yml'
+      ;;
+    dev-container-debug)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-debug)
+      ;;
+    dev-container-jb)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-jb)
+      ;;
+    prod)
+      compose_file='compose.prod.yml'
+      ;;
+    *)
+      echo "Unknown profile: {{profile}}" >&2
+      echo "Available profiles: dev-local, dev-container-debug, dev-container-jb, prod" >&2
+      exit 1
+      ;;
+  esac
   docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.local.yml \
+    --env-file .env \
+    -f "$compose_file" \
+    "${profile_args[@]}" \
     down --remove-orphans
 
-fallback-up:
+[arg('profile', help='Compose config target: dev-local, dev-container-debug, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-debug|dev-container-jb|ci|prod')]
+check-config profile='prod':
+  #!/usr/bin/env bash
+  set -euo pipefail
+  compose_file=''
+  profile_args=()
+  case "{{profile}}" in
+    dev-local)
+      compose_file='compose.dev.yml'
+      ;;
+    dev-container-debug)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-debug)
+      ;;
+    dev-container-jb)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-jb)
+      ;;
+    ci)
+      compose_file='compose.ci.yml'
+      ;;
+    prod)
+      compose_file='compose.prod.yml'
+      ;;
+    *)
+      echo "Unknown profile: {{profile}}" >&2
+      echo "Available profiles: dev-local, dev-container-debug, dev-container-jb, ci, prod" >&2
+      exit 1
+      ;;
+  esac
   docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.local.yml \
-    up -d postgres redis flyway
-
-fallback-down:
-  docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.local.yml \
-    down --remove-orphans
-
-prod-up:
-  docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.prod.yml \
-    up --build -d api
-
-prod-down:
-  docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.prod.yml \
-    down --remove-orphans
-
-config-local:
-  docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.local.yml \
-    config
-
-config-ci:
-  docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.ci.yml \
-    config
-
-config-prod:
-  docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.prod.yml \
+    --env-file .env \
+    -f "$compose_file" \
+    "${profile_args[@]}" \
     config
 
 verify-jvm:
@@ -70,56 +112,49 @@ verify-jvm:
   set -euo pipefail
   cleanup() {
     docker compose \
-      --env-file {{compose_dir}}/.env \
-      -f {{compose_dir}}/compose.base.yml \
-      -f {{compose_dir}}/compose.ci.yml \
+      --env-file .env \
+      -f compose.ci.yml \
       down --remove-orphans
   }
   trap cleanup EXIT
   docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.ci.yml \
+    --env-file .env \
+    -f compose.ci.yml \
     run --build --rm backend-verify-jvm
 
-verify-native-test:
+[arg('task', help='Native verification task set: all, compile, or test', pattern='all|compile|test')]
+verify-native task='all':
   #!/usr/bin/env bash
   set -euo pipefail
   cleanup() {
     docker compose \
-      --env-file {{compose_dir}}/.env \
-      -f {{compose_dir}}/compose.base.yml \
-      -f {{compose_dir}}/compose.ci.yml \
+      --env-file .env \
+      -f compose.ci.yml \
       down --remove-orphans
   }
   trap cleanup EXIT
+  tasks=()
+  case "{{task}}" in
+    all)
+      tasks=(':apps:api:nativeCompile' ':apps:api:nativeTest')
+      ;;
+    test)
+      tasks=(':apps:api:nativeTest')
+      ;;
+    compile)
+      tasks=(':apps:api:nativeCompile')
+      ;;
+    *)
+      echo "Unknown native verification task: {{task}}" >&2
+      echo "Available native verification tasks: all, compile, test" >&2
+      exit 1
+      ;;
+  esac
   docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.ci.yml \
-    run --build --rm backend-verify-native :apps:api:nativeTest
-
-verify-native-compile:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  cleanup() {
-    docker compose \
-      --env-file {{compose_dir}}/.env \
-      -f {{compose_dir}}/compose.base.yml \
-      -f {{compose_dir}}/compose.ci.yml \
-      down --remove-orphans
-  }
-  trap cleanup EXIT
-  docker compose \
-    --env-file {{compose_dir}}/.env \
-    -f {{compose_dir}}/compose.base.yml \
-    -f {{compose_dir}}/compose.ci.yml \
-    run --build --rm backend-verify-native :apps:api:nativeCompile
-
-verify-native:
-  just --justfile {{compose_dir}}/justfile verify-native-test
-  just --justfile {{compose_dir}}/justfile verify-native-compile
+    --env-file .env \
+    -f compose.ci.yml \
+    run --build --rm backend-verify-native "${tasks[@]}"
 
 verify-all:
-  just --justfile {{compose_dir}}/justfile verify-jvm
-  just --justfile {{compose_dir}}/justfile verify-native
+  just verify-jvm
+  just verify-native all

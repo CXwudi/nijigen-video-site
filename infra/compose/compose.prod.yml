@@ -1,7 +1,38 @@
 # Production Docker Compose configuration
-# requires `compose.base.yml`
+
+name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
 services:
+
   api:
+    extends:
+      file: common-services.yml
+      service: api-base
     build:
       target: ${API_PROD_RUNTIME_TARGET:-native-runtime}
+    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api
+
+  postgres:
+    extends:
+      file: common-services.yml
+      service: postgres-base
+
+  redis:
+    extends:
+      file: common-services.yml
+      service: redis-base
+
+  flyway:
+    extends:
+      file: common-services.yml
+      service: flyway-base
+
+networks:
+  app:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-app
+
+volumes:
+  postgres-data:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres-data
+  redis-data:
+    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis-data

@@ -14,25 +14,28 @@ with JVM and jar alternatives available.
 copied service deployment standard it references.
 
 **Scope:** Revise the in-progress API Dockerfile and `.dockerignore`, create the
-`infra/compose/` and `infra/flyway/` scaffolding, add Compose base and override
-files, add the Compose-backed backend verification workflow in GitHub Actions,
-and document the resulting runtime and verification model. This plan does not
+`infra/compose/` and `infra/flyway/` scaffolding, add a shared
+`common-services.yml` plus explicit environment-specific Compose entry files,
+add the Compose-backed backend verification workflow in GitHub Actions, and
+document the resulting runtime and verification model. This plan does not
 implement frontend containers, broader production hardening, or non-Compose
 deployment automation.
 
 **Approach:** First revise the already-started Docker build assets so they
 support explicit JVM and native targets from one Dockerfile. Then layer the
-Compose model around those targets: `local` for JVM development, `ci` for JVM
-compile-health plus native verification, and `prod` for native-default runtime.
-Finish by documenting the workflow close to the Compose files and validating the
-full local, CI, and production command surface.
+Compose model around those targets with explicit entry files: `compose.dev.yml`
+for JVM development, `compose.ci.yml` for JVM compile-health plus native
+verification, and `compose.prod.yml` for native-default runtime, all reusing
+shared service definitions from `common-services.yml` through `extends`. Finish
+by documenting the workflow close to the Compose files and validating the full
+local, CI, and production command surface.
 
-**Verification:** Validate the merged Compose configurations with
+**Verification:** Validate the environment-specific Compose configurations with
 `docker compose ... config`, build the refreshed JVM and native image targets,
-boot the local and fallback development stacks, run `testClasses`, `nativeTest`,
-and `nativeCompile` through the CI Compose stack locally, and ensure the GitHub
-workflow shape matches the documented backend-only path filters and teardown
-rules.
+boot the local and fallback development stacks, run `testClasses`,
+`nativeCompile`, and `nativeTest` through the CI Compose stack locally, and
+ensure the GitHub workflow shape matches the documented backend-only path
+filters and teardown rules.
 
 ---
 
@@ -45,8 +48,8 @@ look roughly like:
 infra/
 ├─ compose/
 │  ├─ .env.example
-│  ├─ compose.base.yml
-│  ├─ compose.local.yml
+│  ├─ common-services.yml
+│  ├─ compose.dev.yml
 │  ├─ compose.ci.yml
 │  ├─ compose.prod.yml
 │  ├─ justfile
@@ -87,10 +90,13 @@ The repository root should also contain:
   `:apps:api` module rather than prematurely widening to every future backend
   module.
 - `compose.ci.yml` will be used by both local verification runs and GitHub
-  Actions, while `compose.local.yml` remains focused on JVM development.
+  Actions, while `compose.dev.yml` remains focused on JVM development.
 - Production should default to the native runtime target, while the JVM runtime
   target remains selectable as an explicit alternative without introducing an
   extra Compose override file.
+- Shared service definitions should live in `common-services.yml`, and each
+  environment-specific Compose file should explicitly declare the services it
+  launches by extending those shared definitions.
 
 ## Risks To Address During Implementation
 
@@ -127,22 +133,22 @@ native production runtime.
 
 None
 
-- [ ] **Step 1:** Replace the current `dev` and `prod`-only Dockerfile layout
+- [x] **Step 1:** Replace the current `dev` and `prod`-only Dockerfile layout
       with explicit named targets for JVM development, JVM runtime, native
       build, and native runtime.
-- [ ] **Step 2:** Keep the repo-root build context and backend workspace copy
+- [x] **Step 2:** Keep the repo-root build context and backend workspace copy
       model predictable so both JVM and native targets can execute Gradle
       commands from the same `WORKDIR` without path tricks.
-- [ ] **Step 3:** Use a GraalVM-capable builder image for the stages that run
+- [x] **Step 3:** Use a GraalVM-capable builder image for the stages that run
       `nativeTest` and `nativeCompile`, while keeping the local JVM development
       target optimized for `bootRun` and `testClasses`.
-- [ ] **Step 4:** Ensure the JVM runtime target packages the jar alternative
+- [x] **Step 4:** Ensure the JVM runtime target packages the jar alternative
       cleanly and the native runtime target copies the deployable main native
       executable cleanly.
-- [ ] **Step 5:** Revisit `.dockerignore` so the repo-root build context stays
+- [x] **Step 5:** Revisit `.dockerignore` so the repo-root build context stays
       focused on the backend workspace while still preserving everything the
       refreshed Dockerfile needs for both the JVM and native paths.
-- [ ] **Step 6:** Keep Dockerfile comments brief and focused on why the stage
+- [x] **Step 6:** Keep Dockerfile comments brief and focused on why the stage
       split exists, especially where the JVM development path differs from the
       native verification and production paths.
 
@@ -188,8 +194,8 @@ the shared service model plus the local and production runtime overrides.
 #### 2.2 Files
 
 - Create: `infra/compose/.env.example`
-- Create: `infra/compose/compose.base.yml`
-- Create: `infra/compose/compose.local.yml`
+- Create: `infra/compose/common-services.yml`
+- Create: `infra/compose/compose.dev.yml`
 - Create: `infra/compose/compose.prod.yml`
 - Create: `infra/compose/justfile`
 - Create: `infra/flyway/sql/baseline/V1__baseline.sql`
@@ -200,36 +206,34 @@ the shared service model plus the local and production runtime overrides.
 
 Task 1
 
-- [ ] **Step 1:** Create the `infra/compose/` and `infra/flyway/` directories in
+- [x] **Step 1:** Create the `infra/compose/` and `infra/flyway/` directories in
       the approved shape, including a committed baseline migration and a small
       durable note under `infra/flyway/sql/local/` so the local-only directory
       has a real purpose in git.
-- [ ] **Step 2:** Add `infra/compose/.env.example` with the variables needed by
+- [x] **Step 2:** Add `infra/compose/.env.example` with the variables needed by
       the API, PostgreSQL, Redis, Flyway, fixed local HTTP and debug ports, and
       the production runtime target override that should default to the native
       runtime target.
-- [ ] **Step 3:** Author `compose.base.yml` with explicit names, shared
-      environment anchors, the `api`, `postgres`, `redis`, and `flyway`
-      services, named volumes, healthchecks, and dependency wiring that uses
-      `service_healthy` and `service_completed_successfully` where appropriate.
-- [ ] **Step 4:** Author `compose.local.yml` so container-first development is
-      the default local path, with the `api` service using the JVM development
-      target, stable published app and debug ports, localhost access for
-      PostgreSQL and Redis, and any development-only mounts or caches required
-      for a usable `bootRun` loop.
-- [ ] **Step 5:** Ensure the same local stack also supports the host or WSL
-      fallback path by allowing only the support services to be started without
-      the `api` container.
-- [ ] **Step 6:** Author `compose.prod.yml` with production-oriented overrides
+- [x] **Step 3:** Author `common-services.yml` with the shared service library:
+      `api-base`, `postgres-base`, `redis-base`, and `flyway-base`, plus shared
+      environment blocks, named volumes, healthchecks, and dependency wiring
+      that uses `service_healthy` and `service_completed_successfully` where
+      appropriate.
+- [x] **Step 4:** Author `compose.dev.yml` so container-first development is
+      available through explicit `api-debug` and `api-jb` services that extend
+      `api-base`, while `postgres`, `redis`, and `flyway` are also explicitly
+      declared by extending the shared base services.
+- [x] **Step 5:** Ensure the same dev stack also supports the host or WSL
+      fallback path by allowing the support services to be started without
+      enabling either dev API profile.
+- [x] **Step 6:** Author `compose.prod.yml` with production-oriented overrides
       only, making the native runtime target the default while preserving the
-      JVM runtime target as an explicit alternative selected through config
-      rather than an extra override file.
-- [ ] **Step 7:** Add `infra/compose/justfile` recipes for `local-up`,
-      `local-down`, `fallback-up`, `fallback-down`, `prod-up`, `prod-down`,
-      `config-local`, and `config-prod`, and make those recipes resolve paths
-      from the justfile directory rather than the caller's current working
-      directory.
-- [ ] **Step 8:** Update `.gitignore` so a real `infra/compose/.env` stays
+      JVM runtime target as an explicit alternative selected through config.
+- [x] **Step 7:** Add `infra/compose/justfile` recipes for `up`, `down`,
+      `check-config`, `verify-jvm`, `verify-native`, and `verify-all`, and make
+      those recipes align with the explicit environment files rather than the
+      older base-plus-local naming.
+- [x] **Step 8:** Update `.gitignore` so a real `infra/compose/.env` stays
       untracked while `.env.example` remains committed.
 
 #### 2.4 Verification
@@ -242,8 +246,7 @@ Task 1
   ```sh
   docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
-    -f infra/compose/compose.local.yml \
+    -f infra/compose/compose.dev.yml \
     config
   ```
 
@@ -254,7 +257,6 @@ Task 1
   ```sh
   docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
     -f infra/compose/compose.prod.yml \
     config
   ```
@@ -267,17 +269,15 @@ Task 1
   env API_PROD_RUNTIME_TARGET=jvm-runtime \
     docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
     -f infra/compose/compose.prod.yml \
     config
   ```
 
 - Expect: the same production stack also renders when the JVM runtime
   alternative is selected explicitly.
-- Run: `just --justfile infra/compose/justfile local-up`
-- Expect: the local stack starts, including the JVM-based API container-first
-  path.
-- Run: `just --justfile infra/compose/justfile fallback-up`
+- Run: `just --justfile infra/compose/justfile up dev-container-debug`
+- Expect: the dev stack starts with the JVM-based debug container-first path.
+- Run: `just --justfile infra/compose/justfile up dev-local`
 - Expect: only `postgres`, `redis`, and `flyway` start for the host or WSL
   fallback path.
 
@@ -288,9 +288,8 @@ Task 1
 - Raw Compose commands and `just` recipes should both pass
   `--env-file infra/compose/.env` explicitly instead of relying on implicit
   `.env` discovery.
-- Do not add extra local override files such as `compose.local.container.yml` or
-  `compose.local.host.yml` unless implementation reveals a real structural
-  difference.
+- Do not add extra local override files beyond `compose.dev.yml` unless
+  implementation reveals a real structural difference.
 - Profiles may still be introduced for optional helper services later, but not
   for the core stack.
 
@@ -312,22 +311,22 @@ model locally and in CI.
 
 Tasks 1 and 2
 
-- [ ] **Step 1:** Add `compose.ci.yml` with a targeted `backend-verify-jvm`
+- [x] **Step 1:** Add `compose.ci.yml` with a targeted `backend-verify-jvm`
       service that uses the JVM development target and runs
       `:apps:api:testClasses`.
-- [ ] **Step 2:** Add `compose.ci.yml` with a targeted `backend-verify-native`
+- [x] **Step 2:** Add `compose.ci.yml` with a targeted `backend-verify-native`
       service that uses the GraalVM-capable build target and can run both
       `:apps:api:nativeTest` and `:apps:api:nativeCompile`.
-- [ ] **Step 3:** Keep the CI stack non-interactive by avoiding debugger flags,
+- [x] **Step 3:** Keep the CI stack non-interactive by avoiding debugger flags,
       local-only host port publishing, and other developer-only assumptions,
       while still depending on PostgreSQL, Redis, and Flyway as needed.
-- [ ] **Step 4:** Extend the `justfile` with `verify-jvm`, `verify-native`, and
+- [x] **Step 4:** Extend the `justfile` with `verify-jvm`, `verify-native`, and
       `verify-all` recipes, plus any small helper recipes needed to keep the
       native test and native compile commands explicit and reusable.
-- [ ] **Step 5:** Add `.github/workflows/backend-verify.yml` with
+- [x] **Step 5:** Add `.github/workflows/backend-verify.yml` with
       backend-focused path filters that include at least `backend/**`,
       `infra/compose/**`, and `infra/flyway/**`.
-- [ ] **Step 6:** Make the workflow run both required verification lanes, keep
+- [x] **Step 6:** Make the workflow run both required verification lanes, keep
       their failure surfaces clear, and always tear down the Compose stacks and
       related resources afterward.
 
@@ -338,7 +337,6 @@ Tasks 1 and 2
   ```sh
   docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
     -f infra/compose/compose.ci.yml \
     config
   ```
@@ -362,7 +360,7 @@ Tasks 1 and 2
 - Local verification should intentionally use the CI stack instead of the local
   development stack so the verification model stays aligned with GitHub Actions.
 - A single `backend-verify-native` service can still support separate CI steps
-  for `nativeTest` and `nativeCompile` by overriding its command per invocation.
+  for `nativeCompile` and `nativeTest` by overriding its command per invocation.
 - The workflow file is named `backend-verify.yml` to match its broader role now
   that it gates more than tests alone.
 
@@ -456,8 +454,8 @@ together as one coherent feature.
 
 - Review: `backend/apps/api/Dockerfile`
 - Review: `.dockerignore`
-- Review: `infra/compose/compose.base.yml`
-- Review: `infra/compose/compose.local.yml`
+- Review: `infra/compose/common-services.yml`
+- Review: `infra/compose/compose.dev.yml`
 - Review: `infra/compose/compose.ci.yml`
 - Review: `infra/compose/compose.prod.yml`
 - Review: `infra/compose/justfile`
@@ -496,8 +494,7 @@ Tasks 1 through 4
   ```sh
   docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
-    -f infra/compose/compose.local.yml \
+    -f infra/compose/compose.dev.yml \
     config
   ```
 
@@ -507,7 +504,6 @@ Tasks 1 through 4
   ```sh
   docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
     -f infra/compose/compose.ci.yml \
     config
   ```
@@ -518,7 +514,6 @@ Tasks 1 through 4
   ```sh
   docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
     -f infra/compose/compose.prod.yml \
     config
   ```
@@ -530,7 +525,6 @@ Tasks 1 through 4
   env API_PROD_RUNTIME_TARGET=jvm-runtime \
     docker compose \
     --env-file infra/compose/.env \
-    -f infra/compose/compose.base.yml \
     -f infra/compose/compose.prod.yml \
     config
   ```
@@ -556,9 +550,9 @@ Tasks 1 through 4
   command shape after the Compose work.
 - Run: `docker build -f backend/apps/api/Dockerfile --target native-runtime .`
 - Expect: the direct native runtime target still builds after the Compose work.
-- Run: `just --justfile infra/compose/justfile local-up`
-- Expect: the API and its dependencies start under the local stack.
-- Run: `just --justfile infra/compose/justfile fallback-up`
+- Run: `just --justfile infra/compose/justfile up dev-container-debug`
+- Expect: the dev API and its dependencies start under the debug profile.
+- Run: `just --justfile infra/compose/justfile up dev-local`
 - Expect: only the support services start for fallback development.
 - Run: `just --justfile infra/compose/justfile verify-all`
 - Expect: the Compose-managed verification lanes complete with the expected exit

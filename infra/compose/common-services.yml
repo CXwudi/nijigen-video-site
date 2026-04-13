@@ -1,9 +1,7 @@
-# Base Docker Compose configuration for nijigen-video-site
-
-name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
+# Shared Docker Compose services for nijigen-video-site
 
 x-api-env: &api-env
-  SPRING_APPLICATION_NAME: ${API_APPLICATION_NAME:-apps-api}
+  SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}${API_APPLICATION_NAME:--apps-api}
   SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
   SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -19,12 +17,10 @@ x-flyway-env: &flyway-env
   FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline
 
 services:
-  api:
+  api-base:
     build:
       context: ../..
       dockerfile: backend/apps/api/Dockerfile
-      target: jvm-runtime
-    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,7 +34,7 @@ services:
       - app
     restart: unless-stopped
 
-  postgres:
+  postgres-base:
     image: postgres:17
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres
     environment:
@@ -57,7 +53,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
-  redis:
+  redis-base:
     image: redis:8
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis
     command: ["redis-server", "--appendonly", "yes"]
@@ -73,7 +69,7 @@ services:
     volumes:
       - redis-data:/data
 
-  flyway:
+  flyway-base:
     image: flyway/flyway:11
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-flyway
     command: ["migrate"]
@@ -87,13 +83,3 @@ services:
     restart: "no"
     volumes:
       - ../flyway/sql/baseline:/flyway/sql/baseline:ro
-
-networks:
-  app:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-app
-
-volumes:
-  postgres-data:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres-data
-  redis-data:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis-data

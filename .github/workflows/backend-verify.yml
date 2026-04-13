@@ -43,7 +43,6 @@ jobs:
         run: |-
           docker compose \
             --env-file infra/compose/.env \
-            -f infra/compose/compose.base.yml \
             -f infra/compose/compose.ci.yml \
             config
 
@@ -51,7 +50,6 @@ jobs:
         run: |-
           docker compose \
             --env-file infra/compose/.env \
-            -f infra/compose/compose.base.yml \
             -f infra/compose/compose.ci.yml \
             run --build --rm backend-verify-jvm
 
@@ -60,7 +58,6 @@ jobs:
         run: |-
           docker compose \
             --env-file infra/compose/.env \
-            -f infra/compose/compose.base.yml \
             -f infra/compose/compose.ci.yml \
             down --remove-orphans
 
@@ -81,7 +78,6 @@ jobs:
         run: |-
           docker compose \
             --env-file infra/compose/.env \
-            -f infra/compose/compose.base.yml \
             -f infra/compose/compose.ci.yml \
             config
 
@@ -89,7 +85,6 @@ jobs:
         run: |-
           docker compose \
             --env-file infra/compose/.env \
-            -f infra/compose/compose.base.yml \
             -f infra/compose/compose.ci.yml \
             run --build --rm backend-verify-native :apps:api:nativeTest
 
@@ -97,7 +92,6 @@ jobs:
         run: |-
           docker compose \
             --env-file infra/compose/.env \
-            -f infra/compose/compose.base.yml \
             -f infra/compose/compose.ci.yml \
             run --build --rm backend-verify-native :apps:api:nativeCompile
 
@@ -106,6 +100,5 @@ jobs:
         run: |-
           docker compose \
             --env-file infra/compose/.env \
-            -f infra/compose/compose.base.yml \
             -f infra/compose/compose.ci.yml \
             down --remove-orphans

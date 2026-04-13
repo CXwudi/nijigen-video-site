@@ -9,8 +9,9 @@ runtime packaging.
 The setup must:
 
 - live under `infra/compose/`
-- follow the shared service deployment standard that expects a base Compose file
-  plus environment-specific overrides
+- follow the shared service deployment standard closely enough to stay
+  recognizable, while allowing the repository to use a shared
+  `common-services.yml` plus explicit environment-specific Compose entry files
 - support the current backend stack around `apps/api`, PostgreSQL, Redis, and
   Flyway
 - support native image as the default build, verification, and production
@@ -70,13 +71,14 @@ act as a development, verification, and packaging boundary.
 
 ### Option 1: JVM development with native-default verify and production
 
-Keep the deployment standard shape and extend it modestly:
+Keep the deployment-standard ideas, but express them with a shared service
+library plus explicit environment files:
 
-- `compose.base.yml` defines the four core services requested by the issue:
-  `api`, `postgres`, `redis`, and `flyway`, plus shared build definitions that
-  can produce both JVM and native artifacts from one Dockerfile
-- `compose.local.yml` turns that stack into the normal developer environment
-  with fixed localhost ports and a JVM debug-friendly API service
+- `common-services.yml` defines reusable service templates for the shared API
+  shape and the shared support services
+- `compose.dev.yml` turns that service library into the normal developer
+  environment with fixed localhost ports plus explicit `api-debug` and `api-jb`
+  services
 - `compose.ci.yml` adds CI-specific verification services without carrying over
   local-only ports, debugger flags, or developer bind mounts
 - `compose.prod.yml` carries deployment-oriented overrides and defaults the API
@@ -89,9 +91,9 @@ starting the local infra stack and connecting to published database and cache
 ports.
 
 The CI verification commands run through Compose-managed services defined only
-in the CI layer. This keeps the base file aligned with the issue's initial "four
-services first" direction while still making both native verification and the
-JVM compile-health check Compose-native.
+in the CI layer. This keeps the environment-specific files explicit about what
+they launch while still making both native verification and the JVM
+compile-health check Compose-native.
 
 ### Option 2: JVM-first everywhere
 
@@ -132,10 +134,11 @@ It preserves the strongest benefits from both sides of the discussion:
 This option also gives the cleanest answer to the issue's override-file
 questions:
 
-- do not add a separate `compose.dev.yml`
-- use `compose.local.yml` as the developer override
+- use `compose.dev.yml` as the developer entry file
 - add `compose.ci.yml` because CI has meaningful behavioral differences from
-  local development
+  development
+- keep `common-services.yml` as the shared service library instead of a runnable
+  environment file
 
 ## Proposed Design
 
@@ -149,8 +152,8 @@ infra/
 ├─ compose/
 │  ├─ .env.example
 │  ├─ README.md
-│  ├─ compose.base.yml
-│  ├─ compose.local.yml
+│  ├─ common-services.yml
+│  ├─ compose.dev.yml
 │  ├─ compose.ci.yml
 │  ├─ compose.prod.yml
 │  └─ justfile
@@ -174,61 +177,59 @@ Reasoning:
 
 - it is application-specific build logic, not a generic infrastructure asset
 - keeping it next to the app source makes ownership and maintenance clearer
-- Compose can still reference it from `infra/compose/compose.base.yml`
+- Compose can still reference it from the shared service definitions under
+  `infra/compose/common-services.yml`
 
-Because Docker Compose resolves relative paths from the first `-f` file, the
-base file should use repository-root-relative build settings consistently, such
-as a repo-root build context plus an explicit Dockerfile path.
+Because Docker Compose resolves relative paths from the file that defines the
+service, the shared service file should use repository-root-relative build
+settings consistently, such as a repo-root build context plus an explicit
+Dockerfile path.
 
 ### Compose Layers
 
-#### `compose.base.yml`
+#### `common-services.yml`
 
-This file should define the shared application model and the four core services
-requested by the issue:
+This file should define the shared service library used by the environment
+files. It should contain:
 
-- `api`
-- `postgres`
-- `redis`
-- `flyway`
+- `api-base`
+- `postgres-base`
+- `redis-base`
+- `flyway-base`
 
-The base file should own:
+The shared service file should own:
 
-- explicit container, network, and volume names following the deployment
-  standard
-- shared environment anchors
-- shared dependency wiring and healthchecks
-- image or build definitions
-- restart policies where appropriate
+- common API environment values and dependency wiring
+- shared support-service healthchecks and restart policies
+- shared image or build definitions
+- the baseline Flyway location
 
-The base file should not hard-code local-only ports, debugger flags, or
-CI-specific verification commands.
+It should not be treated as a runnable entry point. Its job is reuse through
+`extends`, not to define a complete environment on its own.
 
-The `api` service in the base layer should provide the common build and runtime
-shape, while environment-specific command, target, and port behavior can be
-finalized in the overrides.
-
-`flyway` should depend on PostgreSQL readiness using
+`flyway-base` should depend on PostgreSQL readiness using
 `depends_on.condition: service_healthy`, and any service that requires the
 database schema should in turn depend on Flyway completion when appropriate.
 
-#### `compose.local.yml`
+#### `compose.dev.yml`
 
-This becomes the actual developer override. It should do all of the following:
+This becomes the actual development entry file. It should do all of the
+following:
 
 - publish fixed host ports for developer access
-- enable container-first API debugging as the default JVM path
+- expose both `api-debug` and `api-jb` as explicit services that extend
+  `api-base`
 - keep PostgreSQL and Redis reachable from localhost for the fallback host or
   WSL workflow
 - allow a local-only Flyway extension path for seed or fixture data when useful
 
-The important design point is that `compose.local.yml` must support two valid
-local workflows with one stack definition:
+The important design point is that `compose.dev.yml` must support two valid
+local workflows with one environment file:
 
-1. default: run the API in Compose on the JVM with a stable debug port and
-   stable app port
+1. containerized debugging by enabling `api-debug` or `api-jb`
 2. fallback: start infra through Compose, but run the API from WSL or the host
-   against published PostgreSQL and Redis ports
+   against published PostgreSQL and Redis ports without enabling either API
+   profile
 
 This means local port publishing is not just for browser access. It is also the
 escape hatch that keeps development unblocked when IDE-to-container integration
@@ -238,7 +239,7 @@ For planning purposes, the fallback workflow should be treated as an
 infra-targeted local invocation rather than a second full-stack mode. In other
 words, developers should be able to start only the needed support services such
 as `postgres`, `redis`, and `flyway`, then launch `./gradlew bootRun` from WSL
-or the host without also starting the containerized `api` service.
+or the host without enabling a containerized API profile.
 
 Local verification should still use the CI stack rather than this local stack so
 the native-default verification path stays aligned between local runs and CI.
@@ -250,7 +251,7 @@ This file is justified and should exist.
 Its job is not to redefine the full stack. Its job is to make the stack
 non-interactive and verification-oriented. In practice it should:
 
-It should be the Compose layer used by both local verification runs and GitHub
+It should be the Compose file used by both local verification runs and GitHub
 Actions.
 
 - add a Compose-managed JVM compile-oriented verification service, such as
@@ -265,9 +266,9 @@ The verification services should be started directly, relying on Compose to
 bring up only the services they depend on. This avoids starting unrelated
 services unnecessarily while keeping the required CI gates Compose-native.
 
-This also means the `api` service does not need to be disabled in CI. It simply
-does not need to be started when the targeted services are the verification
-workers.
+This also means there is no need for a regular runtime `api` service in the CI
+file. The environment file should explicitly declare only the verification
+services plus the shared support services they need.
 
 The default CI verification lanes should be:
 
@@ -293,7 +294,7 @@ This file should hold deployment-oriented differences such as:
 `compose.prod.yml` should remain focused on deployment behavior rather than
 developer convenience. The native runtime should be the default production
 target, while a JVM runtime target can remain available as an explicit
-alternative.
+alternative. The production `api` service should extend `api-base`.
 
 ### Compose Profiles
 
@@ -309,19 +310,21 @@ Recommended profile use cases:
 - one-off utility services that are useful to keep in the model but should not
   be part of the default startup path
 
-Profiles are not a good fit for switching between the two approved local
-development workflows:
+Profiles are a good fit for switching between the two approved development API
+services:
 
-- container-first local development
-- host or WSL fallback development
+- `api-debug`
+- `api-jb`
 
-Those two workflows share the same local environment shape. The difference is
-mainly whether the containerized `api` service is started, not that the local
-environment itself becomes a new configuration family.
+The fallback host or WSL workflow still shares the same development environment
+shape. The difference is mainly whether one of the containerized API services is
+enabled.
 
 For that reason:
 
-- keep core services such as `api`, `postgres`, `redis`, and `flyway` unprofiled
+- keep core support services such as `postgres`, `redis`, and `flyway`
+  unprofiled
+- use profiles only for the optional dev API services
 - model the host or WSL fallback as a targeted local invocation that starts only
   the support services
 - reserve profiles for optional services rather than for the normal application
@@ -334,17 +337,16 @@ may use a profile, but the core `flyway` migration service should not.
 
 ### Extra Local Override Files
 
-Do not add extra override files such as `compose.local.container.yml` or
-`compose.local.host.yml` at this stage.
+Do not add extra override files such as `compose.dev.container.yml` or
+`compose.dev.host.yml` at this stage.
 
 Reasoning:
 
 - the current difference between the two local workflows is operational, not
   structural
-- extra local layers would increase the merge matrix and command complexity
+- extra local layers would increase the command matrix and complexity
 - the fallback path can already be represented cleanly by targeting only the
-  support services from the existing `compose.base.yml + compose.local.yml`
-  stack
+  support services from `compose.dev.yml`
 
 An extra local override should only be introduced later if the two local modes
 develop materially different configuration, such as incompatible API commands,
@@ -391,22 +393,21 @@ The verification services should:
 - be usable both locally and in GitHub Actions
 
 The expected shape is that local developers and CI both use the same targeted
-Compose verification services through the CI stack, even if the local
-development stack itself remains JVM-oriented.
+Compose verification services through the CI file, even if the development stack
+itself remains JVM-oriented.
 
 The intended verification model should be explicit:
 
-- container-first local development uses `compose.base.yml + compose.local.yml`
-- host or WSL fallback development also uses
-  `compose.base.yml + compose.local.yml`, but targets only the support services
-  instead of the `api` container
-- local and CI verification use `compose.base.yml + compose.ci.yml`, with the
-  targeted verification services driving startup of only their declared
-  dependencies
+- container-first local development uses `compose.dev.yml` with the appropriate
+  dev API profile
+- host or WSL fallback development also uses `compose.dev.yml`, but starts only
+  the support services instead of enabling either API profile
+- local and CI verification use `compose.ci.yml`, with the targeted verification
+  services driving startup of only their declared dependencies
 
-Local verification runs should intentionally use the `compose.ci.yml` stack
-rather than the `compose.local.yml` stack so local verification and CI stay
-aligned around the same non-interactive verification model.
+Local verification runs should intentionally use `compose.ci.yml` rather than
+`compose.dev.yml` so local verification and CI stay aligned around the same
+non-interactive verification model.
 
 The initial verification commands can target the current API module directly:
 
@@ -439,18 +440,14 @@ The `infra/compose/justfile` should wrap the common Compose combinations so
 developers and CI do not need to remember long `docker compose -f ...` command
 lines.
 
-Illustrative recipe names can be `local-up`, `local-down`, `fallback-up`,
-`fallback-down`, `prod-up`, `prod-down`, `verify-jvm`, `verify-native`, and
-`verify-all`.
+Illustrative recipe names can be `up`, `down`, `check-config`, `verify-jvm`,
+`verify-native`, and `verify-all`.
 
 At minimum, the command surface should support:
 
-- bringing up the local development stack
-- tearing down the local development stack
-- bringing up the fallback support stack for host or WSL JVM execution
-- tearing down the fallback support stack
-- bringing up the production stack shape
-- tearing down the production stack shape
+- bringing up the development or production stack by named profile
+- tearing down the development or production stack by named profile
+- rendering config for development, CI, or production
 - running the JVM compile-health verification through the CI stack
 - running the native verification through the CI stack
 - running all required verification lanes through the CI stack
@@ -459,9 +456,9 @@ Additional convenience commands such as logs or restart can be added if they
 stay small and obvious.
 
 For clarity, the fallback local workflow should have a concrete command shape,
-for example a `just` recipe that starts only `postgres`, `redis`, and `flyway`
-from the `compose.base.yml + compose.local.yml` stack before the developer runs
-`./gradlew bootRun` from WSL or the host.
+for example `just up dev-local` to start only `postgres`, `redis`, and `flyway`
+from `compose.dev.yml` before the developer runs `./gradlew bootRun` from WSL or
+the host.
 
 ### GitHub Actions Design
 
