@@ -16,8 +16,8 @@ CMD [":apps:api:run"]
 
 FROM jvm-base AS jvm-dev
 EXPOSE 8080 5005
-ENTRYPOINT ["bash", "-lc"]
-CMD ["./gradlew --no-daemon :apps:api:installDist && exec apps/api/build/install/api/api"]
+ENTRYPOINT ["./gradlew", "--no-daemon"]
+CMD [":apps:api:installDist"]
 
 FROM jvm-base AS jvm-build
 RUN --mount=type=cache,target=/root/.gradle \

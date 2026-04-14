@@ -466,22 +466,22 @@ together as one coherent feature.
 
 Tasks 1 through 4
 
-- [ ] **Step 1:** Render every supported Compose stack with
+- [x] **Step 1:** Render every supported Compose stack with
       `docker compose ... config`, including the native-default production shape
       and the explicit JVM runtime alternative, to catch merge, interpolation,
       or path regressions before runtime.
-- [ ] **Step 2:** Build the refreshed JVM and native Docker targets directly so
+- [x] **Step 2:** Build the refreshed JVM and native Docker targets directly so
       the Dockerfile assumptions are validated independently of Compose.
-- [ ] **Step 3:** Boot the local container-first stack and verify the JVM-based
+- [x] **Step 3:** Boot the local container-first stack and verify the JVM-based
       API container starts successfully against the Compose-managed support
       services.
-- [ ] **Step 4:** Exercise the host or WSL fallback path by starting only the
+- [x] **Step 4:** Exercise the host or WSL fallback path by starting only the
       support services and verifying that the documented host-side `bootRun`
       command shape remains viable against the published local ports.
-- [ ] **Step 5:** Run the Compose-managed JVM compile-health lane and native
+- [x] **Step 5:** Run the Compose-managed JVM compile-health lane and native
       verification lane locally through the CI stack and confirm the command
       model matches what the GitHub workflow will use.
-- [ ] **Step 6:** Tear down all Compose stacks cleanly and confirm there are no
+- [x] **Step 6:** Tear down all Compose stacks cleanly and confirm there are no
       stale volumes, containers, or command mismatches left in the docs.
 
 #### 5.4 Verification
