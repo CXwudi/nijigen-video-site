@@ -1,4 +1,4 @@
-name: 'Backend API App Verification'
+name: 'Backend Verification'
 
 on:
   pull_request:

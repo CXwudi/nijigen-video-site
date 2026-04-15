@@ -2,8 +2,11 @@
 
 ## Shared Gradle build stage
 
+
 FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-25-nik-25-glibc AS gradle-base
+# TODO(new issue, optional): how to share this part of the build across multiple apps
 WORKDIR /workspace/backend
+# Assuming ../.. as the build context to copy the entire backend directory
 COPY backend/ /workspace/backend/
 RUN chmod 0755 gradlew
 ENTRYPOINT ["./gradlew", "--no-daemon"]
@@ -25,7 +28,7 @@ RUN set -eux; \
     cp -R "$dist_dir"/. /workspace/dist/app/
 
 FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-25-crac-glibc AS jvm-runtime
-# TODO(new issue): investigate and configure CRAC
+# TODO(new issue, optional): investigate and configure CRAC
 WORKDIR /app
 COPY --from=jvm-build /workspace/dist/app/ /app/
 EXPOSE 8080

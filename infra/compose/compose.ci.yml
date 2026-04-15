@@ -28,6 +28,8 @@ services:
     volumes:
       - gradle-verify-cache:/root/.gradle
 
+  # And add more verification services when new apps are added
+  
   postgres:
     extends:
       file: common-services.yml
