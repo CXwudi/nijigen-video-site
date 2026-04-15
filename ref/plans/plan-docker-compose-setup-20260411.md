@@ -75,7 +75,7 @@ The repository root should also contain:
 
 ```text
 .dockerignore
-.github/workflows/backend-verify.yml
+.github/workflows/backend-api-verify.yml
 ```
 
 ## Assumptions
@@ -158,18 +158,18 @@ None
 
   ```sh
   docker build \
-    -t nijigen-api:jvm-dev-check \
+    -t nijigen-api:gradle-base-check \
     -f backend/apps/api/Dockerfile \
-    --target jvm-dev \
+    --target gradle-base \
     .
   ```
 
-- Expect: the JVM development target builds successfully from the repository
-  root context.
+- Expect: the shared Gradle command target builds successfully from the
+  repository root context.
 - Run:
-  `docker run --rm nijigen-api:jvm-dev-check :apps:api:testClasses --dry-run`
-- Expect: the JVM development target can execute its intended Gradle command
-  path using the image's default entrypoint and working directory.
+  `docker run --rm nijigen-api:gradle-base-check :apps:api:testClasses --dry-run`
+- Expect: the shared Gradle command target can execute its intended Gradle
+  command path using the image's default entrypoint and working directory.
 - Run: `docker build -f backend/apps/api/Dockerfile --target jvm-runtime .`
 - Expect: the JVM runtime target also builds successfully and packages the jar
   alternative path.
@@ -304,17 +304,17 @@ model locally and in CI.
 #### 3.2 Files
 
 - Create: `infra/compose/compose.ci.yml`
-- Create: `.github/workflows/backend-verify.yml`
+- Create: `.github/workflows/backend-api-verify.yml`
 - Modify: `infra/compose/justfile`
 
 #### 3.3 Dependencies
 
 Tasks 1 and 2
 
-- [x] **Step 1:** Add `compose.ci.yml` with a targeted `backend-verify-jvm`
+- [x] **Step 1:** Add `compose.ci.yml` with a targeted `api-jvm-verification`
       service that uses the JVM development target and runs
       `:apps:api:testClasses`.
-- [x] **Step 2:** Add `compose.ci.yml` with a targeted `backend-verify-native`
+- [x] **Step 2:** Add `compose.ci.yml` with a targeted `api-native-verification`
       service that uses the GraalVM-capable build target and can run both
       `:apps:api:nativeTest` and `:apps:api:nativeCompile`.
 - [x] **Step 3:** Keep the CI stack non-interactive by avoiding debugger flags,
@@ -323,7 +323,7 @@ Tasks 1 and 2
 - [x] **Step 4:** Extend the `justfile` with `verify-jvm`, `verify-native`, and
       `verify-all` recipes, plus any small helper recipes needed to keep the
       native test and native compile commands explicit and reusable.
-- [x] **Step 5:** Add `.github/workflows/backend-verify.yml` with
+- [x] **Step 5:** Add `.github/workflows/backend-api-verify.yml` with
       backend-focused path filters that include at least `backend/**`,
       `infra/compose/**`, and `infra/flyway/**`.
 - [x] **Step 6:** Make the workflow run both required verification lanes, keep
@@ -351,7 +351,7 @@ Tasks 1 and 2
 - Run: `just --justfile infra/compose/justfile verify-all`
 - Expect: the combined verification command runs the JVM and native lanes in the
   documented order.
-- Review: `.github/workflows/backend-verify.yml`
+- Review: `.github/workflows/backend-api-verify.yml`
 - Expect: backend-only path filters, separate required verification lanes, and
   `always()` teardown behavior are all explicit.
 
@@ -359,10 +359,11 @@ Tasks 1 and 2
 
 - Local verification should intentionally use the CI stack instead of the local
   development stack so the verification model stays aligned with GitHub Actions.
-- A single `backend-verify-native` service can still support separate CI steps
+- A single `api-native-verification` service can still support separate CI steps
   for `nativeCompile` and `nativeTest` by overriding its command per invocation.
-- The workflow file is named `backend-verify.yml` to match its broader role now
-  that it gates more than tests alone.
+- The workflow file is named `backend-api-verify.yml` to make the current
+  application-specific verification scope explicit. If the workflow later widens
+  to multiple backend applications, its name can be revisited then.
 
 ### Task 4: Document The Compose Area And Link It Into Shared Docs
 
@@ -459,7 +460,7 @@ together as one coherent feature.
 - Review: `infra/compose/compose.ci.yml`
 - Review: `infra/compose/compose.prod.yml`
 - Review: `infra/compose/justfile`
-- Review: `.github/workflows/backend-verify.yml`
+- Review: `.github/workflows/backend-api-verify.yml`
 - Review: `infra/compose/docs/compose-guide.md`
 
 #### 5.3 Dependencies
@@ -530,23 +531,23 @@ Tasks 1 through 4
   ```
 
 - Expect: the JVM runtime alternative also renders cleanly.
-- Run: `docker build -f backend/apps/api/Dockerfile --target jvm-dev .`
-- Expect: the direct JVM development target still builds after the Compose work.
+- Run: `docker build -f backend/apps/api/Dockerfile --target gradle-base .`
+- Expect: the shared Gradle command target still builds after the Compose work.
 - Run:
 
   ```sh
   docker build \
-    -t nijigen-api:jvm-dev-check \
+    -t nijigen-api:gradle-base-check \
     -f backend/apps/api/Dockerfile \
-    --target jvm-dev \
+    --target gradle-base \
     .
   ```
 
-- Expect: the tagged JVM development target is available for a direct command
-  path check.
+- Expect: the tagged shared Gradle command target is available for a direct
+  command path check.
 - Run:
-  `docker run --rm nijigen-api:jvm-dev-check :apps:api:testClasses --dry-run`
-- Expect: the direct JVM development target still supports the intended Gradle
+  `docker run --rm nijigen-api:gradle-base-check :apps:api:testClasses --dry-run`
+- Expect: the shared Gradle command target still supports the intended Gradle
   command shape after the Compose work.
 - Run: `docker build -f backend/apps/api/Dockerfile --target native-runtime .`
 - Expect: the direct native runtime target still builds after the Compose work.

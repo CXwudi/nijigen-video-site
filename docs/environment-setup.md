@@ -7,8 +7,8 @@ Before any development work, make sure to have:
 1. just
 1. git-bash for Windows users
 
-`mise` will manage the rest of the tools needed for development,
-see [`.mise.toml`](../.mise.toml) for the complete list.
+`mise` will manage the rest of the tools needed for development, see
+[`.mise.toml`](../.mise.toml) for the complete list.
 
 ## Getting started
 
@@ -33,6 +33,14 @@ see [`.mise.toml`](../.mise.toml) for the complete list.
 
 If your shell is already activated for `mise`, entering the repository may
 automatically expose the configured tool versions.
+
+## Unified Environment by Docker Compose
+
+The repo contains a sophisticated Docker Compose setup that unified
+the environment for local development, CI/CD,
+and production deployment in Docker Compose.
+
+Read more in [`../infra/compose/README.md`](../infra/compose/README.md).
 
 ## Updating tool versions
 

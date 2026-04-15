@@ -255,9 +255,9 @@ It should be the Compose file used by both local verification runs and GitHub
 Actions.
 
 - add a Compose-managed JVM compile-oriented verification service, such as
-  `backend-verify-jvm`
+  `api-jvm-verification`
 - add a Compose-managed native verification service, such as
-  `backend-verify-native`
+  `api-native-verification`
 - remove or avoid local-only host port publishing
 - avoid debugger flags and interactive developer assumptions
 - keep CI execution deterministic and easy to tear down
