@@ -24,7 +24,8 @@ RUN set -eux; \
     test -n "$dist_dir"; \
     cp -R "$dist_dir"/. /workspace/dist/app/
 
-FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-25-glibc AS jvm-runtime
+FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-25-crac-glibc AS jvm-runtime
+# TODO(new issue): investigate and configure CRAC
 WORKDIR /app
 COPY --from=jvm-build /workspace/dist/app/ /app/
 EXPOSE 8080
