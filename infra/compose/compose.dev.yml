@@ -7,9 +7,9 @@ x-dev-api-service: &dev-api-service
     file: common-services.yml
     service: api-base
   build:
-    target: jvm-dev
+    target: gradle-base
   entrypoint:
-    - bash
+    - sh
     - -lc
   volumes:
     - ../../backend:/workspace/backend

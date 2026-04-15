@@ -120,7 +120,7 @@ verify-jvm:
   docker compose \
     --env-file .env \
     -f compose.ci.yml \
-    run --build --rm backend-verify-jvm
+    run --build --rm api-jvm-verification
 
 [arg('task', help='Native verification task set: all, compile, or test', pattern='all|compile|test')]
 verify-native task='all':
@@ -153,7 +153,7 @@ verify-native task='all':
   docker compose \
     --env-file .env \
     -f compose.ci.yml \
-    run --build --rm backend-verify-native "${tasks[@]}"
+    run --build --rm api-native-verification "${tasks[@]}"
 
 verify-all:
   just verify-jvm

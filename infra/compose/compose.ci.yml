@@ -4,24 +4,24 @@ name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
 services:
 
-  backend-verify-jvm:
+  api-jvm-verification:
     extends:
       file: common-services.yml
       service: api-base
     build:
-      target: jvm-gradle
+      target: gradle-base
     command:
       - :apps:api:testClasses
     restart: "no"
     volumes:
       - gradle-verify-cache:/root/.gradle
 
-  backend-verify-native:
+  api-native-verification:
     extends:
       file: common-services.yml
       service: api-base
     build:
-      target: native-build
+      target: gradle-base
     command:
       - :apps:api:nativeTest
     restart: "no"

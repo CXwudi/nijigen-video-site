@@ -1,0 +1,72 @@
+name: 'Backend API App Verification'
+
+on:
+  pull_request:
+    paths:
+      - '.dockerignore'
+      - '.github/workflows/backend-api-verify.yml'
+      - 'backend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+  push:
+    paths:
+      - '.dockerignore'
+      - '.github/workflows/backend-api-verify.yml'
+      - 'backend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+    working-directory: 'infra/compose'
+
+jobs:
+  verify-jvm:
+    name: 'Verify JVM Compile Health'
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 20
+    permissions:
+      contents: 'read'
+    steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v6'
+
+      - name: 'Install just'
+        uses: 'taiki-e/install-action@just'
+
+      - name: 'Prepare Compose env file'
+        run: 'cp .env.example .env'
+
+      - name: 'Render CI Compose stack'
+        run: 'just check-config ci'
+
+      - name: 'Run JVM verification lane'
+        run: 'just verify-jvm'
+
+  verify-native:
+    name: 'Verify Native Build And Tests'
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 60
+    permissions:
+      contents: 'read'
+    steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v6'
+
+      - name: 'Install just'
+        uses: 'taiki-e/install-action@just'
+
+      - name: 'Prepare Compose env file'
+        run: 'cp .env.example .env'
+
+      - name: 'Render CI Compose stack'
+        run: 'just check-config ci'
+
+      - name: 'Run native compile and test'
+        run: 'just verify-native all'

@@ -1,25 +1,16 @@
 # syntax=docker/dockerfile:1
 
-FROM scratch AS backend-source
+## Shared Gradle build stage
+
+FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-25-nik-25-glibc AS gradle-base
+WORKDIR /workspace/backend
 COPY backend/ /workspace/backend/
+RUN chmod 0755 gradlew
+ENTRYPOINT ["./gradlew", "--no-daemon"]
 
 ## JVM build stages
 
-FROM eclipse-temurin:25-jdk AS jvm-base
-WORKDIR /workspace/backend
-COPY --from=backend-source /workspace/backend /workspace/backend
-RUN chmod 0755 gradlew
-
-FROM jvm-base AS jvm-gradle
-ENTRYPOINT ["./gradlew", "--no-daemon"]
-CMD [":apps:api:run"]
-
-FROM jvm-base AS jvm-dev
-EXPOSE 8080 5005
-ENTRYPOINT ["./gradlew", "--no-daemon"]
-CMD [":apps:api:installDist"]
-
-FROM jvm-base AS jvm-build
+FROM gradle-base AS jvm-build
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon :apps:api:distZip
 RUN set -eux; \
@@ -33,7 +24,7 @@ RUN set -eux; \
     test -n "$dist_dir"; \
     cp -R "$dist_dir"/. /workspace/dist/app/
 
-FROM eclipse-temurin:25-jre AS jvm-runtime
+FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-25-glibc AS jvm-runtime
 WORKDIR /app
 COPY --from=jvm-build /workspace/dist/app/ /app/
 EXPOSE 8080
@@ -41,14 +32,7 @@ ENTRYPOINT ["/app/api"]
 
 ## Native image build stages
 
-FROM ghcr.io/graalvm/native-image-community:25 AS native-build
-WORKDIR /workspace/backend
-COPY --from=backend-source /workspace/backend /workspace/backend
-RUN chmod 0755 gradlew
-ENTRYPOINT ["./gradlew", "--no-daemon"]
-CMD [":apps:api:nativeCompile"]
-
-FROM native-build AS native-compile
+FROM gradle-base AS native-build
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon :apps:api:nativeCompile
 RUN set -eux; \
@@ -57,15 +41,8 @@ RUN set -eux; \
     mkdir -p /workspace/dist; \
     cp "$binary_path" /workspace/dist/api
 
-FROM debian:bookworm-slim AS native-runtime
+FROM ghcr.io/bell-sw/hardened-base:glibc AS native-runtime
 WORKDIR /app
-
-# The native executable is smaller than a JVM runtime, but it still expects a
-# glibc-based userspace and CA certificates for normal service behavior.
-RUN apt-get update \
-    && apt-get install --yes --no-install-recommends ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=native-compile /workspace/dist/api /app/api
+COPY --from=native-build /workspace/dist/api /app/api
 EXPOSE 8080
 ENTRYPOINT ["/app/api"]
