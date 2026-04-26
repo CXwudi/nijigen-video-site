@@ -2,41 +2,39 @@
 
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
-x-dev-api-service: &dev-api-service
-  extends:
-    file: common-services.yml
-    service: api-base
-  build:
-    target: gradle-base
-  entrypoint:
-    - sh
-    - -lc
-  volumes:
-    - ../../backend:/workspace/backend
-    - gradle-cache:/root/.gradle
+x-dev-api-env: &dev-api-env
+  SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
+  SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+  SPRING_DATA_REDIS_HOST: redis
+  SPRING_DATA_REDIS_PORT: "6379"
 
 services:
 
-  api-debug:
-    <<: *dev-api-service
-    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api-debug
-    profiles:
-      - dev-container-debug
-    command:
-      - ./gradlew --no-daemon :apps:api:installDist && export JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" && exec apps/api/build/install/api/api
-    ports:
-      - ${API_HTTP_PORT:-8080}:8080
-      - ${API_DEBUG_PORT:-5005}:5005
-
   api-jb:
-    <<: *dev-api-service
+    image: bellsoft/liberica-openjdk-debian:25
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api-jb
     profiles:
       - dev-container-jb
     command:
-      - exec sleep infinity
+      - sleep
+      - infinity
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      <<: *dev-api-env
+    networks:
+      - app
     ports:
       - ${API_HTTP_PORT:-8080}:8080
+    restart: unless-stopped
 
   postgres:
     extends:
@@ -71,5 +69,3 @@ volumes:
     name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres-data
   redis-data:
     name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis-data
-  gradle-cache:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-gradle-cache

@@ -1,7 +1,7 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 set windows-shell := ["bash", "-euo", "pipefail", "-c"]
 
-[arg('profile', help='Compose profile: dev-local, dev-container-debug, dev-container-jb, or prod', pattern='dev-local|dev-container-debug|dev-container-jb|prod')]
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
 up profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -12,15 +12,9 @@ up profile='prod':
     dev-local)
       compose_file='compose.dev.yml'
       ;;
-    dev-container-debug)
-      compose_file='compose.dev.yml'
-      profile_args=(--profile dev-container-debug)
-      up_args=(--build -d)
-      ;;
     dev-container-jb)
       compose_file='compose.dev.yml'
       profile_args=(--profile dev-container-jb)
-      up_args=(--build -d)
       ;;
     prod)
       compose_file='compose.prod.yml'
@@ -28,7 +22,7 @@ up profile='prod':
       ;;
     *)
       echo "Unknown profile: {{profile}}" >&2
-      echo "Available profiles: dev-local, dev-container-debug, dev-container-jb, prod" >&2
+      echo "Available profiles: dev-local, dev-container-jb, prod" >&2
       exit 1
       ;;
   esac
@@ -38,7 +32,7 @@ up profile='prod':
     "${profile_args[@]}" \
     up "${up_args[@]}"
 
-[arg('profile', help='Compose profile: dev-local, dev-container-debug, dev-container-jb, or prod', pattern='dev-local|dev-container-debug|dev-container-jb|prod')]
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
 down profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -47,10 +41,6 @@ down profile='prod':
   case "{{profile}}" in
     dev-local)
       compose_file='compose.dev.yml'
-      ;;
-    dev-container-debug)
-      compose_file='compose.dev.yml'
-      profile_args=(--profile dev-container-debug)
       ;;
     dev-container-jb)
       compose_file='compose.dev.yml'
@@ -61,7 +51,7 @@ down profile='prod':
       ;;
     *)
       echo "Unknown profile: {{profile}}" >&2
-      echo "Available profiles: dev-local, dev-container-debug, dev-container-jb, prod" >&2
+      echo "Available profiles: dev-local, dev-container-jb, prod" >&2
       exit 1
       ;;
   esac
@@ -71,7 +61,7 @@ down profile='prod':
     "${profile_args[@]}" \
     down --remove-orphans
 
-[arg('profile', help='Compose config target: dev-local, dev-container-debug, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-debug|dev-container-jb|ci|prod')]
+[arg('profile', help='Compose config target: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
 check-config profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -80,10 +70,6 @@ check-config profile='prod':
   case "{{profile}}" in
     dev-local)
       compose_file='compose.dev.yml'
-      ;;
-    dev-container-debug)
-      compose_file='compose.dev.yml'
-      profile_args=(--profile dev-container-debug)
       ;;
     dev-container-jb)
       compose_file='compose.dev.yml'
@@ -97,7 +83,7 @@ check-config profile='prod':
       ;;
     *)
       echo "Unknown profile: {{profile}}" >&2
-      echo "Available profiles: dev-local, dev-container-debug, dev-container-jb, ci, prod" >&2
+      echo "Available profiles: dev-local, dev-container-jb, ci, prod" >&2
       exit 1
       ;;
   esac
