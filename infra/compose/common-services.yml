@@ -20,7 +20,7 @@ services:
   api-base:
     build:
       context: ../..
-      dockerfile: backend/apps/api/Dockerfile
+      dockerfile: backend/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy

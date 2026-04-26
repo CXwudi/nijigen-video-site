@@ -9,7 +9,7 @@ services:
       file: common-services.yml
       service: api-base
     build:
-      target: ${API_PROD_RUNTIME_TARGET:-native-runtime}
+      target: ${API_PROD_RUNTIME_TARGET:-api-native-runtime}
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api
 
   postgres:

@@ -2,18 +2,16 @@
 
 ## Shared Gradle build stage
 
-
 FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-25-nik-25-glibc AS gradle-base
-# TODO(new issue, optional): how to share this part of the build across multiple apps
 WORKDIR /workspace/backend
-# Assuming ../.. as the build context to copy the entire backend directory
+# Compose uses the repo root as build context so this file can serve the backend monorepo.
 COPY backend/ /workspace/backend/
 RUN chmod 0755 gradlew
 ENTRYPOINT ["./gradlew", "--no-daemon"]
 
-## JVM build stages
+## api JVM build stages
 
-FROM gradle-base AS jvm-build
+FROM gradle-base AS api-jvm-build
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon :apps:api:distZip
 RUN set -eux; \
@@ -27,16 +25,16 @@ RUN set -eux; \
     test -n "$dist_dir"; \
     cp -R "$dist_dir"/. /workspace/dist/app/
 
-FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-25-crac-glibc AS jvm-runtime
+FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-25-crac-glibc AS api-jvm-runtime
 # TODO(new issue, optional): investigate and configure CRAC
 WORKDIR /app
-COPY --from=jvm-build /workspace/dist/app/ /app/
+COPY --from=api-jvm-build /workspace/dist/app/ /app/
 EXPOSE 8080
 ENTRYPOINT ["/app/api"]
 
-## Native image build stages
+## api Native image build stages
 
-FROM gradle-base AS native-build
+FROM gradle-base AS api-native-build
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon :apps:api:nativeCompile
 RUN set -eux; \
@@ -45,8 +43,8 @@ RUN set -eux; \
     mkdir -p /workspace/dist; \
     cp "$binary_path" /workspace/dist/api
 
-FROM ghcr.io/bell-sw/hardened-base:glibc AS native-runtime
+FROM ghcr.io/bell-sw/hardened-base:glibc AS api-native-runtime
 WORKDIR /app
-COPY --from=native-build /workspace/dist/api /app/api
+COPY --from=api-native-build /workspace/dist/api /app/api
 EXPOSE 8080
 ENTRYPOINT ["/app/api"]
