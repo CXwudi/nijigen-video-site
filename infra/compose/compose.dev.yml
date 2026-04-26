@@ -14,7 +14,9 @@ x-dev-api-env: &dev-api-env
 services:
 
   api-jb:
-    image: bellsoft/liberica-openjdk-debian:25
+    # JB will still build the jar locally, then push to this container
+    # We also checked that the hardened image still has sh and basic JDK tools needed for JB
+    image: ghcr.io/bell-sw/hardened-liberica-runtime-container:jdk-25-glibc
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api-jb
     profiles:
       - dev-container-jb
