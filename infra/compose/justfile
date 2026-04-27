@@ -99,19 +99,51 @@ check-config profile='prod':
 verify-jvm:
   #!/usr/bin/env bash
   set -euo pipefail
+  run_verification() {
+    local service="$1"
+    local gradle_project="$2"
+    shift 2
+
+    local gradle_tasks=()
+    local task=''
+    for task in "$@"; do
+      gradle_tasks+=("${gradle_project}:${task}")
+    done
+
+    docker compose \
+      --env-file .env \
+      -f compose.ci.yml \
+      run --rm "$service" "${gradle_tasks[@]}"
+  }
+
   export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
   export HOST_UID="${HOST_UID:-$(id -u)}"
   export HOST_GID="${HOST_GID:-$(id -g)}"
   mkdir -p "$HOST_GRADLE_USER_HOME"
-  docker compose \
-    --env-file .env \
-    -f compose.ci.yml \
-    run --rm backend-jvm-verification
+  # api verification
+  run_verification 'api-verification' ':apps:api' 'test'
 
 [arg('task', help='Native verification task set: all, compile, or test', pattern='all|compile|test')]
 verify-native task='all':
   #!/usr/bin/env bash
   set -euo pipefail
+  run_verification() {
+    local service="$1"
+    local gradle_project="$2"
+    shift 2
+
+    local gradle_tasks=()
+    local task=''
+    for task in "$@"; do
+      gradle_tasks+=("${gradle_project}:${task}")
+    done
+
+    docker compose \
+      --env-file .env \
+      -f compose.ci.yml \
+      run --rm "$service" "${gradle_tasks[@]}"
+  }
+
   export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
   export HOST_UID="${HOST_UID:-$(id -u)}"
   export HOST_GID="${HOST_GID:-$(id -g)}"
@@ -133,10 +165,8 @@ verify-native task='all':
       exit 1
       ;;
   esac
-  docker compose \
-    --env-file .env \
-    -f compose.ci.yml \
-    run --rm backend-native-verification "${tasks[@]}"
+  # api verification
+  run_verification 'api-verification' ':apps:api' "${tasks[@]}"
 
 verify-all:
   just verify-jvm
