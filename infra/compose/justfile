@@ -1,6 +1,7 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 set windows-shell := ["bash", "-euo", "pipefail", "-c"]
 
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
 up profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -31,6 +32,7 @@ up profile='prod':
     "${profile_args[@]}" \
     up "${up_args[@]}"
 
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
 down profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -59,6 +61,7 @@ down profile='prod':
     "${profile_args[@]}" \
     down --remove-orphans
 
+[arg('profile', help='Compose config target: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
 check-config profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -105,6 +108,7 @@ verify-jvm:
     -f compose.ci.yml \
     run --rm backend-jvm-verification
 
+[arg('task', help='Native verification task set: all, compile, or test', pattern='all|compile|test')]
 verify-native task='all':
   #!/usr/bin/env bash
   set -euo pipefail
