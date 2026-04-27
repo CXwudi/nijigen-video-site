@@ -2,34 +2,49 @@
 
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
+x-backend-ci-env: &backend-ci-env
+  SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+  SPRING_DATA_REDIS_HOST: redis
+  SPRING_DATA_REDIS_PORT: "6379"
+
+x-backend-verification-service: &backend-verification-service
+  image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
+  working_dir: /workspace/backend
+  user: "${HOST_UID:-0}:${HOST_GID:-0}"
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    flyway:
+      condition: service_completed_successfully
+  environment:
+    <<: *backend-ci-env
+    GRADLE_USER_HOME: /gradle-home
+  entrypoint: ["./gradlew", "--no-daemon"]
+  networks:
+    - app
+  restart: "no"
+  volumes:
+    - ../../backend:/workspace/backend
+    - ${HOST_GRADLE_USER_HOME:-${HOME}/.gradle}:/gradle-home
+
 services:
 
-  api-jvm-verification:
-    extends:
-      file: common-services.yml
-      service: api-base
-    build:
-      target: gradle-base
+  backend-jvm-verification:
+    <<: *backend-verification-service
     command:
-      - :apps:api:testClasses
-    restart: "no"
-    volumes:
-      - gradle-verify-cache:/root/.gradle
+      - test
 
-  api-native-verification:
-    extends:
-      file: common-services.yml
-      service: api-base
-    build:
-      target: gradle-base
+  backend-native-verification:
+    <<: *backend-verification-service
     command:
-      - :apps:api:nativeTest
-    restart: "no"
-    volumes:
-      - gradle-verify-cache:/root/.gradle
+      - nativeCompile
+      - nativeTest
 
-  # And add more verification services when new apps are added
-  
   postgres:
     extends:
       file: common-services.yml
@@ -59,5 +74,3 @@ volumes:
     name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres-data
   redis-data:
     name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis-data
-  gradle-verify-cache:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-gradle-verify-cache

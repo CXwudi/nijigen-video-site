@@ -1,0 +1,11 @@
+# Profile used when connecting external services via port forwarding in compose files
+
+# Requires the .env file from infra/compose from root project
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_HOST_PORT:-5432}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  redis:
+    host: localhost
+    port: ${REDIS_HOST_PORT:-6379}

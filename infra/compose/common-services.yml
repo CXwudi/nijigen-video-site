@@ -2,7 +2,6 @@
 
 x-api-env: &api-env
   SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
-  SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
   SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
   SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}

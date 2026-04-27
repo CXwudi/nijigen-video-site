@@ -4,7 +4,6 @@ name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
 x-dev-api-env: &dev-api-env
   SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
-  SPRING_AUTOCONFIGURE_EXCLUDE: org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
   SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
   SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
@@ -16,7 +15,7 @@ services:
   api-jb:
     # JB will still build the jar locally, then push to this container
     # We also checked that the hardened image still has sh and basic JDK tools needed for JB
-    image: ghcr.io/bell-sw/hardened-liberica-runtime-container:jdk-25-glibc
+    image: ghcr.io/bell-sw/hardened-liberica-runtime-container:jdk-${JDK_VERSION:-25}-glibc
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api-jb
     profiles:
       - dev-container-jb

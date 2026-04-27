@@ -1,7 +1,6 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 set windows-shell := ["bash", "-euo", "pipefail", "-c"]
 
-[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
 up profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -32,7 +31,6 @@ up profile='prod':
     "${profile_args[@]}" \
     up "${up_args[@]}"
 
-[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
 down profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -61,7 +59,6 @@ down profile='prod':
     "${profile_args[@]}" \
     down --remove-orphans
 
-[arg('profile', help='Compose config target: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
 check-config profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -77,6 +74,9 @@ check-config profile='prod':
       ;;
     ci)
       compose_file='compose.ci.yml'
+      export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+      export HOST_UID="${HOST_UID:-$(id -u)}"
+      export HOST_GID="${HOST_GID:-$(id -g)}"
       ;;
     prod)
       compose_file='compose.prod.yml'
@@ -96,39 +96,32 @@ check-config profile='prod':
 verify-jvm:
   #!/usr/bin/env bash
   set -euo pipefail
-  cleanup() {
-    docker compose \
-      --env-file .env \
-      -f compose.ci.yml \
-      down --remove-orphans
-  }
-  trap cleanup EXIT
+  export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+  export HOST_UID="${HOST_UID:-$(id -u)}"
+  export HOST_GID="${HOST_GID:-$(id -g)}"
+  mkdir -p "$HOST_GRADLE_USER_HOME"
   docker compose \
     --env-file .env \
     -f compose.ci.yml \
-    run --build --rm api-jvm-verification
+    run --rm backend-jvm-verification
 
-[arg('task', help='Native verification task set: all, compile, or test', pattern='all|compile|test')]
 verify-native task='all':
   #!/usr/bin/env bash
   set -euo pipefail
-  cleanup() {
-    docker compose \
-      --env-file .env \
-      -f compose.ci.yml \
-      down --remove-orphans
-  }
-  trap cleanup EXIT
+  export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+  export HOST_UID="${HOST_UID:-$(id -u)}"
+  export HOST_GID="${HOST_GID:-$(id -g)}"
+  mkdir -p "$HOST_GRADLE_USER_HOME"
   tasks=()
   case "{{task}}" in
     all)
-      tasks=(':apps:api:nativeCompile' ':apps:api:nativeTest')
+      tasks=('nativeCompile' 'nativeTest')
       ;;
     test)
-      tasks=(':apps:api:nativeTest')
+      tasks=('nativeTest')
       ;;
     compile)
-      tasks=(':apps:api:nativeCompile')
+      tasks=('nativeCompile')
       ;;
     *)
       echo "Unknown native verification task: {{task}}" >&2
@@ -139,7 +132,7 @@ verify-native task='all':
   docker compose \
     --env-file .env \
     -f compose.ci.yml \
-    run --build --rm api-native-verification "${tasks[@]}"
+    run --rm backend-native-verification "${tasks[@]}"
 
 verify-all:
   just verify-jvm
