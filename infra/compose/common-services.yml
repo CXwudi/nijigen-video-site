@@ -16,10 +16,7 @@ x-flyway-env: &flyway-env
   FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline
 
 services:
-  api-base:
-    build:
-      context: ../..
-      dockerfile: backend/Dockerfile
+  api-compose-base:
     depends_on:
       postgres:
         condition: service_healthy
@@ -32,6 +29,13 @@ services:
     networks:
       - app
     restart: unless-stopped
+
+  api-base:
+    extends:
+      service: api-compose-base
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
 
   postgres-base:
     image: postgres:17

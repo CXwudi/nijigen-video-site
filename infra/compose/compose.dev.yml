@@ -2,19 +2,14 @@
 
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
-x-dev-api-env: &dev-api-env
-  SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
-  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-  SPRING_DATA_REDIS_HOST: redis
-  SPRING_DATA_REDIS_PORT: "6379"
-
 services:
 
   api-jb:
-    # JB will still build the jar locally, then push to this container
-    # We also checked that the hardened image still has sh and basic JDK tools needed for JB
+    extends:
+      file: common-services.yml
+      service: api-compose-base
+    # JB will still build the jar locally, then push to this container.
+    # We also checked that the hardened image still has sh and basic JDK tools needed for JB.
     image: ghcr.io/bell-sw/hardened-liberica-runtime-container:jdk-${JDK_VERSION:-25}-glibc
     container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api-jb
     profiles:
@@ -22,20 +17,8 @@ services:
     command:
       - sleep
       - infinity
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      flyway:
-        condition: service_completed_successfully
-    environment:
-      <<: *dev-api-env
-    networks:
-      - app
     ports:
       - ${API_HTTP_PORT:-8080}:8080
-    restart: unless-stopped
 
   postgres:
     extends:
