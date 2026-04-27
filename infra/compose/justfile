@@ -96,78 +96,29 @@ check-config profile='prod':
     "${profile_args[@]}" \
     config
 
-verify-jvm:
+[arg('module', help='App module name under :apps', pattern='api')]
+[arg('tasks', help='Gradle task names to run for the module, e.g. test nativeCompile nativeTest')]
+verify module +tasks:
   #!/usr/bin/env bash
   set -euo pipefail
-  run_verification() {
-    local service="$1"
-    local gradle_project="$2"
-    shift 2
-
-    local gradle_tasks=()
-    local task=''
-    for task in "$@"; do
-      gradle_tasks+=("${gradle_project}:${task}")
-    done
-
-    docker compose \
-      --env-file .env \
-      -f compose.ci.yml \
-      run --rm "$service" "${gradle_tasks[@]}"
-  }
 
   export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
   export HOST_UID="${HOST_UID:-$(id -u)}"
   export HOST_GID="${HOST_GID:-$(id -g)}"
   mkdir -p "$HOST_GRADLE_USER_HOME"
-  # api verification
-  run_verification 'api-verification' ':apps:api' 'test'
 
-[arg('task', help='Native verification task set: all, compile, or test', pattern='all|compile|test')]
-verify-native task='all':
-  #!/usr/bin/env bash
-  set -euo pipefail
-  run_verification() {
-    local service="$1"
-    local gradle_project="$2"
-    shift 2
+  module="{{module}}"
+  service="${module}-verification"
+  gradle_project=":apps:${module}"
+  gradle_tasks=()
+  for task in {{tasks}}; do
+    gradle_tasks+=("${gradle_project}:${task}")
+  done
 
-    local gradle_tasks=()
-    local task=''
-    for task in "$@"; do
-      gradle_tasks+=("${gradle_project}:${task}")
-    done
-
-    docker compose \
-      --env-file .env \
-      -f compose.ci.yml \
-      run --rm "$service" "${gradle_tasks[@]}"
-  }
-
-  export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
-  export HOST_UID="${HOST_UID:-$(id -u)}"
-  export HOST_GID="${HOST_GID:-$(id -g)}"
-  mkdir -p "$HOST_GRADLE_USER_HOME"
-  tasks=()
-  case "{{task}}" in
-    all)
-      tasks=('nativeCompile' 'nativeTest')
-      ;;
-    test)
-      tasks=('nativeTest')
-      ;;
-    compile)
-      tasks=('nativeCompile')
-      ;;
-    *)
-      echo "Unknown native verification task: {{task}}" >&2
-      echo "Available native verification tasks: all, compile, test" >&2
-      exit 1
-      ;;
-  esac
-  # api verification
-  run_verification 'api-verification' ':apps:api' "${tasks[@]}"
+  docker compose \
+    --env-file .env \
+    -f compose.ci.yml \
+    run --rm "$service" "${gradle_tasks[@]}"
 
 verify-all:
-  just verify-jvm
-  just verify-native all
+  just verify api test nativeCompile nativeTest

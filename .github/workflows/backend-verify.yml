@@ -49,8 +49,11 @@ jobs:
       - name: 'Render CI Compose stack'
         run: 'just check-config ci'
 
-      - name: 'Run JVM verification lane'
-        run: 'just verify-jvm'
+      - name: 'Run api test'
+        run: 'just verify api test'
 
-      - name: 'Run native verification lane'
-        run: 'just verify-native all'
+      - name: 'Run api nativeCompile'
+        run: 'just verify api nativeCompile'
+
+      - name: 'Run api nativeTest'
+        run: 'just verify api nativeTest'
