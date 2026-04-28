@@ -327,8 +327,8 @@ Tasks 1 and 2
       path filters that include at least `backend/**`, `infra/compose/**`, and
       `infra/flyway/**`.
 - [x] **Step 6:** Make the workflow run both required verification lanes, keep
-      their failure surfaces clear, and always tear down the Compose stacks and
-      related resources afterward.
+      their failure surfaces clear, and support explicit Compose stack teardown
+      when the caller does not want to reuse the stack.
 
 #### 3.4 Verification
 
@@ -354,7 +354,7 @@ Tasks 1 and 2
   documented order.
 - Review: `.github/workflows/backend-check.yml`
 - Expect: backend-only path filters, separate required verification lanes, and
-  `always()` teardown behavior are all explicit.
+  the explicit cleanup path are all documented.
 
 #### 3.5 Notes
 

@@ -107,7 +107,6 @@ check-config profile='prod':
 check-backend module +tasks:
   #!/usr/bin/env bash
   set -euo pipefail
-  trap 'status=$?; just down ci; exit "$status"' EXIT
 
   export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
   export HOST_UID="${HOST_UID:-$(id -u)}"
@@ -126,6 +125,8 @@ check-backend module +tasks:
     --env-file .env \
     -f compose.ci.yml \
     run --rm "$service" "${gradle_tasks[@]}"
+
+  echo "When finished, clean up the CI Compose stack by running 'just down ci'."
 
 check-backend-all:
   just check-backend api test nativeCompile nativeTest

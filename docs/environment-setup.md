@@ -5,7 +5,8 @@ Before any development work, make sure to have:
 1. mise
 1. docker
 1. just
-1. git-bash for Windows users
+1. git-bash for Windows users (Do not use PowerShell, all just recipes are
+   written for bash)
 
 `mise` will manage the rest of the tools needed for development, see
 [`.mise.toml`](../.mise.toml) for the complete list.

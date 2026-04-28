@@ -470,8 +470,8 @@ It should:
 - include `backend/**`, `infra/compose/**`, and `infra/flyway/**` in its path
   filters
 - use the Compose CI stack to run both required verification lanes
-- always tear down containers and orphaned resources after the run, including
-  failure paths
+- expose an explicit teardown path for callers that do not want to reuse the
+  Compose stack after the run
 
 The workflow should make both of these gates required:
 
