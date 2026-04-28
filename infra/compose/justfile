@@ -32,7 +32,7 @@ up profile='prod':
     "${profile_args[@]}" \
     up "${up_args[@]}"
 
-[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
 down profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -46,12 +46,18 @@ down profile='prod':
       compose_file='compose.dev.yml'
       profile_args=(--profile dev-container-jb)
       ;;
+    ci)
+      compose_file='compose.ci.yml'
+      export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+      export HOST_UID="${HOST_UID:-$(id -u)}"
+      export HOST_GID="${HOST_GID:-$(id -g)}"
+      ;;
     prod)
       compose_file='compose.prod.yml'
       ;;
     *)
       echo "Unknown profile: {{profile}}" >&2
-      echo "Available profiles: dev-local, dev-container-jb, prod" >&2
+      echo "Available profiles: dev-local, dev-container-jb, ci, prod" >&2
       exit 1
       ;;
   esac
@@ -101,6 +107,7 @@ check-config profile='prod':
 check-backend module +tasks:
   #!/usr/bin/env bash
   set -euo pipefail
+  trap 'status=$?; just down ci; exit "$status"' EXIT
 
   export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
   export HOST_UID="${HOST_UID:-$(id -u)}"

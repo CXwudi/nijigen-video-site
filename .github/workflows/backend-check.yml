@@ -59,3 +59,7 @@ jobs:
       # Spring Native's doc actually recommends only run this like per day or before release
       # - name: 'Run api nativeTest'
       #   run: 'just check-backend api nativeTest'
+
+      - name: 'Clean CI Compose stack'
+        if: 'always()'
+        run: 'just down ci'
