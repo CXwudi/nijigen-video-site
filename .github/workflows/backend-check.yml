@@ -1,17 +1,17 @@
-name: 'Backend Verification'
+name: 'Backend Check'
 
 on:
   pull_request:
     paths:
       - '.dockerignore'
-      - '.github/workflows/backend-verify.yml'
+      - '.github/workflows/backend-check.yml'
       - 'backend/**'
       - 'infra/compose/**'
       - 'infra/flyway/**'
   push:
     paths:
       - '.dockerignore'
-      - '.github/workflows/backend-verify.yml'
+      - '.github/workflows/backend-check.yml'
       - 'backend/**'
       - 'infra/compose/**'
       - 'infra/flyway/**'
@@ -27,8 +27,8 @@ defaults:
     working-directory: 'infra/compose'
 
 jobs:
-  verify-backend:
-    name: 'Verify Backend'
+  check-backend:
+    name: 'Check Backend'
     runs-on: 'ubuntu-latest'
     timeout-minutes: 75
     permissions:
@@ -50,10 +50,12 @@ jobs:
         run: 'just check-config ci'
 
       - name: 'Run api test'
-        run: 'just verify api test'
+        run: 'just check-backend api test'
 
       - name: 'Run api nativeCompile'
-        run: 'just verify api nativeCompile'
+        run: 'just check-backend api nativeCompile'
 
-      - name: 'Run api nativeTest'
-        run: 'just verify api nativeTest'
+      # Let's not run this one for every single commit for now.
+      # Spring Native's doc actually recommends only run this like per day or before release
+      # - name: 'Run api nativeTest'
+      #   run: 'just check-backend api nativeTest'

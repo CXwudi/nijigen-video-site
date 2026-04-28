@@ -98,7 +98,7 @@ check-config profile='prod':
 
 [arg('module', help='App module name under :apps', pattern='api')]
 [arg('tasks', help='Gradle task names to run for the module, e.g. test nativeCompile nativeTest')]
-verify module +tasks:
+check-backend module +tasks:
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -120,5 +120,5 @@ verify module +tasks:
     -f compose.ci.yml \
     run --rm "$service" "${gradle_tasks[@]}"
 
-verify-all:
-  just verify api test nativeCompile nativeTest
+check-backend-all:
+  just check-backend api test nativeCompile nativeTest

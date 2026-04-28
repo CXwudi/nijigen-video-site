@@ -378,7 +378,7 @@ working GraalVM toolchain.
 Jar packaging should remain available as an alternative path, but it does not
 need to be a required CI gate.
 
-### Backend Verification Services
+### Backend Check Services
 
 Backend verification should run as Compose services, not as ad hoc host commands
 in CI.
@@ -440,8 +440,8 @@ The `infra/compose/justfile` should wrap the common Compose combinations so
 developers and CI do not need to remember long `docker compose -f ...` command
 lines.
 
-Illustrative recipe names can be `up`, `down`, `check-config`, `verify-jvm`,
-`verify-native`, and `verify-all`.
+Illustrative recipe names can be `up`, `down`, `check-config`, `check-backend`,
+and `check-backend-all`.
 
 At minimum, the command surface should support:
 

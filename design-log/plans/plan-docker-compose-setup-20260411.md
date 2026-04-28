@@ -75,7 +75,7 @@ The repository root should also contain:
 
 ```text
 .dockerignore
-.github/workflows/backend-api-verify.yml
+.github/workflows/backend-check.yml
 ```
 
 ## Assumptions
@@ -230,9 +230,9 @@ Task 1
       only, making the native runtime target the default while preserving the
       JVM runtime target as an explicit alternative selected through config.
 - [x] **Step 7:** Add `infra/compose/justfile` recipes for `up`, `down`,
-      `check-config`, `verify-jvm`, `verify-native`, and `verify-all`, and make
-      those recipes align with the explicit environment files rather than the
-      older base-plus-local naming.
+      `check-config`, `check-backend`, and `check-backend-all`, and make those
+      recipes align with the explicit environment files rather than the older
+      base-plus-local naming.
 - [x] **Step 8:** Update `.gitignore` so a real `infra/compose/.env` stays
       untracked while `.env.example` remains committed.
 
@@ -304,7 +304,7 @@ model locally and in CI.
 #### 3.2 Files
 
 - Create: `infra/compose/compose.ci.yml`
-- Create: `.github/workflows/backend-api-verify.yml`
+- Create: `.github/workflows/backend-check.yml`
 - Modify: `infra/compose/justfile`
 
 #### 3.3 Dependencies
@@ -320,12 +320,12 @@ Tasks 1 and 2
 - [x] **Step 3:** Keep the CI stack non-interactive by avoiding debugger flags,
       local-only host port publishing, and other developer-only assumptions,
       while still depending on PostgreSQL, Redis, and Flyway as needed.
-- [x] **Step 4:** Extend the `justfile` with `verify-jvm`, `verify-native`, and
-      `verify-all` recipes, plus any small helper recipes needed to keep the
-      native test and native compile commands explicit and reusable.
-- [x] **Step 5:** Add `.github/workflows/backend-api-verify.yml` with
-      backend-focused path filters that include at least `backend/**`,
-      `infra/compose/**`, and `infra/flyway/**`.
+- [x] **Step 4:** Extend the `justfile` with `check-backend` and
+      `check-backend-all` recipes, plus any small helper recipes needed to keep
+      the native test and native compile commands explicit and reusable.
+- [x] **Step 5:** Add `.github/workflows/backend-check.yml` with backend-focused
+      path filters that include at least `backend/**`, `infra/compose/**`, and
+      `infra/flyway/**`.
 - [x] **Step 6:** Make the workflow run both required verification lanes, keep
       their failure surfaces clear, and always tear down the Compose stacks and
       related resources afterward.
@@ -342,16 +342,17 @@ Tasks 1 and 2
   ```
 
 - Expect: the merged CI stack renders successfully.
-- Run: `just --justfile infra/compose/justfile verify-jvm`
+- Run: `just --justfile infra/compose/justfile check-backend api test`
 - Expect: the Compose-managed JVM compile-health lane completes successfully and
-  exits with the `testClasses` status.
-- Run: `just --justfile infra/compose/justfile verify-native`
+  exits with the `test` status.
+- Run:
+  `just --justfile infra/compose/justfile check-backend api nativeCompile nativeTest`
 - Expect: the Compose-managed native verification lane completes successfully
   and covers both `nativeTest` and `nativeCompile`.
-- Run: `just --justfile infra/compose/justfile verify-all`
+- Run: `just --justfile infra/compose/justfile check-backend-all`
 - Expect: the combined verification command runs the JVM and native lanes in the
   documented order.
-- Review: `.github/workflows/backend-api-verify.yml`
+- Review: `.github/workflows/backend-check.yml`
 - Expect: backend-only path filters, separate required verification lanes, and
   `always()` teardown behavior are all explicit.
 
@@ -361,7 +362,7 @@ Tasks 1 and 2
   development stack so the verification model stays aligned with GitHub Actions.
 - A single `api-native-verification` service can still support separate CI steps
   for `nativeCompile` and `nativeTest` by overriding its command per invocation.
-- The workflow file is named `backend-api-verify.yml` to make the current
+- The workflow file is named `backend-check.yml` to make the current
   application-specific verification scope explicit. If the workflow later widens
   to multiple backend applications, its name can be revisited then.
 
@@ -460,7 +461,7 @@ together as one coherent feature.
 - Review: `infra/compose/compose.ci.yml`
 - Review: `infra/compose/compose.prod.yml`
 - Review: `infra/compose/justfile`
-- Review: `.github/workflows/backend-api-verify.yml`
+- Review: `.github/workflows/backend-check.yml`
 - Review: `infra/compose/docs/compose-guide.md`
 
 #### 5.3 Dependencies
@@ -555,7 +556,7 @@ Tasks 1 through 4
 - Expect: the dev API and its dependencies start under the debug profile.
 - Run: `just --justfile infra/compose/justfile up dev-local`
 - Expect: only the support services start for fallback development.
-- Run: `just --justfile infra/compose/justfile verify-all`
+- Run: `just --justfile infra/compose/justfile check-backend-all`
 - Expect: the Compose-managed verification lanes complete with the expected exit
   statuses.
 
