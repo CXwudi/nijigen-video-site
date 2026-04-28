@@ -21,7 +21,7 @@ should live close to `backend/`, while cross-cutting documentation stays under
 `backend/docs/`. `backend/docs/README.md` exists as the backend-specific docs
 home, but it does not yet describe the actual backend documentation set.
 
-ADR-001 is still useful context for the split-root repository shape and the
+ADL-001 is still useful context for the split-root repository shape and the
 intended backend boundary, but it is no longer the source of truth for the
 documentation folder layout. The current documentation structure should be
 derived from `docs/README.md` and the app-local docs indexes instead.
@@ -103,14 +103,14 @@ The approved Task 5 direction is now:
 - `backend/docs/folder-structure.md` documents the current backend folder and
   module structure
 
-The documents must describe the backend as currently implemented. ADR-001 may
+The documents must describe the backend as currently implemented. ADL-001 may
 reserve future structure such as `apps/worker`, but this baseline should not
 document future modules as if they are already part of the current backend
 bootstrap.
 
 For documentation layout decisions, this spec should follow the current
 `docs/README.md` structure rather than the older documentation tree shown in
-ADR-001.
+ADL-001.
 
 ## Target Deliverables
 
@@ -138,7 +138,7 @@ ADR-001.
 - Out of scope: detailed runtime documentation, deployment guidance, or module
   deep-dives
 - Out of scope: frontend-specific documentation changes beyond existing links
-- Out of scope: revising ADR-001 in this task, even though its documentation
+- Out of scope: revising ADL-001 in this task, even though its documentation
   folder example is now outdated
 
 ## Risks and Open Questions
@@ -149,11 +149,11 @@ ADR-001.
   components that are not yet represented in the codebase.
 - If the worker app or more shared modules appear soon, the folder structure
   document will likely need an early follow-up update.
-- There is a risk of documenting ADR-intended future structure instead of the
+- There is a risk of documenting ADL-intended future structure instead of the
   currently implemented backend skeleton, so the docs must stay grounded in the
   repository state.
 - There is also a risk of following the older documentation tree shown in
-  ADR-001 rather than the current docs index, so the documentation map in
+  ADL-001 rather than the current docs index, so the documentation map in
   `docs/README.md` should take precedence for this work.
 
 ## Validation Considerations
@@ -171,8 +171,8 @@ The resulting documentation should be considered successful if:
 - [plans/plan-backend-gradle-bootstrap-20260328.md](../plans/plan-backend-gradle-bootstrap-20260328.md)
   Implementation plan that defines Task 5 as the backend documentation follow-up
   to the Gradle bootstrap work. Important.
-- [adr/0001-project-structure-baseline.md](../adr/0001-project-structure-baseline.md)
-  Accepted ADR describing the split-root monorepo and the intended high-level
+- [adl/0001-project-structure-baseline.md](../adl/0001-project-structure-baseline.md)
+  Accepted ADL describing the split-root monorepo and the intended high-level
   backend structure; its documentation tree example is older than the current
   docs layout. Important.
 - [docs/README.md](../../docs/README.md) Root documentation index that routes

@@ -1,4 +1,4 @@
-# ADR-003: Compose-First Container Build Workflow for Backend Apps
+# ADL-003: Compose-First Container Build Workflow for Backend Apps
 
 - **Status:** Accepted
 - **Date:** 2026-04-16
@@ -14,10 +14,10 @@ The repository now has an initial backend container workflow in place:
 - a `justfile`-driven operator workflow
 
 At the same time, the repo is expected to grow into a more realistic monorepo
-shape over time. ADR-001 already reserved a future `backend/apps/worker`, and it
+shape over time. ADL-001 already reserved a future `backend/apps/worker`, and it
 is reasonable to expect more deployable images later.
 
-This ADR records the container-build direction so we do not prematurely add a
+This ADL records the container-build direction so we do not prematurely add a
 separate build orchestration layer or split the Docker layout before the repo
 actually needs it.
 
@@ -210,7 +210,7 @@ These tradeoffs are acceptable at the current repo size.
 
 ---
 
-## Triggers to revisit this ADR
+## Triggers to revisit this ADL
 
 Revisit this decision when any of the following happen:
 

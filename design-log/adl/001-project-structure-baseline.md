@@ -1,4 +1,4 @@
-# ADR-001: Project Structure Baseline
+# ADL-001: Project Structure Baseline
 
 - **Status:** Accepted
 - **Date:** 2026-03-21
@@ -126,7 +126,7 @@ video-site/
 │     └─ ory/
 │
 ├─ docs/
-│  ├─ adr/
+│  ├─ adl/
 │  ├─ domain/
 │  ├─ api/
 │  └─ deployment/

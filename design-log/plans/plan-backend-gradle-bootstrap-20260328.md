@@ -11,7 +11,7 @@ version management, convention plugins, and the first `apps/api` and
 `modules/common` modules.
 
 **Source of Truth:** GitHub issue #2 plus the approved backend documentation
-baseline spec, with ADR-001 used only as contextual input for repo and backend
+baseline spec, with ADL-001 used only as contextual input for repo and backend
 boundaries.
 
 **Scope:** Includes the backend Gradle wrapper and root build files,
@@ -25,7 +25,7 @@ worker placeholder or runtime, and any frontend or infra work.
 
 **Approach:** Use `gradle init` only to bootstrap the wrapper and basic Kotlin
 DSL files inside `backend/`, then reshape the generated scaffold into the
-ADR-aligned multi-module layout. Keep all internal plugin infrastructure inside
+ADL-aligned multi-module layout. Keep all internal plugin infrastructure inside
 the unified `backend/gradle/plugins/` composite build, keep
 `gradle/libs.versions.toml` as the single source of truth for versions,
 dependencies, and plugin coordinates, and use a generated Kotlin helper module
@@ -101,7 +101,7 @@ backend/
 #### Intent
 
 Create the `backend/` Gradle wrapper and root build files, then reshape the
-generated scaffold into the monorepo-friendly backend root expected by ADR-001.
+generated scaffold into the monorepo-friendly backend root expected by ADL-001.
 
 #### Files
 
@@ -283,7 +283,7 @@ Task 3
 
 #### Notes
 
-- `apps/worker` is intentionally deferred to a later issue even though ADR-001
+- `apps/worker` is intentionally deferred to a later issue even though ADL-001
   reserves it in the long-term backend shape.
 
 ### Task 5: Create the Backend Docs Baseline
@@ -348,7 +348,7 @@ Task 4 plus `ref/spec/spec-backend-docs-baseline-20260328.md`
 - `backend/docs/tech-stack.md` and `backend/docs/folder-structure.md` should be
   grounded in the current codebase, not in future plans.
 - For documentation layout, follow `docs/README.md` and the approved spec rather
-  than the older documentation tree example shown in ADR-001.
+  than the older documentation tree example shown in ADL-001.
 
 ## References
 
@@ -359,7 +359,7 @@ Task 4 plus `ref/spec/spec-backend-docs-baseline-20260328.md`
 | Resource                                                                                                                                                                                                                                                                                                         | Description                                                                                                                               | Other Notes if any |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | [spec/spec-backend-docs-baseline-20260328.md](../spec/spec-backend-docs-baseline-20260328.md)                                                                                                                                                                                                                    | Approved spec defining the Task 5 backend documentation baseline, deliverables, and layout rules.                                         | Must Read          |
-| [ADR-001](../adr/0001-project-structure-baseline.md)                                                                                                                                                                                                                                                             | Accepted project structure baseline defining backend as a split-root Gradle workspace with `apps/api`, `apps/worker`, and shared modules. | Must Read          |
+| [ADL-001](../adl/0001-project-structure-baseline.md)                                                                                                                                                                                                                                                             | Accepted project structure baseline defining backend as a split-root Gradle workspace with `apps/api`, `apps/worker`, and shared modules. | Must Read          |
 | [Issue #2: Gradle Init](https://github.com/CXwudi/nijigen-video-site/issues/2)                                                                                                                                                                                                                                   | Primary implementation requirements for the backend Gradle bootstrap, convention plugins, version-catalog helper, and initial modules.    | Must Read          |
 | [modern-gradle-template-simplified/settings.gradle.kts](https://github.com/CXwudi/modern-gradle-template-simplified/blob/main/settings.gradle.kts)                                                                                                                                                               | Reference for composite-build wiring, version-catalog import, and root settings plugin application.                                       | Important          |
 | [modern-gradle-template-simplified/gradle/plugins/settings.gradle.kts](https://github.com/CXwudi/modern-gradle-template-simplified/blob/main/gradle/plugins/settings.gradle.kts)                                                                                                                                 | Reference for auto-including submodules inside the internal plugin build.                                                                 |                    |

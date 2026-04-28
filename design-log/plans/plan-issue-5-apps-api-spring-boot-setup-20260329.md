@@ -10,7 +10,7 @@ conventions and Java 25 workspace.
 
 **Source of Truth:** GitHub issue `#5` plus the Spring Initializr URL attached
 in the issue comment, with backend structure constraints inherited from issue
-`#2` and ADR-001.
+`#2` and ADL-001.
 
 **Scope:** Populate the `apps:api` module with its Spring Boot build,
 application entrypoint, baseline resources, and a passing bootstrap test; update
@@ -75,7 +75,7 @@ PostgreSQL, Pulsar, and OAuth client auto-configuration are all present.
 - A default `@SpringBootTest` may fail once JDBC, PostgreSQL, Pulsar, and OAuth
   client auto-configuration are active without external services or test
   overrides in place.
-- ADR-001 says Flyway stays outside the Spring app, so bootstrap configuration
+- ADL-001 says Flyway stays outside the Spring app, so bootstrap configuration
   should not quietly pull schema management into `apps/api`.
 
 ### Task 1: Align Shared Build Conventions With The Generated Spring App
@@ -229,7 +229,7 @@ Task 2
   expected, update the implementation in response to the actual failure instead
   of hard-coding assumptions from this plan.
 - Avoid adding embedded database or migration behavior just to satisfy the
-  bootstrap test; that would drift away from ADR-001.
+  bootstrap test; that would drift away from ADL-001.
 
 ### Task 4: Refresh Backend Docs And Final Verification
 
@@ -304,7 +304,7 @@ Task 3
 | [Issue #5](https://github.com/CXwudi/nijigen-video-site/issues/5)                                                                                                                                                                                                                                                                                                                                                                                  | Primary request to set up `backend/apps/api` as a Spring Boot project and adapt it to this repository’s Gradle conventions                                                                                  | Must Read          |
 | [Spring Initializr URL](https://start.spring.io/#!type=gradle-project-kotlin&language=kotlin&platformVersion=4.0.5&packaging=jar&configurationFileFormat=yaml&jvmVersion=25&groupId=io.github.cxwudi.nijigenvideosite&artifactId=apps-api&packageName=io.github.cxwudi.nijigenvideosite.apps.api&dependencies=configuration-processor,springdoc-openapi,security,oauth2-client,postgresql,jdbc,pulsar,validation,cache,actuator,opentelemetry,web) | Generated app baseline to be adapted into `backend/apps/api`                                                                                                                                                | Must Read          |
 | [Issue #2](https://github.com/CXwudi/nijigen-video-site/issues/2)                                                                                                                                                                                                                                                                                                                                                                                  | Original backend Gradle bootstrap issue that defines the convention-plugin and Spring BOM constraints still in force for issue `#5`                                                                         | Must Read          |
-| [ref/adr/0001-project-structure-baseline.md](../adr/0001-project-structure-baseline.md)                                                                                                                                                                                                                                                                                                                                                            | Backend shape decision showing `backend/apps/api` as a real runtime app and `modules/*` as the shared-code home                                                                                             | Must Read          |
+| [ref/adl/0001-project-structure-baseline.md](../adl/0001-project-structure-baseline.md)                                                                                                                                                                                                                                                                                                                                                            | Backend shape decision showing `backend/apps/api` as a real runtime app and `modules/*` as the shared-code home                                                                                             | Must Read          |
 | [backend/docs/gradle-setup-explain.md](../../backend/docs/gradle-setup-explain.md)                                                                                                                                                                                                                                                                                                                                                                 | Current explanation of the version catalog, included plugin build, and convention-plugin layering that issue `#5` must preserve                                                                             | Must Read          |
 | [backend/gradle/libs.versions.toml](../../backend/gradle/libs.versions.toml)                                                                                                                                                                                                                                                                                                                                                                       | Current backend version catalog and plugin coordinates, including the place to document that any BOM-managed libraries should stop carrying individual catalog versions once the BOM is the source of truth | Must Read          |
 | [backend/gradle/plugins/backend/src/main/kotlin/my.spring-app.gradle.kts](../../backend/gradle/plugins/backend/src/main/kotlin/my.spring-app.gradle.kts)                                                                                                                                                                                                                                                                                           | Existing Spring app convention plugin that already applies Spring Boot, GraalVM native support, and the Spring BOM                                                                                          | Must Read          |

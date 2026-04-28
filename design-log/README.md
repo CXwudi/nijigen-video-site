@@ -10,8 +10,8 @@ explored.
 
 ## Immutability
 
-When a PR is merged with new reference materials (e.g. a new ADR or an updated
-plan) added in `adr/`, `plans/`, or `spec/`, these materials should not be
+When a PR is merged with new reference materials (e.g. a new ADL or an updated
+plan) added, these materials should not be
 altered from its original intents or deleted in the future. Grammarical fix or
 link updates are allowed, but the core content should remain unchanged.
 
@@ -20,7 +20,7 @@ new design history, the old one can have a link to the new one for traceability.
 
 ## Structure
 
-- [`adr/`](adr/): architecture decision records and related rationale notes
+- [`adl/`](adl/): architecture decision logs and related rationale notes
 - [`plans/`](plans/): implementation plans and work breakdowns
 - [`spec/`](spec/): design specs, problem framing, and option analysis
 - [`others/`](others/): any other supporting materials

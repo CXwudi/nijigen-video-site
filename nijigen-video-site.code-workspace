@@ -5,8 +5,8 @@
       "path": "."
     },
     {
-      "name": "design-ref",
-      "path": "ref"
+      "name": "design-log",
+      "path": "design-log"
     },
     {
       "name": "common-docs",
