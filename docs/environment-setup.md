@@ -14,7 +14,7 @@ Before any development work, make sure to have:
 
 From the repository root, assuming mise is installed:
 
-1.For the first time , trust the repo configuration:
+1. For the first time , trust the repo configuration:
 
    ```bash
    mise trust
