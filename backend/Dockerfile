@@ -5,8 +5,7 @@
 # If we changed this image, also update it in the compose files
 FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-25-nik-25-glibc AS gradle-base
 WORKDIR /workspace/backend
-# Compose uses the repo root as build context so this file can serve the backend monorepo.
-COPY backend/ /workspace/backend/
+COPY . /workspace/backend/
 RUN chmod 0755 gradlew
 ENTRYPOINT ["./gradlew", "--no-daemon"]
 

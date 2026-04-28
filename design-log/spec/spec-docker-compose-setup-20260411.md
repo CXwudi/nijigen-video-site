@@ -77,8 +77,8 @@ library plus explicit environment files:
 - `common-services.yml` defines reusable service templates for the shared API
   shape and the shared support services
 - `compose.dev.yml` turns that service library into the normal developer
-  environment with fixed localhost ports plus explicit `api-debug` and `api-jb`
-  services
+  environment with fixed localhost ports plus an explicit `api-jb` service for
+  JetBrains-assisted container development
 - `compose.ci.yml` adds CI-specific verification services without carrying over
   local-only ports, debugger flags, or developer bind mounts
 - `compose.prod.yml` carries deployment-oriented overrides and defaults the API
@@ -164,26 +164,27 @@ infra/
       └─ local/
 ```
 
-The API Dockerfile should live at `backend/apps/api/Dockerfile`.
+The backend app-family Dockerfile should live at `backend/Dockerfile`.
 
 `infra/flyway/` is intentionally outside `infra/compose/` so migration assets
 remain reusable and are not mixed with Compose control files.
 
 ### Dockerfile Placement
 
-The API Dockerfile should live at `backend/apps/api/Dockerfile`.
+The backend app-family Dockerfile should live at `backend/Dockerfile`.
 
 Reasoning:
 
-- it is application-specific build logic, not a generic infrastructure asset
-- keeping it next to the app source makes ownership and maintenance clearer
+- it is backend-specific build logic, not a generic infrastructure asset
+- keeping it at the backend workspace root makes the Gradle build context clear
+  while still keeping ownership under the backend area
 - Compose can still reference it from the shared service definitions under
   `infra/compose/common-services.yml`
 
 Because Docker Compose resolves relative paths from the file that defines the
-service, the shared service file should use repository-root-relative build
-settings consistently, such as a repo-root build context plus an explicit
-Dockerfile path.
+service, the shared service file should use backend-workspace build settings
+consistently, with `../../backend` as the context and `Dockerfile` as the
+context-local Dockerfile path.
 
 ### Compose Layers
 
@@ -217,8 +218,8 @@ This becomes the actual development entry file. It should do all of the
 following:
 
 - publish fixed host ports for developer access
-- expose both `api-debug` and `api-jb` as explicit services that extend
-  `api-base`
+- expose `api-jb` as an explicit service for JetBrains-assisted container
+  development
 - keep PostgreSQL and Redis reachable from localhost for the fallback host or
   WSL workflow
 - allow a local-only Flyway extension path for seed or fixture data when useful
@@ -226,10 +227,9 @@ following:
 The important design point is that `compose.dev.yml` must support two valid
 local workflows with one environment file:
 
-1. containerized debugging by enabling `api-debug` or `api-jb`
+1. containerized development by enabling `api-jb`
 2. fallback: start infra through Compose, but run the API from WSL or the host
-   against published PostgreSQL and Redis ports without enabling either API
-   profile
+   against published PostgreSQL and Redis ports without enabling the API profile
 
 This means local port publishing is not just for browser access. It is also the
 escape hatch that keeps development unblocked when IDE-to-container integration
@@ -310,15 +310,14 @@ Recommended profile use cases:
 - one-off utility services that are useful to keep in the model but should not
   be part of the default startup path
 
-Profiles are a good fit for switching between the two approved development API
-services:
+Profiles are a good fit for keeping the optional development API service out of
+the default support-service startup:
 
-- `api-debug`
 - `api-jb`
 
 The fallback host or WSL workflow still shares the same development environment
-shape. The difference is mainly whether one of the containerized API services is
-enabled.
+shape. The difference is mainly whether the optional containerized API service
+is enabled.
 
 For that reason:
 

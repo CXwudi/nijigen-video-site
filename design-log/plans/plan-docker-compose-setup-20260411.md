@@ -13,13 +13,13 @@ with JVM and jar alternatives available.
 `design-log/spec/spec-docker-compose-setup-20260411.md`, plus GitHub issue `#8`
 and the copied service deployment standard it references.
 
-**Scope:** Revise the in-progress API Dockerfile and `.dockerignore`, create the
-`infra/compose/` and `infra/flyway/` scaffolding, add a shared
-`common-services.yml` plus explicit environment-specific Compose entry files,
-add the Compose-backed backend verification workflow in GitHub Actions, and
-document the resulting runtime and verification model. This plan does not
-implement frontend containers, broader production hardening, or non-Compose
-deployment automation.
+**Scope:** Revise the in-progress backend Dockerfile and
+`backend/.dockerignore`, create the `infra/compose/` and `infra/flyway/`
+scaffolding, add a shared `common-services.yml` plus explicit
+environment-specific Compose entry files, add the Compose-backed backend
+verification workflow in GitHub Actions, and document the resulting runtime and
+verification model. This plan does not implement frontend containers, broader
+production hardening, or non-Compose deployment automation.
 
 **Approach:** First revise the already-started Docker build assets so they
 support explicit JVM and native targets from one Dockerfile. Then layer the
@@ -67,22 +67,22 @@ infra/
 The backend area should also contain the refreshed API build assets:
 
 ```text
-backend/apps/api/
+backend/
+├─ .dockerignore
 └─ Dockerfile
 ```
 
 The repository root should also contain:
 
 ```text
-.dockerignore
 .github/workflows/backend-check.yml
 ```
 
 ## Assumptions
 
-- The existing untracked `backend/apps/api/Dockerfile` and `.dockerignore`
-  should be revised in place rather than discarded conceptually, since they are
-  already the starting point of Task 1 work.
+- The existing Docker build assets should be revised in place rather than
+  discarded conceptually, with the build context scoped to the backend Gradle
+  workspace.
 - A single multi-stage Dockerfile will expose named targets for JVM development,
   JVM runtime, native build, and native runtime instead of splitting JVM and
   native paths across separate Dockerfiles.
@@ -105,8 +105,8 @@ The repository root should also contain:
   alternative for day-to-day development.
 - Native Gradle tasks require a GraalVM distribution with `native-image`, so the
   container image choices must eliminate reliance on the host toolchain.
-- A repo-root Docker build context makes `.dockerignore` important to keep build
-  contexts small and avoid accidental file leakage into images.
+- A backend Docker build context plus `backend/.dockerignore` keeps build
+  contexts small and avoids accidental leakage from generated backend outputs.
 - Compose startup ordering must make PostgreSQL readiness and Flyway completion
   explicit, otherwise the API and verification services can fail
   nondeterministically.
@@ -126,8 +126,8 @@ native production runtime.
 
 #### 1.2 Files
 
-- Modify: `backend/apps/api/Dockerfile`
-- Modify: `.dockerignore`
+- Modify: `backend/Dockerfile`
+- Modify: `backend/.dockerignore`
 
 #### 1.3 Dependencies
 
@@ -136,18 +136,18 @@ None
 - [x] **Step 1:** Replace the current `dev` and `prod`-only Dockerfile layout
       with explicit named targets for JVM development, JVM runtime, native
       build, and native runtime.
-- [x] **Step 2:** Keep the repo-root build context and backend workspace copy
-      model predictable so both JVM and native targets can execute Gradle
-      commands from the same `WORKDIR` without path tricks.
+- [x] **Step 2:** Keep the backend workspace as the Docker build context so both
+      JVM and native targets can execute Gradle commands from the same `WORKDIR`
+      without path tricks.
 - [x] **Step 3:** Use a GraalVM-capable builder image for the stages that run
       `nativeTest` and `nativeCompile`, while keeping the local JVM development
       target optimized for `bootRun` and `testClasses`.
 - [x] **Step 4:** Ensure the JVM runtime target packages the jar alternative
       cleanly and the native runtime target copies the deployable main native
       executable cleanly.
-- [x] **Step 5:** Revisit `.dockerignore` so the repo-root build context stays
-      focused on the backend workspace while still preserving everything the
-      refreshed Dockerfile needs for both the JVM and native paths.
+- [x] **Step 5:** Revisit `backend/.dockerignore` so the backend build context
+      excludes generated outputs while still preserving everything the refreshed
+      Dockerfile needs for both the JVM and native paths.
 - [x] **Step 6:** Keep Dockerfile comments brief and focused on why the stage
       split exists, especially where the JVM development path differs from the
       native verification and production paths.
@@ -159,21 +159,21 @@ None
   ```sh
   docker build \
     -t nijigen-api:gradle-base-check \
-    -f backend/apps/api/Dockerfile \
+    -f backend/Dockerfile \
     --target gradle-base \
-    .
+    backend
   ```
 
-- Expect: the shared Gradle command target builds successfully from the
-  repository root context.
+- Expect: the shared Gradle command target builds successfully from the backend
+  workspace context.
 - Run:
   `docker run --rm nijigen-api:gradle-base-check :apps:api:testClasses --dry-run`
 - Expect: the shared Gradle command target can execute its intended Gradle
   command path using the image's default entrypoint and working directory.
-- Run: `docker build -f backend/apps/api/Dockerfile --target jvm-runtime .`
+- Run: `docker build -f backend/Dockerfile --target api-jvm-runtime backend`
 - Expect: the JVM runtime target also builds successfully and packages the jar
   alternative path.
-- Run: `docker build -f backend/apps/api/Dockerfile --target native-runtime .`
+- Run: `docker build -f backend/Dockerfile --target api-native-runtime backend`
 - Expect: the native runtime target builds successfully, exercising the native
   build path end to end.
 
@@ -219,10 +219,10 @@ Task 1
       environment blocks, named volumes, healthchecks, and dependency wiring
       that uses `service_healthy` and `service_completed_successfully` where
       appropriate.
-- [x] **Step 4:** Author `compose.dev.yml` so container-first development is
-      available through explicit `api-debug` and `api-jb` services that extend
-      `api-base`, while `postgres`, `redis`, and `flyway` are also explicitly
-      declared by extending the shared base services.
+- [x] **Step 4:** Author `compose.dev.yml` so JetBrains-assisted container-first
+      development is available through an explicit `api-jb` service, while
+      `postgres`, `redis`, and `flyway` are also explicitly declared by
+      extending the shared base services.
 - [x] **Step 5:** Ensure the same dev stack also supports the host or WSL
       fallback path by allowing the support services to be started without
       enabling either dev API profile.
@@ -266,7 +266,7 @@ Task 1
 - Run:
 
   ```sh
-  env API_PROD_RUNTIME_TARGET=jvm-runtime \
+  env API_PROD_RUNTIME_TARGET=api-jvm-runtime \
     docker compose \
     --env-file infra/compose/.env \
     -f infra/compose/compose.prod.yml \
@@ -275,8 +275,9 @@ Task 1
 
 - Expect: the same production stack also renders when the JVM runtime
   alternative is selected explicitly.
-- Run: `just --justfile infra/compose/justfile up dev-container-debug`
-- Expect: the dev stack starts with the JVM-based debug container-first path.
+- Run: `just --justfile infra/compose/justfile up dev-container-jb`
+- Expect: the dev stack starts with the JVM-based JetBrains-assisted
+  container-first path.
 - Run: `just --justfile infra/compose/justfile up dev-local`
 - Expect: only `postgres`, `redis`, and `flyway` start for the host or WSL
   fallback path.
@@ -454,8 +455,8 @@ together as one coherent feature.
 
 #### 5.2 Files
 
-- Review: `backend/apps/api/Dockerfile`
-- Review: `.dockerignore`
+- Review: `backend/Dockerfile`
+- Review: `backend/.dockerignore`
 - Review: `infra/compose/common-services.yml`
 - Review: `infra/compose/compose.dev.yml`
 - Review: `infra/compose/compose.ci.yml`
@@ -524,7 +525,7 @@ Tasks 1 through 4
 - Run:
 
   ```sh
-  env API_PROD_RUNTIME_TARGET=jvm-runtime \
+  env API_PROD_RUNTIME_TARGET=api-jvm-runtime \
     docker compose \
     --env-file infra/compose/.env \
     -f infra/compose/compose.prod.yml \
@@ -532,16 +533,16 @@ Tasks 1 through 4
   ```
 
 - Expect: the JVM runtime alternative also renders cleanly.
-- Run: `docker build -f backend/apps/api/Dockerfile --target gradle-base .`
+- Run: `docker build -f backend/Dockerfile --target gradle-base backend`
 - Expect: the shared Gradle command target still builds after the Compose work.
 - Run:
 
   ```sh
   docker build \
     -t nijigen-api:gradle-base-check \
-    -f backend/apps/api/Dockerfile \
+    -f backend/Dockerfile \
     --target gradle-base \
-    .
+    backend
   ```
 
 - Expect: the tagged shared Gradle command target is available for a direct
@@ -550,10 +551,11 @@ Tasks 1 through 4
   `docker run --rm nijigen-api:gradle-base-check :apps:api:testClasses --dry-run`
 - Expect: the shared Gradle command target still supports the intended Gradle
   command shape after the Compose work.
-- Run: `docker build -f backend/apps/api/Dockerfile --target native-runtime .`
+- Run: `docker build -f backend/Dockerfile --target api-native-runtime backend`
 - Expect: the direct native runtime target still builds after the Compose work.
-- Run: `just --justfile infra/compose/justfile up dev-container-debug`
-- Expect: the dev API and its dependencies start under the debug profile.
+- Run: `just --justfile infra/compose/justfile up dev-container-jb`
+- Expect: the dev API and its dependencies start under the JetBrains-assisted
+  profile.
 - Run: `just --justfile infra/compose/justfile up dev-local`
 - Expect: only the support services start for fallback development.
 - Run: `just --justfile infra/compose/justfile check-backend-all`
@@ -576,7 +578,7 @@ Tasks 1 through 4
 | [GitHub issue #8](https://github.com/CXwudi/nijigen-video-site/issues/8)                                                                                       | Source issue requesting the initial Docker Compose setup, Flyway layout, and backend verification CI flow.                               | Must Read          |
 | [service-deployment-standard.md source](https://github.com/user-attachments/files/26337055/service-deployment-standard.md)                                     | Original shared deployment standard URL that should be copied into the repo-local Compose docs area.                                     | Important          |
 | [backend/Dockerfile](../../backend/Dockerfile)                                                                                                                 | Backend app-family Dockerfile for the approved JVM and native multi-target design.                                                       | Must Read          |
-| [.dockerignore](../../.dockerignore)                                                                                                                           | Current repo-root Docker ignore rules, which should be verified against the refreshed Dockerfile stages and build context.               | Important          |
+| [backend/.dockerignore](../../backend/.dockerignore)                                                                                                           | Current backend Docker ignore rules, which should be verified against the refreshed Dockerfile stages and backend build context.         | Important          |
 | [backend/apps/api/build.gradle.kts](../../backend/apps/api/build.gradle.kts)                                                                                   | Current API module build file that defines the application module targeted by the refreshed verification lanes.                          | Important          |
 | [backend/gradle/plugins/backend/src/main/kotlin/my.spring-app.gradle.kts](../../backend/gradle/plugins/backend/src/main/kotlin/my.spring-app.gradle.kts)       | Shared backend application plugin that applies Spring Boot and GraalVM native build support.                                             | Important          |
 | [backend/gradle/plugins/backend/src/main/kotlin/my.jvm-common.gradle.kts](../../backend/gradle/plugins/backend/src/main/kotlin/my.jvm-common.gradle.kts)       | Shared JVM conventions, including the toolchain settings that already mark the workspace as native-image capable.                        | Important          |

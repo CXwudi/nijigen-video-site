@@ -27,8 +27,9 @@ actually needs it.
 
 The current backend image setup is small but production-shaped:
 
-- `backend/apps/api/Dockerfile` already contains a shared `gradle-base` stage
-- that Dockerfile produces both `jvm-runtime` and `native-runtime` targets
+- `backend/Dockerfile` already contains a shared `gradle-base` stage
+- that Dockerfile produces both `api-jvm-runtime` and `api-native-runtime`
+  targets
 - Compose currently selects targets for development and production use cases
 - CI verification already runs through Compose-oriented commands
 
@@ -78,11 +79,12 @@ That means the preferred shape is:
 
 - one app-family Dockerfile
 - shared setup near the top
-- named targets such as `gradle-base`, `jvm-runtime`, and `native-runtime`
+- named targets such as `gradle-base`, `api-jvm-runtime`, and
+  `api-native-runtime`
 
-We do **not** split into separate `Dockerfile.jvm` and `Dockerfile.native`
-files unless the flows diverge enough that the split reduces complexity instead
-of increasing duplication.
+We do **not** split into separate `Dockerfile.jvm` and `Dockerfile.native` files
+unless the flows diverge enough that the split reduces complexity instead of
+increasing duplication.
 
 ### `gradle-base` stays unified
 
@@ -90,7 +92,8 @@ The current shared Gradle stage is acceptable.
 
 We do **not** need separate `gradle-jvm-base` and `gradle-native-base` stages
 just for conceptual neatness. If later the native path needs a materially
-different toolchain, package set, or maintenance boundary, that can be revisited.
+different toolchain, package set, or maintenance boundary, that can be
+revisited.
 
 ### Compose remains the runtime orchestration layer
 
