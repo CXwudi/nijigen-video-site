@@ -20,7 +20,5 @@ folders linked below.
 
 - [`Environment Setup`](environment-setup.md): shared development environment
   setup for working in this repository
-- [`../infra/compose/`](../infra/compose/README.md): Docker Compose for
-  development, Ci/CD, and production deployment
 - [`../backend/docs/`](../backend/docs/): backend-specific documentation
 - [`../frontend/docs/`](../frontend/docs/): frontend-specific documentation
