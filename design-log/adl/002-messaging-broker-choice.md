@@ -2,7 +2,7 @@
 
 We triggered a Gemini Deep Research between AutoMQ, RabbitMQ, Apache Pulsar, and
 Apache RocketMQ for the messaging broker choice, given the content of
-[0001 - Project Structure Baseline](0001-project-structure-baseline.md).
+[001 - Project Structure Baseline](001-project-structure-baseline.md).
 
 Even though the report suggested AutoMQ as the best choice, I decided to go with
 Apache Pulsar for the following reasons:

@@ -6,10 +6,6 @@ issue `#8`.
 Source:
 [service-deployment-standard.md](https://github.com/user-attachments/files/26337055/service-deployment-standard.md)
 
-Repo-specific decisions for `nijigen-video-site` live in
-[`../../infra/compose/docs/compose-guide.md`](../../infra/compose/docs/compose-guide.md)
-and the approved design material under [`../README.md`](../README.md).
-
 ## File Structure
 
 The tree should look like this:
@@ -163,4 +159,4 @@ reboot env="prod": (down env) (boot env)
 
 ## Example
 
-Use the [`n8n`](../production-power-server/n8n) service as best example
+Use the `production-power-server/n8n` service as best example.

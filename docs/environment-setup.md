@@ -36,11 +36,11 @@ automatically expose the configured tool versions.
 
 ## Unified Environment by Docker Compose
 
-The repo contains a sophisticated Docker Compose setup that unified
-the environment for local development, CI/CD,
-and production deployment in Docker Compose.
+The repo contains a sophisticated Docker Compose setup that unified the
+environment for local development, CI/CD, and production deployment in Docker
+Compose.
 
-Read more in [`../infra/compose/README.md`](../infra/compose/README.md).
+Read more in [`../infra/compose/`](../infra/compose/README.md).
 
 ## Updating tool versions
 

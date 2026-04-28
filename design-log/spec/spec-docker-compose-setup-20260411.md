@@ -33,10 +33,10 @@ native and JVM artifact paths should coexist.
 ## Context
 
 The repository is a split-root project with backend code under `backend/` and a
-reference area under `ref/` for plans and specs. The backend currently contains
-an early Spring Boot `apps/api` app, and its shared backend plugin already
-applies the GraalVM Native Build Tools plugin. That means the API module already
-exposes native-oriented Gradle tasks such as `nativeCompile`,
+reference area under `design-log` for plans and specs. The backend currently
+contains an early Spring Boot `apps/api` app, and its shared backend plugin
+already applies the GraalVM Native Build Tools plugin. That means the API module
+already exposes native-oriented Gradle tasks such as `nativeCompile`,
 `nativeTestCompile`, and `nativeTest`.
 
 The issue originally asked for these four services in the base Compose model:

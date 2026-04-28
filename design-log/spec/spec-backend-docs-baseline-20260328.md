@@ -91,8 +91,8 @@ established in `docs/README.md`.
 ## Decision Constraints
 
 This spec supersedes the earlier Task 5 wording in
-`ref/plans/plan-backend-gradle-bootstrap-20260328.md` where the documentation
-work was framed primarily as updating `backend/README.md`.
+`design-log/plans/plan-backend-gradle-bootstrap-20260328.md` where the
+documentation work was framed primarily as updating `backend/README.md`.
 
 The approved Task 5 direction is now:
 
@@ -171,7 +171,7 @@ The resulting documentation should be considered successful if:
 - [plans/plan-backend-gradle-bootstrap-20260328.md](../plans/plan-backend-gradle-bootstrap-20260328.md)
   Implementation plan that defines Task 5 as the backend documentation follow-up
   to the Gradle bootstrap work. Important.
-- [adl/0001-project-structure-baseline.md](../adl/0001-project-structure-baseline.md)
+- [adl/001-project-structure-baseline.md](../adl/001-project-structure-baseline.md)
   Accepted ADL describing the split-root monorepo and the intended high-level
   backend structure; its documentation tree example is older than the current
   docs layout. Important.
