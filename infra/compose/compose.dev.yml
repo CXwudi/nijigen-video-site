@@ -4,6 +4,9 @@ name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
 services:
 
+  # This is only used by JB for running the app in Docker Compose,
+  # see https://www.jetbrains.com/help/idea/run-and-debug-a-spring-boot-application-using-docker-compose.html
+  # for how to use
   api-jb:
     extends:
       file: common-services.yml
