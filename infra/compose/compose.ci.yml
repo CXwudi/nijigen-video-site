@@ -7,7 +7,9 @@ x-backend-test-service: &backend-test-service
   working_dir: /workspace/backend
   user: "${HOST_UID:-0}:${HOST_GID:-0}"
   environment:
-    GRADLE_USER_HOME: /gradle-home
+    - GRADLE_USER_HOME=/gradle-home
+    # To pass GitHub Actions `CI` env var. In other hosts without `CI` set, this is simply ignored
+    - CI
   entrypoint: ["./gradlew", "--no-daemon"]
   restart: "no"
   volumes:
