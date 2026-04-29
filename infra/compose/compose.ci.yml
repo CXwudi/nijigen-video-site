@@ -1,8 +1,8 @@
-# CI and local verification Docker Compose configuration
+# CI and local test Docker Compose configuration
 
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
-x-backend-verification-service: &backend-verification-service
+x-backend-test-service: &backend-test-service
   image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
   working_dir: /workspace/backend
   user: "${HOST_UID:-0}:${HOST_GID:-0}"
@@ -20,11 +20,11 @@ services:
 # Which means it currently can't support end-to-end tests.
 # But I think this may be require the prod compose file (or modified version of prod) for end-to-end testing
 
-  api-verification:
+  api-test:
     extends:
       file: common-services.yml
       service: api-compose-base
-    <<: *backend-verification-service
+    <<: *backend-test-service
 
   postgres:
     extends:

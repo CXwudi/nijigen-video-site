@@ -52,11 +52,11 @@ jobs:
       - name: 'Run api test'
         run: 'just check-backend api test'
 
-      - name: 'Run api nativeCompile'
-        run: 'just check-backend api nativeCompile'
+      # Unsure if we should enable running any time-consuming native compilation or native test in CI
 
-      # Let's not run this one for every single commit for now.
-      # Spring Native's doc actually recommends only run this like per day or before release
+      # - name: 'Run api nativeCompile'
+      #   run: 'just check-backend api nativeCompile'
+
       # - name: 'Run api nativeTest'
       #   run: 'just check-backend api nativeTest'
 

@@ -102,6 +102,7 @@ check-config profile='prod':
     "${profile_args[@]}" \
     config
 
+# TODO: add a description of this recipe, describe that it runs gradle task on particular app module
 [arg('module', help='App module name under :apps', pattern='api')]
 [arg('tasks', help='Gradle task names to run for the module, e.g. test nativeCompile nativeTest')]
 check-backend module +tasks:
@@ -114,7 +115,7 @@ check-backend module +tasks:
   mkdir -p "$HOST_GRADLE_USER_HOME"
 
   module="{{module}}"
-  service="${module}-verification"
+  service="${module}-test"
   gradle_project=":apps:${module}"
   gradle_tasks=()
   for task in {{tasks}}; do

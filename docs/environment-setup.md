@@ -7,14 +7,14 @@ Before any development work, make sure to have:
 1. git-bash for Windows users (Do not use PowerShell, all just recipes are
    written for bash)
 
-`mise` will manage the rest of the tools needed for development, see
-[`.mise.toml`](../.mise.toml) for the complete list.
+`mise` manages the rest of the tools needed for development. See
+[`.mise.toml`](../.mise.toml) for the complete tool list.
 
 ## `mise install`
 
 From the repository root, assuming mise is installed:
 
-1. For the first time , trust the repo configuration:
+1. For the first time, trust the repo configuration:
 
    ```bash
    mise trust
@@ -26,8 +26,8 @@ From the repository root, assuming mise is installed:
    mise install
    ```
 
-   If you have configured `mise activate` in your shell profile,
-   this step is automatically run when you enter the repository.
+   If `mise activate` is configured in your shell profile, this step is run
+   automatically when you enter the repository.
 
 ## Unified Environment by Docker Compose
 

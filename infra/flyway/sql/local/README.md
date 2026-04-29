@@ -2,6 +2,5 @@
 
 Place optional local-only Flyway migrations in this directory.
 
-The `compose.dev.yml` override adds this location on top of the shared
-baseline migrations, so anything here should stay safe for local development
-only and must not become a hidden CI dependency.
+These are usually used in dev or CI env,
+where it populates test datas
