@@ -122,12 +122,12 @@ check-backend module +tasks:
     gradle_tasks+=("${gradle_project}:${task}")
   done
 
+  echo "When finished, clean up the CI Compose stack by running 'just down ci'."
+
   docker compose \
     --env-file .env \
     -f compose.ci.yml \
     run --rm "$service" "${gradle_tasks[@]}"
-
-  echo "When finished, clean up the CI Compose stack by running 'just down ci'."
 
 check-backend-all:
   just check-backend api test nativeCompile nativeTest

@@ -177,8 +177,6 @@ remain reusable and are not mixed with Compose control files.
 
 ### Dockerfile Placement
 
-The backend app-family Dockerfile should live at `backend/Dockerfile`.
-
 Reasoning:
 
 - it is backend-specific build logic, not a generic infrastructure asset
@@ -187,10 +185,12 @@ Reasoning:
 - Compose can still reference it from the shared service definitions under
   `infra/compose/common-services.yml`
 
-Because Docker Compose resolves relative paths from the file that defines the
-service, the shared service file should use backend-workspace build settings
-consistently, with `../../backend` as the context and `Dockerfile` as the
-context-local Dockerfile path.
+Because Docker Compose resolves relative paths from the first Compose file
+specified with `-f`, the shared service file should use paths that remain
+correct when loaded through environment entry files such as `compose.dev.yml`,
+`compose.ci.yml`, and `compose.prod.yml`. For backend builds, that means using
+`../../backend` as the context and `Dockerfile` as the context-local Dockerfile
+path.
 
 ### Compose Layers
 
@@ -489,18 +489,16 @@ alternative path, but it does not need to be a required CI gate.
 
 ### Documentation Design
 
-Compose should also get area-local documentation under `infra/compose/docs/`,
+Compose should keep its area-local documentation in `infra/compose/README.md`,
 linked from the root docs index.
 
 The initial documentation set should stay small:
 
-- `infra/compose/docs/README.md` as the local docs index
-- `infra/compose/docs/service-deployment-standard.md` as the copied shared
+- `infra/compose/README.md` as the local docs entry point
+- `design-log/others/service-deployment-standard.md` as the copied shared
   deployment standard with a short provenance note
-- `infra/compose/docs/compose-guide.md` as the repo-specific guide that combines
-  stack layout and workflows in one place
 
-`compose-guide.md` should cover:
+`infra/compose/README.md` should cover:
 
 - the purpose of each Compose file and supporting asset
 - the core services and their roles
