@@ -3,40 +3,35 @@
 Before any development work, make sure to have:
 
 1. mise
-2. docker
+1. docker
+1. git-bash for Windows users (Do not use PowerShell, all just recipes are
+   written for bash)
 
-`mise` manages almost all tools needed for development, see
-[`.mise.toml`](../.mise.toml) for the complete list.
+`mise` manages the rest of the tools needed for development. See
+[`.mise.toml`](../.mise.toml) for the complete tool list.
 
-## Getting started
+## `mise install`
 
-1. Install `mise` on your machine.
-2. From the repository root, trust the repo configuration:
+From the repository root, assuming mise is installed:
+
+1. For the first time, trust the repo configuration:
 
    ```bash
    mise trust
    ```
 
-3. Install the declared tools:
+1. Install the declared tools:
 
    ```bash
    mise install
    ```
 
-4. Run commands inside the configured tool environment:
+   If `mise activate` is configured in your shell profile, this step is run
+   automatically when you enter the repository.
 
-   ```bash
-   mise exec -- <tool> --version
-   ```
+## Unified Environment by Docker Compose
 
-If your shell is already activated for `mise`, entering the repository may
-automatically expose the configured tool versions.
+The repo contains a sophisticated Docker Compose setup that unified the
+environment for local development, CI/CD, and production deployment.
 
-## Updating tool versions
-
-When upgrading a tool version:
-
-1. Update `.mise.toml`.
-2. Re-run `mise install`.
-3. Verify the tool version with `mise exec -- <tool> --version`.
-4. Update this document if the workflow changes.
+See [`../infra/compose/`](../infra/compose/).

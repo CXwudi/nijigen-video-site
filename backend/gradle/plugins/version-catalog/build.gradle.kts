@@ -12,7 +12,7 @@ buildConfig {
   }
 
   forClass(packageName = "my.catalog", className = "Versions") {
-    buildConfigIntField("Java", provider { "25" })
+    buildConfigIntField("Java", libs.versions.java)
   }
 
   forClass(packageName = "my.catalog", className = "Libs") {

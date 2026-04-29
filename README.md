@@ -2,8 +2,10 @@
 
 Do you love 二次元
 
-Use [Documentation](docs/README.md) as the single source of truth  project documentation.
-Used by both AI agents and humans.
+Use [`docs/`](docs/) as the single source of truth for project documentation,
+used by both AI agents and humans.
 
-Use [References](ref/README.md) for other useful context, but context inside may out of sync
-as the project evolves
+Use [`design-log/`](design-log/) for tracking design decisions.
+
+For both AI agents and humans, when entering a folder for the first time, always
+read the `README.md` or `docs/README.md` file first.

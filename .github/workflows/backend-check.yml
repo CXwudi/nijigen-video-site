@@ -1,0 +1,65 @@
+name: 'Backend Check'
+
+on:
+  pull_request:
+    paths:
+      - '.dockerignore'
+      - '.github/workflows/backend-check.yml'
+      - 'backend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+  push:
+    paths:
+      - '.dockerignore'
+      - '.github/workflows/backend-check.yml'
+      - 'backend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+    working-directory: 'infra/compose'
+
+jobs:
+  check-backend:
+    name: 'Check Backend'
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 75
+    permissions:
+      contents: 'read'
+    steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v6'
+
+      - name: 'Install just'
+        uses: 'taiki-e/install-action@just'
+
+      - name: 'Set up Gradle cache'
+        uses: 'gradle/actions/setup-gradle@v6'
+
+      - name: 'Prepare Compose env file'
+        run: 'cp .env.example .env'
+
+      - name: 'Render CI Compose stack'
+        run: 'just check-config ci'
+
+      - name: 'Run api test'
+        run: 'just check-backend api test'
+
+      # Unsure if we should enable running any time-consuming native compilation or native test in CI
+
+      # - name: 'Run api nativeCompile'
+      #   run: 'just check-backend api nativeCompile'
+
+      # - name: 'Run api nativeTest'
+      #   run: 'just check-backend api nativeTest'
+
+      - name: 'Clean CI Compose stack'
+        if: 'always()'
+        run: 'just down ci'

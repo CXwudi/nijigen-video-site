@@ -1,5 +1,5 @@
 # 二次元 Video Site - Backend
 
-This folder contains the backend Gradle workspace for nijigen-video-site.
+The backend of nijigen-video-site, as a multi-module Gradle project.
 
-For backend-specific documentation, start from the [Backend Docs](docs).
+See [`docs/`](docs/) for Backend Docs.
