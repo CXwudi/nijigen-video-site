@@ -1,5 +1,13 @@
 # Docker Compose Setup Implementation Plan
 
+> Note: This implementation plan was written from an early version of the spec.
+> During implementation, we gradually found better ways to structure the work.
+> The task was eventually completed, but not by following this plan step by
+> step. The plan was later updated to reflect the final implementation as much
+> as possible. However, we cannot guarantee that every detail is still accurate.
+> Some tasks mentioned here were also cancelled, so a few unchecked items may
+> represent intentionally dropped work rather than unfinished work.
+>
 > **For agentic workers:** Use the harness's preferred task-tracking and
 > delegation tools when available. Steps use checkbox (`- [ ]`) syntax for
 > tracking.

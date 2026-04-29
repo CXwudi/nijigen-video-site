@@ -1,5 +1,11 @@
 # Docker Compose Setup Design Spec
 
+> Note: This design spec was written from the initial idea. During
+> implementation, we gradually found better ways to structure the work, and the
+> final implementation became significantly different from the original design.
+> We tried to update the spec to reflect the final implementation as much as
+> possible, but we cannot guarantee that every detail is still accurate.
+
 ## Problem or Goal
 
 Issue `#8` needs an initial Docker Compose setup for local development,
