@@ -27,9 +27,8 @@ develocity {
   buildScan {
     termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
     termsOfUseAgree = "yes"
-    publishing.onlyIf {
-      providers.environmentVariable("CI").getOrElse("").isNotBlank()
-    }
+    val isCI = providers.environmentVariable("CI").getOrElse("").isNotBlank()
+    publishing.onlyIf { isCI }
   }
 }
 
