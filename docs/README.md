@@ -1,18 +1,24 @@
 # Documentation
 
-This folder is the entry point for all documentation. All AI agents and humans
-shall share the same documentation.
+This is the entry point for all authoritative documentation in this repository.
+All AI agents and humans should treat the content under `docs/` and the
+app-local docs folders it links to as the shared source of truth.
 
 Updates to documentation should be made in a way that benefits both AI agents
 and humans.
 
+While the documentation can be updated by both AI agents and humans, only humans
+can write/update headers, that is any line starting with `#`. AI agents are not
+allowed to write/update headers, but they can update the content under the
+headers. Humans should decide the structure of the documentation.
+
+This folder is the documentation home for the entire repository. For
+backend-specific and frontend-specific documentation, refer to the respective
+folders linked below.
+
 ## Structure
 
-- `adr/`: architecture decisions that affect the repository or major
-  boundaries across backend, frontend, and infra.
-  Be aware that many of these are drafts and may not be followed strictly in
-  the future, but they are kept for reference.
-- `environment-setup.md`: shared development environment setup for working in
-  this repository
-- [`../backend/docs/`](../backend/docs/): backend-specific documentations
-- [`../frontend/docs/`](../frontend/docs/): frontend-specific documentations
+- [`Environment Setup`](environment-setup.md): shared development environment
+  setup for working in this repository
+- [`../backend/docs/`](../backend/docs/): backend-specific documentation
+- [`../frontend/docs/`](../frontend/docs/): frontend-specific documentation

@@ -1,0 +1,133 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+set windows-shell := ["bash", "-euo", "pipefail", "-c"]
+
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, or prod', pattern='dev-local|dev-container-jb|prod')]
+up profile='prod':
+  #!/usr/bin/env bash
+  set -euo pipefail
+  compose_file=''
+  profile_args=()
+  up_args=(-d)
+  case "{{profile}}" in
+    dev-local)
+      compose_file='compose.dev.yml'
+      ;;
+    dev-container-jb)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-jb)
+      ;;
+    prod)
+      compose_file='compose.prod.yml'
+      up_args=(--build -d)
+      ;;
+    *)
+      echo "Unknown profile: {{profile}}" >&2
+      echo "Available profiles: dev-local, dev-container-jb, prod" >&2
+      exit 1
+      ;;
+  esac
+  docker compose \
+    --env-file .env \
+    -f "$compose_file" \
+    "${profile_args[@]}" \
+    up "${up_args[@]}"
+
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
+down profile='prod':
+  #!/usr/bin/env bash
+  set -euo pipefail
+  compose_file=''
+  profile_args=()
+  case "{{profile}}" in
+    dev-local)
+      compose_file='compose.dev.yml'
+      ;;
+    dev-container-jb)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-jb)
+      ;;
+    ci)
+      compose_file='compose.ci.yml'
+      export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+      export HOST_UID="${HOST_UID:-$(id -u)}"
+      export HOST_GID="${HOST_GID:-$(id -g)}"
+      ;;
+    prod)
+      compose_file='compose.prod.yml'
+      ;;
+    *)
+      echo "Unknown profile: {{profile}}" >&2
+      echo "Available profiles: dev-local, dev-container-jb, ci, prod" >&2
+      exit 1
+      ;;
+  esac
+  docker compose \
+    --env-file .env \
+    -f "$compose_file" \
+    "${profile_args[@]}" \
+    down --remove-orphans
+
+[arg('profile', help='Compose config target: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
+check-config profile='prod':
+  #!/usr/bin/env bash
+  set -euo pipefail
+  compose_file=''
+  profile_args=()
+  case "{{profile}}" in
+    dev-local)
+      compose_file='compose.dev.yml'
+      ;;
+    dev-container-jb)
+      compose_file='compose.dev.yml'
+      profile_args=(--profile dev-container-jb)
+      ;;
+    ci)
+      compose_file='compose.ci.yml'
+      export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+      export HOST_UID="${HOST_UID:-$(id -u)}"
+      export HOST_GID="${HOST_GID:-$(id -g)}"
+      ;;
+    prod)
+      compose_file='compose.prod.yml'
+      ;;
+    *)
+      echo "Unknown profile: {{profile}}" >&2
+      echo "Available profiles: dev-local, dev-container-jb, ci, prod" >&2
+      exit 1
+      ;;
+  esac
+  docker compose \
+    --env-file .env \
+    -f "$compose_file" \
+    "${profile_args[@]}" \
+    config
+
+# TODO: add a description of this recipe, describe that it runs gradle task on particular app module
+[arg('module', help='App module name under :apps', pattern='api')]
+[arg('tasks', help='Gradle task names to run for the module, e.g. test nativeCompile nativeTest')]
+check-backend module +tasks:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+  export HOST_UID="${HOST_UID:-$(id -u)}"
+  export HOST_GID="${HOST_GID:-$(id -g)}"
+  mkdir -p "$HOST_GRADLE_USER_HOME"
+
+  module="{{module}}"
+  service="${module}-test"
+  gradle_project=":apps:${module}"
+  gradle_tasks=()
+  for task in {{tasks}}; do
+    gradle_tasks+=("${gradle_project}:${task}")
+  done
+
+  echo "When finished, clean up the CI Compose stack by running 'just down ci'."
+
+  docker compose \
+    --env-file .env \
+    -f compose.ci.yml \
+    run --rm "$service" "${gradle_tasks[@]}"
+
+check-backend-all:
+  just check-backend api test nativeCompile nativeTest

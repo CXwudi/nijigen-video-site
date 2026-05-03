@@ -13,5 +13,5 @@ Thumbs.db
 gha-creds-*.json
 .codex
 
-spec/
-plans/
+### Local Compose env ###
+infra/compose/.env
