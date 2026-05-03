@@ -2,10 +2,10 @@
 # Add a version here only when it is reused in more than one place.
 # Keep single-use versions inline in the entry itself for clarity.
 java = "25" # If this is changed, make sure to also update the Dockerfile and related compose files.
-kotlin = "2.3.20"
-spring-boot = "4.0.5"
-graalvm-native = "1.0.0"
-develocity = "4.4.0"
+kotlin = "2.3.21"
+spring-boot = "4.0.6"
+graalvm-native = "1.1.0"
+develocity = "4.4.1"
 foojay-resolver = "1.0.0"
 
 [libraries]
@@ -15,7 +15,7 @@ foojay-resolver = "1.0.0"
 bom-springBoot = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 bom-junit = "org.junit:junit-bom:6.0.3"
 dep-mockk = "io.mockk:mockk:1.14.9"
-dep-springdocOpenapiStarterWebmvcUi = "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2"
+dep-springdocOpenapiStarterWebmvcUi = "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3"
 
 pluginDep-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 pluginDep-kotlinSpring = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
