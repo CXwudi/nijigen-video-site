@@ -3,6 +3,7 @@
 ## Shared Gradle build stage
 
 # If we changed this image, also update it in the compose files
+# TODO: how to make Java version unified? using mise and env var?
 FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-25-nik-25-glibc AS gradle-base
 WORKDIR /workspace/backend
 COPY . /workspace/backend/
