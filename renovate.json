@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":automergeMinor",
+    ":automergeBranch"
+  ],
+  "commitMessageAction": "⬆ upgrade",
+  "schedule": ["* * 1-7,14-21 * 4"],
+  "timezone": "America/Toronto",
+  "includePaths": [
+    "backend/**",
+    "frontend/**"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major", "minor", "patch", "pin", "digest"],
+      "groupName": "all dependencies",
+      "groupSlug": "all-deps"
+    },
+    {
+      "description": "Keep Java runtime image updates manual because they must stay aligned with the Gradle Java version.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "ghcr.io/bell-sw/hardened-liberica-native-image-kit-container",
+        "ghcr.io/bell-sw/hardened-liberica-runtime-container"
+      ],
+      "enabled": false
+    }
+  ]
+}
