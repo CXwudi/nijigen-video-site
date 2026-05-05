@@ -3,8 +3,7 @@
 # Concrete Compose files own their stack entrypoints and top-level resources.
 # These bases only hold settings that are genuinely shared across stacks.
 
-x-spring-env: &spring-env
-  SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
+x-shared-spring-env: &shared-spring-env
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nijigen_video_site}
   SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nijigen}
   SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nijigen}
@@ -21,7 +20,8 @@ services:
       flyway:
         condition: service_completed_successfully
     environment:
-      <<: *spring-env
+      SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
+      <<: *shared-spring-env
     networks:
       - app
 
