@@ -1,8 +1,8 @@
-# CI and local test Docker Compose configuration
+# Gradle task Docker Compose configuration
 
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
-x-backend-test-service: &backend-test-service
+x-backend-gradle-service: &backend-gradle-service
   image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
   working_dir: /workspace/backend
   user: "${HOST_UID:-0}:${HOST_GID:-0}"
@@ -18,15 +18,15 @@ x-backend-test-service: &backend-test-service
 
 services:
 
-# This CI compose setup, unfortunately, only support bringing up one app at a time.
+# This Gradle compose setup, unfortunately, only support bringing up one app at a time.
 # Which means it currently can't support end-to-end tests.
 # But I think this may be require the prod compose file (or modified version of prod) for end-to-end testing
 
-  api-test:
+  api-gradle:
     extends:
       file: common-services.yml
       service: api-compose-base
-    <<: *backend-test-service
+    <<: *backend-gradle-service
 
   postgres:
     extends:

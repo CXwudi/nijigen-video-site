@@ -47,7 +47,7 @@ down profile='prod':
       profile_args=(--profile dev-container-jb)
       ;;
     ci)
-      compose_file='compose.ci.yml'
+      compose_file='compose.gradle.yml'
       export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
       export HOST_UID="${HOST_UID:-$(id -u)}"
       export HOST_GID="${HOST_GID:-$(id -g)}"
@@ -82,7 +82,7 @@ check-config profile='prod':
       profile_args=(--profile dev-container-jb)
       ;;
     ci)
-      compose_file='compose.ci.yml'
+      compose_file='compose.gradle.yml'
       export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
       export HOST_UID="${HOST_UID:-$(id -u)}"
       export HOST_GID="${HOST_GID:-$(id -g)}"
@@ -102,10 +102,11 @@ check-config profile='prod':
     "${profile_args[@]}" \
     config
 
-# TODO: add a description of this recipe, describe that it runs gradle task on particular app module
-[arg('module', help='App module name under :apps', pattern='api')]
-[arg('tasks', help='Gradle task names to run for the module, e.g. test nativeCompile nativeTest')]
-check-backend module +tasks:
+# Run Gradle for a backend app through its Gradle Compose service with raw Gradle args.
+[positional-arguments]
+[arg('module', help='App module name used to select the <module>-gradle Compose service', pattern='api')]
+[arg('args', help='Raw Gradle args, e.g. :apps:api:test --tests com.example.MyTest')]
+run-backend-gradle module +args:
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -114,20 +115,16 @@ check-backend module +tasks:
   export HOST_GID="${HOST_GID:-$(id -g)}"
   mkdir -p "$HOST_GRADLE_USER_HOME"
 
-  module="{{module}}"
-  service="${module}-test"
-  gradle_project=":apps:${module}"
-  gradle_tasks=()
-  for task in {{tasks}}; do
-    gradle_tasks+=("${gradle_project}:${task}")
-  done
+  module="$1"
+  service="${module}-gradle"
+  gradle_args=("${@:2}")
 
   echo "When finished, clean up the CI Compose stack by running 'just down ci'."
 
   docker compose \
     --env-file .env \
-    -f compose.ci.yml \
-    run --rm "$service" "${gradle_tasks[@]}"
+    -f compose.gradle.yml \
+    run --rm "$service" "${gradle_args[@]}"
 
 check-backend-all:
-  just check-backend api test nativeCompile nativeTest
+  just run-backend-gradle api :apps:api:test :apps:api:nativeCompile :apps:api:nativeTest

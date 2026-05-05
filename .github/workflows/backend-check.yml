@@ -62,15 +62,15 @@ jobs:
         run: 'just check-config ci'
 
       - name: 'Run api test'
-        run: 'just check-backend api test'
+        run: 'just run-backend-gradle api :apps:api:test'
 
       # Unsure if we should enable running any time-consuming native compilation or native test in CI
 
       # - name: 'Run api nativeCompile'
-      #   run: 'just check-backend api nativeCompile'
+      #   run: 'just run-backend-gradle api :apps:api:nativeCompile'
 
       # - name: 'Run api nativeTest'
-      #   run: 'just check-backend api nativeTest'
+      #   run: 'just run-backend-gradle api :apps:api:nativeTest'
 
       - name: 'Clean CI Compose stack'
         if: 'always()'
