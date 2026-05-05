@@ -1,19 +1,12 @@
 # Shared Docker Compose services for nijigen-video-site
 
-x-api-env: &api-env
-  SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
+x-spring-env: &spring-env
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
   SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
   SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
   SPRING_DATA_REDIS_HOST: redis
   SPRING_DATA_REDIS_PORT: "6379"
 
-x-flyway-env: &flyway-env
-  FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-  FLYWAY_USER: ${POSTGRES_USER}
-  FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
-  FLYWAY_CONNECT_RETRIES: "60"
-  FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline
 
 services:
   api-compose-base:
@@ -25,7 +18,8 @@ services:
       flyway:
         condition: service_completed_successfully
     environment:
-      <<: *api-env
+      SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
+      <<: *spring-env
     networks:
       - app
     restart: unless-stopped
@@ -80,7 +74,11 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      <<: *flyway-env
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      FLYWAY_USER: ${POSTGRES_USER}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+      FLYWAY_CONNECT_RETRIES: "60"
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline
     networks:
       - app
     restart: "no"
