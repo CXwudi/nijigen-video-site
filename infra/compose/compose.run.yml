@@ -1,4 +1,4 @@
-# Gradle task Docker Compose configuration
+# Task runner Docker Compose configuration
 
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
@@ -18,9 +18,8 @@ x-backend-gradle-service: &backend-gradle-service
 
 services:
 
-# This Gradle compose setup, unfortunately, only support bringing up one app at a time.
-# Which means it currently can't support end-to-end tests.
-# But I think this may be require the prod compose file (or modified version of prod) for end-to-end testing
+# This run compose setup. Can be used to run any dev tool command (like gradle tasks, pnpm run) in a controlled environment
+# So far not designed for end-to-end testing, that probably better use the prod compose file (or modified version of it)
 
   api-gradle:
     extends:

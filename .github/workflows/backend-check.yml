@@ -59,22 +59,22 @@ jobs:
         run: 'cp .env.example .env'
 
       - name: 'Render CI Compose stack'
-        run: 'just check-config ci'
+        run: 'just check-config run'
 
       - name: 'Run api test'
-        run: 'just run-backend-gradle api :apps:api:test'
+        run: 'just run --rm api-gradle :apps:api:test'
 
       # Unsure if we should enable running any time-consuming native compilation or native test in CI
 
       # - name: 'Run api nativeCompile'
-      #   run: 'just run-backend-gradle api :apps:api:nativeCompile'
+      #   run: 'just run --rm api-gradle :apps:api:nativeCompile'
 
       # - name: 'Run api nativeTest'
-      #   run: 'just run-backend-gradle api :apps:api:nativeTest'
+      #   run: 'just run --rm api-gradle :apps:api:nativeTest'
 
       - name: 'Clean CI Compose stack'
         if: 'always()'
-        run: 'just down ci'
+        run: 'just down run'
 
       - name: 'Upload api build reports'
         uses: 'actions/upload-artifact@v7'

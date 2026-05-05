@@ -32,7 +32,7 @@ up profile='prod':
     "${profile_args[@]}" \
     up "${up_args[@]}"
 
-[arg('profile', help='Compose profile: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
+[arg('profile', help='Compose profile: dev-local, dev-container-jb, run, or prod', pattern='dev-local|dev-container-jb|run|prod')]
 down profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -46,8 +46,8 @@ down profile='prod':
       compose_file='compose.dev.yml'
       profile_args=(--profile dev-container-jb)
       ;;
-    ci)
-      compose_file='compose.gradle.yml'
+    run)
+      compose_file='compose.run.yml'
       export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
       export HOST_UID="${HOST_UID:-$(id -u)}"
       export HOST_GID="${HOST_GID:-$(id -g)}"
@@ -57,7 +57,7 @@ down profile='prod':
       ;;
     *)
       echo "Unknown profile: {{profile}}" >&2
-      echo "Available profiles: dev-local, dev-container-jb, ci, prod" >&2
+      echo "Available profiles: dev-local, dev-container-jb, run, prod" >&2
       exit 1
       ;;
   esac
@@ -67,7 +67,7 @@ down profile='prod':
     "${profile_args[@]}" \
     down --remove-orphans
 
-[arg('profile', help='Compose config target: dev-local, dev-container-jb, ci, or prod', pattern='dev-local|dev-container-jb|ci|prod')]
+[arg('profile', help='Compose config target: dev-local, dev-container-jb, run, or prod', pattern='dev-local|dev-container-jb|run|prod')]
 check-config profile='prod':
   #!/usr/bin/env bash
   set -euo pipefail
@@ -81,8 +81,8 @@ check-config profile='prod':
       compose_file='compose.dev.yml'
       profile_args=(--profile dev-container-jb)
       ;;
-    ci)
-      compose_file='compose.gradle.yml'
+    run)
+      compose_file='compose.run.yml'
       export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
       export HOST_UID="${HOST_UID:-$(id -u)}"
       export HOST_GID="${HOST_GID:-$(id -g)}"
@@ -92,7 +92,7 @@ check-config profile='prod':
       ;;
     *)
       echo "Unknown profile: {{profile}}" >&2
-      echo "Available profiles: dev-local, dev-container-jb, ci, prod" >&2
+      echo "Available profiles: dev-local, dev-container-jb, run, prod" >&2
       exit 1
       ;;
   esac
@@ -102,11 +102,10 @@ check-config profile='prod':
     "${profile_args[@]}" \
     config
 
-# Run Gradle for a backend app through its Gradle Compose service with raw Gradle args.
+# Run a service from compose.run.yml with raw `docker compose run` args, with some env vars set properly
 [positional-arguments]
-[arg('module', help='App module name used to select the <module>-gradle Compose service', pattern='api')]
-[arg('args', help='Raw Gradle args, e.g. :apps:api:test --tests com.example.MyTest')]
-run-backend-gradle module +args:
+[arg('args', help='Raw `docker compose run` args, e.g. --rm api-gradle :apps:api:test')]
+run +args:
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -115,16 +114,10 @@ run-backend-gradle module +args:
   export HOST_GID="${HOST_GID:-$(id -g)}"
   mkdir -p "$HOST_GRADLE_USER_HOME"
 
-  module="$1"
-  service="${module}-gradle"
-  gradle_args=("${@:2}")
-
-  echo "When finished, clean up the CI Compose stack by running 'just down ci'."
-
   docker compose \
     --env-file .env \
-    -f compose.gradle.yml \
-    run --rm "$service" "${gradle_args[@]}"
+    -f compose.run.yml \
+    run "$@"
 
 check-backend-all:
-  just run-backend-gradle api :apps:api:test :apps:api:nativeCompile :apps:api:nativeTest
+  just run --rm api-gradle :apps:api:test :apps:api:nativeCompile :apps:api:nativeTest
