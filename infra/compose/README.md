@@ -1,10 +1,10 @@
 # Docker Compose
 
-This folder contains the Docker Compose setup for the whole project, including
-both frontend and backend, including dev.
+This folder contains shared and production-oriented Docker Compose files.
 
-One proud thing about this project is the unified Docker Compose env across dev,
-CI and prod, by utilizing the `extends` feature of Docker Compose.
+- [`common-services.yml`](common-services.yml) defines reusable service bases for
+  API runtime settings, Postgres, Redis, and Flyway.
+- [`compose.prod.yml`](compose.prod.yml) is the production-like stack entrypoint.
 
-Common setup is declared in [`common-services.yml`](common-services.yml), shared
-by other compose files, with field-level overriding possibilities.
+Local component workflows are owned by each component. Backend local Docker
+commands now live under [`../../backend/docker/`](../../backend/docker/).

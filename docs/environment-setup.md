@@ -31,7 +31,18 @@ From the repository root, assuming mise is installed:
 
 ## Unified Environment by Docker Compose
 
-The repo contains a sophisticated Docker Compose setup that unified the
-environment for local development, CI/CD, and production deployment.
+Docker Compose configuration is split by responsibility:
 
-See [`../infra/compose/`](../infra/compose/).
+- backend local development lives in [`../backend/docker/`](../backend/docker/)
+- shared Compose service bases and production-like Compose live in
+  [`../infra/compose/`](../infra/compose/)
+
+For backend local work, copy the backend Docker environment example and use the
+backend Just module:
+
+```bash
+cp backend/docker/.env.example backend/docker/.env
+just backend docker up
+just backend docker up-backend
+just backend docker run --rm api :apps:api:test
+```
