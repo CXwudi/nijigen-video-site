@@ -1,6 +1,6 @@
-# Profile used when connecting external services via port forwarding in compose files
+# Profile used when connecting to external services via port forwarding in Compose files.
+# Backend local Docker defaults live in backend/docker/.env.
 
-# Requires the .env file from infra/compose from root project
 spring:
   datasource:
     url: jdbc:postgresql://localhost:${POSTGRES_HOST_PORT:-5432}/${POSTGRES_DB}

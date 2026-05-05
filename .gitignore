@@ -15,3 +15,5 @@ gha-creds-*.json
 
 ### Local Compose env ###
 infra/compose/.env
+backend/docker/.env
+frontend/docker/.env
