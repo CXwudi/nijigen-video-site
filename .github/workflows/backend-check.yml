@@ -3,18 +3,18 @@ name: 'Backend Check'
 on:
   pull_request:
     paths:
-      - '.dockerignore'
       - '.github/workflows/backend-check.yml'
       - 'backend/**'
       - 'infra/compose/**'
       - 'infra/flyway/**'
+      - 'justfile'
   push:
     paths:
-      - '.dockerignore'
       - '.github/workflows/backend-check.yml'
       - 'backend/**'
       - 'infra/compose/**'
       - 'infra/flyway/**'
+      - 'justfile'
     branches:
       - 'main'
   workflow_dispatch:
@@ -26,7 +26,7 @@ concurrency:
 defaults:
   run:
     shell: 'bash'
-    working-directory: 'infra/compose'
+    working-directory: 'backend/docker'
 
 jobs:
   check-backend:
@@ -58,23 +58,23 @@ jobs:
       - name: 'Prepare Compose env file'
         run: 'cp .env.example .env'
 
-      - name: 'Render CI Compose stack'
-        run: 'just check-config run'
+      - name: 'Render backend Compose stack'
+        run: 'just config-check'
 
       - name: 'Run api test'
-        run: 'just run --rm api-gradle :apps:api:test'
+        run: 'just run --rm api :apps:api:test'
 
       # Unsure if we should enable running any time-consuming native compilation or native test in CI
 
       # - name: 'Run api nativeCompile'
-      #   run: 'just run --rm api-gradle :apps:api:nativeCompile'
+      #   run: 'just run --rm api :apps:api:nativeCompile'
 
       # - name: 'Run api nativeTest'
-      #   run: 'just run --rm api-gradle :apps:api:nativeTest'
+      #   run: 'just run --rm api :apps:api:nativeTest'
 
-      - name: 'Clean CI Compose stack'
+      - name: 'Clean backend Compose stack'
         if: 'always()'
-        run: 'just down run'
+        run: 'just down'
 
       - name: 'Upload api build reports'
         uses: 'actions/upload-artifact@v7'
