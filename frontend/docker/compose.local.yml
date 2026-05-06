@@ -1,0 +1,63 @@
+# Frontend local Docker Compose stack.
+
+name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site-frontend}
+
+services:
+  web:
+    image: ${WEB_DUMMY_IMAGE:-nginx:alpine}
+    depends_on:
+      - api
+    ports:
+      - ${FRONTEND_HTTP_PORT:-5173}:80
+    networks:
+      - app
+    restart: "no"
+
+  api:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: api-compose-base
+    image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
+    working_dir: /workspace/backend
+    user: "${HOST_UID:-0}:${HOST_GID:-0}"
+    environment:
+      GRADLE_USER_HOME: /gradle-home
+      CI: ${CI:-}
+    entrypoint:
+      - ./gradlew
+      - --no-daemon
+    command:
+      - :apps:api:bootRun
+    ports:
+      - ${API_HTTP_PORT:-18080}:8080
+    volumes:
+      - ../../backend:/workspace/backend
+      - ${HOST_GRADLE_USER_HOME:-${HOME}/.gradle}:/gradle-home
+    restart: "no"
+
+  postgres:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: postgres-base
+
+  redis:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: redis-base
+
+  flyway:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: flyway-base
+    environment:
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline,filesystem:/flyway/sql/local
+    volumes:
+      - ../../infra/flyway/sql/baseline:/flyway/sql/baseline:ro
+      - ../../infra/flyway/sql/local:/flyway/sql/local:ro
+
+networks:
+  app:
+
+volumes:
+  postgres-data:
+  redis-data:
