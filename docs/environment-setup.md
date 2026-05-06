@@ -8,7 +8,7 @@ Before any development work, make sure to have:
    written for bash)
 
 `mise` manages the rest of the tools needed for development. See
-[`.mise.toml`](../.mise.toml) for the complete tool list.
+[`mise.toml`](../mise.toml) for the complete tool list.
 
 ## `mise install`
 
@@ -31,18 +31,11 @@ From the repository root, assuming mise is installed:
 
 ## Unified Environment by Docker Compose
 
-Docker Compose configuration is split by responsibility:
+One of the proud thing in this project is the unified environment setup by Docker Compose.
 
-- backend local development lives in [`../backend/docker/`](../backend/docker/)
-- shared Compose service bases and production-like Compose live in
-  [`../infra/compose/`](../infra/compose/)
+Development, CI, and production all share the same Docker Compose setup, ensuring consistency across all environments, eliminating environmental suprises.
 
-For backend local work, copy the backend Docker environment example and use the
-backend Just module:
+Specifically:
 
-```bash
-cp backend/docker/.env.example backend/docker/.env
-just backend docker up
-just backend docker up-backend
-just backend docker run --rm api :apps:api:test
-```
+- [`infra/compose/common-services.yml`](../infra/compose/common-services.yml) defines reusable service bases
+- All other Docker Compose files build on top of the common services
