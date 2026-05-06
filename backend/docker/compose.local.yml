@@ -6,26 +6,11 @@ services:
   api:
     extends:
       file: ../../infra/compose/common-services.yml
-      service: api-compose-base
-    image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
-    working_dir: /workspace/backend
-    user: "${HOST_UID:-0}:${HOST_GID:-0}"
+      service: api-gradle-base
     profiles:
       - backend
-    environment:
-      GRADLE_USER_HOME: /gradle-home
-      CI: ${CI:-}
-    entrypoint:
-      - ./gradlew
-      - --no-daemon
-    command:
-      - :apps:api:bootRun
     ports:
       - ${API_HTTP_PORT:-8080}:8080
-    volumes:
-      - ..:/workspace/backend
-      - ${HOST_GRADLE_USER_HOME:-${HOME}/.gradle}:/gradle-home
-    restart: "no"
 
   api-jb:
     extends:

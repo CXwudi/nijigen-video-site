@@ -25,6 +25,25 @@ services:
     networks:
       - app
 
+  api-gradle-base:
+    extends:
+      service: api-compose-base
+    image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
+    working_dir: /workspace/backend
+    user: "${HOST_UID:-0}:${HOST_GID:-0}"
+    environment:
+      GRADLE_USER_HOME: /gradle-home
+      CI: ${CI:-}
+    entrypoint:
+      - ./gradlew
+      - --no-daemon
+    command:
+      - :apps:api:bootRun
+    restart: "no"
+    volumes:
+      - ../../backend:/workspace/backend
+      - ${HOST_GRADLE_USER_HOME:-${HOME}/.gradle}:/gradle-home
+
   postgres-base:
     image: postgres:${POSTGRES_VERSION:-17}
     environment:
