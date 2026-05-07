@@ -1,0 +1,51 @@
+[vars]
+compose = "docker compose --env-file .env -f compose.local.yml"
+
+[tasks.up]
+description = "Start the frontend local stack: web, api, postgres, redis, and flyway."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+mkdir -p "$HOST_GRADLE_USER_HOME"
+{{ vars.compose }} up -d
+'''
+
+[tasks.down]
+description = "Stop all frontend local Docker services managed by this file."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} down --remove-orphans
+'''
+
+[tasks.config]
+description = "Print the fully resolved Compose config."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} config
+'''
+
+[tasks.config-check]
+description = "Validate the resolved Compose config."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} config --quiet
+'''
+
+[tasks.run]
+description = "Run one-off commands against a frontend stack service."
+raw_args = true
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+mkdir -p "$HOST_GRADLE_USER_HOME"
+{{ vars.compose }} run "$@"
+'''

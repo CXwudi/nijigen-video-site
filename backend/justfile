@@ -1,3 +1,0 @@
-# Includes all the Docker related commands here.
-# So that docker/justfile receipts can be used from here
-mod docker 'docker/justfile'
