@@ -1,8 +1,8 @@
 {
   "folders": [
     {
-      "name": "root",
-      "path": "."
+      "name": "github",
+      "path": ".github"
     },
     {
       "name": "design-log",
@@ -23,6 +23,10 @@
     {
       "name": "infra",
       "path": "infra"
+    },
+    {
+      "name": "root",
+      "path": "."
     }
   ],
   "settings": {
