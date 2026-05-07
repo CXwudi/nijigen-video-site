@@ -7,7 +7,8 @@ This folder contains shared and production-oriented Docker Compose files.
   This file itself is launchable, only being used by `extends` from other Compose files.
 - [`compose.prod.yml`](compose.prod.yml) is the production-like stack entrypoint.
 
-Backend and frontend have their own
-Docker Compose files extending from the `common-services.yml` file.
+For development, testing and tool oriented Docker Compose files for Backend and frontend,
+head over to the cooresponding folders:
 
-<!-- TODO: add link to the documentation to both frontend and backend -->
+- [`/backend/docker`](../../backend/docker/)
+- [`/frontend/docker`](../../frontend/docker/)
