@@ -20,6 +20,6 @@ folders linked below.
 
 - [`Environment Setup`](environment-setup.md): Shared development environment
   setup for working in this repository
-- [`Docker Setup Explain`](docker-setup-explain.md): Docker setup for this repository
+- [`Docker Setup Explanation`](docker-setup-explain.md): Docker setup for this repository
 - [`../backend/docs/`](../backend/docs/): Backend-specific documentation
 - [`../frontend/docs/`](../frontend/docs/): Frontend-specific documentation

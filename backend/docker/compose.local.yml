@@ -5,7 +5,7 @@ name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site-backend}
 services:
   api:
     extends:
-      file: ../../infra/compose/common-services.yml
+      file: ../../infra/compose/gradle-services.yml
       service: api-gradle-base
     profiles:
       - backend
@@ -50,7 +50,6 @@ services:
     environment:
       FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline,filesystem:/flyway/sql/local
     volumes:
-      - ../../infra/flyway/sql/baseline:/flyway/sql/baseline:ro
       - ../../infra/flyway/sql/local:/flyway/sql/local:ro
 
 networks:

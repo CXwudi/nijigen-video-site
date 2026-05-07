@@ -1,0 +1,22 @@
+# Shared Gradle-backed Docker Compose service bases for nijigen-video-site.
+
+services:
+  api-gradle-base:
+    extends:
+      file: common-services.yml
+      service: api-compose-base
+    image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
+    working_dir: /workspace/backend
+    user: "${HOST_UID:?Set HOST_UID in env file}:${HOST_GID:?Set HOST_GID in env file}"
+    environment:
+      GRADLE_USER_HOME: /gradle-home
+      CI: ${CI:-}
+    entrypoint:
+      - ./gradlew
+      - --no-daemon
+    command:
+      - :apps:api:bootRun
+    restart: "no"
+    volumes:
+      - ../../backend:/workspace/backend
+      - ${HOST_GRADLE_USER_HOME:-${HOME}/.gradle}:/gradle-home

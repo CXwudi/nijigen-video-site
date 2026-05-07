@@ -36,6 +36,9 @@ jobs:
     timeout-minutes: 75
     permissions:
       contents: 'read'
+    env:
+      DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
+      DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}'
     steps:
       - name: 'Checkout repository'
         uses: 'actions/checkout@v6'
@@ -54,11 +57,18 @@ jobs:
           build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
           build-scan-terms-of-use-agree: 'yes'
 
+      - name: 'Validate Docker Hub credentials'
+        run: |
+          if [[ -z "${DOCKERHUB_USERNAME}" || -z "${DOCKERHUB_TOKEN}" ]]; then
+            echo "::error::DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets must be configured."
+            exit 1
+          fi
+
       - name: 'Login to Docker Hub'
         uses: 'docker/login-action@v3'
         with:
-          username: '${{ secrets.DOCKERHUB_USERNAME }}'
-          password: '${{ secrets.DOCKERHUB_TOKEN }}'
+          username: '${{ env.DOCKERHUB_USERNAME }}'
+          password: '${{ env.DOCKERHUB_TOKEN }}'
 
       - name: 'Prepare Compose env file'
         run: 'cp backend/docker/.env.example backend/docker/.env'

@@ -86,8 +86,7 @@ Currently implemented:
 
 - `compose.local.yml` local service composition
 - `Dockerfile` backend runtime image definition
-- `mise.toml` mise tasks for running any build tool commands (including testing commands),
-  as well as bring up the whole backend stack for developing or testing
+- `mise.toml` mise tasks for running any build tool commands (including testing commands), as well as bringing up the whole backend stack for developing or testing
 
 ### Root-Level Gradle Files
 
