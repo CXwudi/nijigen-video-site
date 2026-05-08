@@ -18,7 +18,8 @@ folders linked below.
 
 ## Structure
 
-- [`Environment Setup`](environment-setup.md): shared development environment
+- [`Environment Setup`](environment-setup.md): Shared development environment
   setup for working in this repository
-- [`../backend/docs/`](../backend/docs/): backend-specific documentation
-- [`../frontend/docs/`](../frontend/docs/): frontend-specific documentation
+- [`Docker Setup Explanation`](docker-setup-explain.md): Docker setup for this repository
+- [`../backend/docs/`](../backend/docs/): Backend-specific documentation
+- [`../frontend/docs/`](../frontend/docs/): Frontend-specific documentation

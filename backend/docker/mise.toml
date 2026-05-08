@@ -1,0 +1,67 @@
+[vars]
+compose = "docker compose --env-file .env -f compose.local.yml"
+
+[tasks.up]
+description = "Start backend dependencies only: postgres, redis, and flyway."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} up -d
+'''
+
+[tasks.up-backend]
+description = "Start backend dependencies and the local Gradle-backed API service."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+mkdir -p "$HOST_GRADLE_USER_HOME"
+{{ vars.compose }} --profile backend up -d
+'''
+
+[tasks.up-jetbrains]
+description = "Start backend dependencies and the JetBrains-only container target."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile jetbrains up -d
+'''
+
+[tasks.down]
+description = "Stop all backend local Docker services managed by this file."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile backend --profile jetbrains down --remove-orphans
+'''
+
+[tasks.config]
+description = "Print the fully resolved Compose config."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile backend --profile jetbrains config
+'''
+
+[tasks.config-check]
+description = "Validate the resolved Compose config."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile backend --profile jetbrains config --quiet
+'''
+
+[tasks.run]
+description = "Run one-off commands against a backend stack service."
+raw_args = true
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+mkdir -p "$HOST_GRADLE_USER_HOME"
+{{ vars.compose }} run "$@"
+'''

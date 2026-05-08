@@ -1,16 +1,17 @@
-# Production Docker Compose configuration
+# Production Docker Compose configuration.
 
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
 services:
-
   api:
     extends:
       file: common-services.yml
-      service: api-base
+      service: api-compose-base
     build:
+      context: ../../backend
+      dockerfile: docker/Dockerfile
       target: ${API_PROD_RUNTIME_TARGET:-api-native-runtime}
-    container_name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-api
+    restart: unless-stopped
 
   postgres:
     extends:
@@ -27,12 +28,6 @@ services:
       file: common-services.yml
       service: flyway-base
 
-networks:
-  app:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-app
-
 volumes:
   postgres-data:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-postgres-data
   redis-data:
-    name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-redis-data

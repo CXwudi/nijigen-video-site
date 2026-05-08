@@ -1,0 +1,44 @@
+# Frontend local Docker Compose stack.
+
+name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site-frontend}
+
+services:
+
+  # Currently this is a temporary service; it will be replaced by real frontend services.
+  web:
+    image: ${WEB_DUMMY_IMAGE:-nginx:alpine}
+    depends_on:
+      - api
+    ports:
+      - ${FRONTEND_HTTP_PORT:-5173}:80
+    restart: "no"
+
+  api:
+    extends:
+      file: ../../infra/compose/common-dev-services.yml
+      service: api-gradle-base
+    ports:
+      - ${API_HTTP_PORT:-18080}:8080
+
+  postgres:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: postgres-base
+
+  redis:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: redis-base
+
+  flyway:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: flyway-base
+    environment:
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline,filesystem:/flyway/sql/local
+    volumes:
+      - ../../infra/flyway/sql/local:/flyway/sql/local:ro
+
+volumes:
+  postgres-data:
+  redis-data:

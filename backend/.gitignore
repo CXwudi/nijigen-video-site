@@ -31,3 +31,6 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Local Docker env ###
+/docker/.env

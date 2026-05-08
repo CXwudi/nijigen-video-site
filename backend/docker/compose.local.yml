@@ -1,0 +1,54 @@
+# Backend local Docker Compose stack.
+
+name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site-backend}
+
+services:
+  api:
+    extends:
+      file: ../../infra/compose/common-dev-services.yml
+      service: api-gradle-base
+    profiles:
+      - backend
+    ports:
+      - ${API_HTTP_PORT:-8080}:8080
+
+  # This service is only used by JetBrain, for https://www.jetbrains.com/help/idea/run-and-debug-a-spring-boot-application-using-docker-compose.html
+  # JB will provide its own bind mounting of all dependent jars and its own entrypoint. So this service can be kept minimal. JB will handle the rest
+  api-jb:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: api-compose-base
+    image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
+    profiles:
+      - jetbrains
+    ports:
+      # this is optional, JB will use a random port, but we keep it for simplicity
+      - ${API_HTTP_PORT:-8080}:8080
+    restart: "no"
+
+  postgres:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: postgres-base
+    ports:
+      - ${POSTGRES_HOST_PORT:-5432}:5432
+
+  redis:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: redis-base
+    ports:
+      - ${REDIS_HOST_PORT:-6379}:6379
+
+  flyway:
+    extends:
+      file: ../../infra/compose/common-services.yml
+      service: flyway-base
+    environment:
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline,filesystem:/flyway/sql/local
+    volumes:
+      - ../../infra/flyway/sql/local:/flyway/sql/local:ro
+
+volumes:
+  postgres-data:
+  redis-data:

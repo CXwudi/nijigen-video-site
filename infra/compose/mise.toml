@@ -1,0 +1,34 @@
+[vars]
+compose = "docker compose --env-file prod.env -f compose.prod.yml"
+
+[tasks.up]
+description = "Build and start the production-like Compose stack."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} up -d --build
+'''
+
+[tasks.down]
+description = "Stop the production-like Compose stack."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} down --remove-orphans
+'''
+
+[tasks.config]
+description = "Print the fully resolved production-like Compose config."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} config
+'''
+
+[tasks.config-check]
+description = "Validate the production-like Compose config."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} config --quiet
+'''

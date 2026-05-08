@@ -1,0 +1,3 @@
+### Local Compose env ###
+/compose/.env
+/compose/prod.env
