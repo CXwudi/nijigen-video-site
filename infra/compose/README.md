@@ -7,7 +7,6 @@ This folder contains shared and production-oriented Docker Compose files.
 - [`compose.prod.yml`](compose.prod.yml) is the production-like stack entrypoint.
 - [`mise.toml`](mise.toml) defines production-like Compose tasks that use `prod.env`.
 - [`prod.env.example`](prod.env.example) is the production deployment env template. Copy it to ignored `prod.env` and replace credentials before launching.
-- [`.env.example`](.env.example) keeps local/manual example values.
 
 For development, testing, and tool-oriented Docker Compose files for backend and frontend, head over to the corresponding folders:
 
