@@ -52,9 +52,6 @@ services:
     volumes:
       - ../../infra/flyway/sql/local:/flyway/sql/local:ro
 
-networks:
-  app:
-
 volumes:
   postgres-data:
   redis-data:

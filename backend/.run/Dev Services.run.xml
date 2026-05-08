@@ -2,7 +2,7 @@
   <configuration default="false" name="Dev Services" type="docker-deploy" factoryName="docker-compose.yml" server-name="Docker Window">
     <deployment type="docker-compose.yml">
       <settings>
-        <option name="sourceFilePath" value="../infra/compose/compose.dev.yml" />
+        <option name="sourceFilePath" value="docker/compose.local.yml" />
       </settings>
     </deployment>
     <method v="2" />

@@ -28,9 +28,6 @@ services:
       file: common-services.yml
       service: flyway-base
 
-networks:
-  app:
-
 volumes:
   postgres-data:
   redis-data:

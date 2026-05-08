@@ -11,8 +11,6 @@ services:
       - api
     ports:
       - ${FRONTEND_HTTP_PORT:-5173}:80
-    networks:
-      - app
     restart: "no"
 
   api:
@@ -40,9 +38,6 @@ services:
       FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline,filesystem:/flyway/sql/local
     volumes:
       - ../../infra/flyway/sql/local:/flyway/sql/local:ro
-
-networks:
-  app:
 
 volumes:
   postgres-data:
