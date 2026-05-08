@@ -15,7 +15,7 @@ services:
 
   api:
     extends:
-      file: ../../infra/compose/gradle-services.yml
+      file: ../../infra/compose/dev-services.yml
       service: api-gradle-base
     ports:
       - ${API_HTTP_PORT:-18080}:8080

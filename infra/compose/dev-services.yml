@@ -1,4 +1,4 @@
-# Shared Gradle-backed Docker Compose service bases for nijigen-video-site.
+# Shared development Docker Compose service bases for nijigen-video-site.
 
 services:
   api-gradle-base:
