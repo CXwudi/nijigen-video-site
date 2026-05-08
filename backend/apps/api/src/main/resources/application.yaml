@@ -2,9 +2,5 @@ spring:
   application:
     name: apps-api
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.pulsar.autoconfigure.PulsarAutoConfiguration # remove when pulsar is added to compose setup
-
 # use the application-local.yml profile when connecting to external services via port forwarding in compose files
 # for CI and dev inside docker compose, the compose files have already configured connection details via env var
