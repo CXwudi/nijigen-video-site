@@ -17,16 +17,10 @@ services:
       file: ../../infra/compose/common-services.yml
       service: api-compose-base
     image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:-25}-nik-${JDK_VERSION:-25}-glibc
-    working_dir: /workspace/backend
     profiles:
       - jetbrains
-    command:
-      - sleep
-      - infinity
     ports:
       - ${API_HTTP_PORT:-8080}:8080
-    volumes:
-      - ..:/workspace/backend
     restart: "no"
 
   postgres:
