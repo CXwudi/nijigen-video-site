@@ -3,6 +3,8 @@
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site-frontend}
 
 services:
+
+  # Currently this is a temporary service; it will be replaced by real frontend services.
   web:
     image: ${WEB_DUMMY_IMAGE:-nginx:alpine}
     depends_on:

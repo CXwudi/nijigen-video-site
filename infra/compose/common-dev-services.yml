@@ -1,5 +1,9 @@
 # Shared development Docker Compose service bases for nijigen-video-site.
 
+# This file exists because services here need the required HOST_UID and HOST_GID environment variables.
+# However, these variables are not required by prod. If we put these services back into common-services.yml, prod Docker deployment would need to provide those two env vars, even though prod never uses them.
+# Therefore, split common dev services that need HOST_UID and HOST_GID into common-dev-services.yml.
+
 services:
   api-gradle-base:
     extends:

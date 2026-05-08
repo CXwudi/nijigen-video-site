@@ -33,12 +33,10 @@ However, looking at all 4 scenarios, except the last one, all others can be redu
 
 Production launch is the outlier because it is the only one using the Dockerfile, which produces running artifacts with no knowledge of source code or build tools.
 
-Production launch is run from `infra/compose` through mise tasks and uses `prod.env`, not the local `.env` example.
-
-So, each application service, for example, the `api` service on the backend side, is designed around being able to run any build tool command. Hence the setup is:
+So, each application service, for example, the `api` service on the backend side, is designed around being able to run any build tool command. Hence the service is set up as:
 
 1. Mount the source code, instead of using Dockerfile
-   - Including mounting directories that some build tools would use. E.g. `~/.gradle` for Gradle
+   - Including directories that are worth caching. E.g. `~/.gradle` for Gradle, so that we can reuse caches in CI
 2. Since source code is mounted, the image would be a standard public image. E.g. Liberica Hardened JDK image for backend services
 3. Since source code is mounted, the user ID and group ID should match the host
 4. The `entrypoint` will use the build tool command. E.g. `./gradlew --no-daemon` for backend services
@@ -48,12 +46,14 @@ So, each application service, for example, the `api` service on the backend side
 
 ## Q&A
 
-### For just running any build tool command, why Dockerfile can't be used?
+### For just running any build tool command, why not have a Dockerfile simply copy the source code
 
-Possibly we could have a Dockerfile simply copy the source code, but this is cumbersome to maintain vs mounting the source code directly.
+Possible, but this is cumbersome to maintain vs mounting the source code directly.
+
+But even so, we still need to mount cache folders like `~/.gradle` to improve CI performance. Then why not just mount the source code altogether.
 
 ### Could it be case where developer want to run a command not from the build tool? And even worse, a command/tool not available in the image?
 
 We could use a Dockerfile to add more tools.
 
-But remember, we also mounted the source code, and there is mise. So it is not hard to set up the tools needed in the image.
+But remember, mounting the source code also means mounting the `mise.toml` file. So `mise trust` and `mise install` are enough to set up the tools needed in the image.
