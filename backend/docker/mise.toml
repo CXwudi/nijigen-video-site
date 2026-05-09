@@ -21,14 +21,6 @@ mkdir -p "$HOST_GRADLE_USER_HOME"
 {{ vars.compose }} --profile backend up -d
 '''
 
-[tasks.up-jetbrains]
-description = "Start backend dependencies and the JetBrains-only container target."
-run = '''
-#!/usr/bin/env bash
-set -euo pipefail
-{{ vars.compose }} --profile jetbrains up -d
-'''
-
 [tasks.down]
 description = "Stop all backend local Docker services managed by this file."
 run = '''
