@@ -1,11 +1,9 @@
 {
   "folders": [
     {
-      "name": "github",
       "path": ".github"
     },
     {
-      "name": "design-log",
       "path": "design-log"
     },
     {
@@ -13,15 +11,12 @@
       "path": "docs"
     },
     {
-      "name": "backend",
       "path": "backend"
     },
     {
-      "name": "frontend",
       "path": "frontend"
     },
     {
-      "name": "infra",
       "path": "infra"
     },
     {
