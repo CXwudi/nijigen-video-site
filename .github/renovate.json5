@@ -1,0 +1,42 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    ':automergeMinor',
+    ':automergeBranch',
+  ],
+  commitMessageAction: '⬆ upgrade',
+  schedule: ['* * 1-7,14-21 * 4'],
+  timezone: 'America/Toronto',
+  includePaths: [
+    'backend/**',
+    'frontend/**',
+  ],
+  packageRules: [
+    {
+      matchUpdateTypes: ['major', 'minor', 'patch', 'pin', 'digest'],
+      groupName: 'all dependencies',
+      groupSlug: 'all-deps',
+    },
+    {
+      description: 'Keep Java toolchain versions manual everywhere Renovate can detect them.',
+      matchDatasources: ['java-version'],
+      matchPackageNames: ['java-jdk', 'java-jre'],
+      enabled: false,
+    },
+    {
+      description: 'Keep Java version catalog entries manual because they must stay aligned with Docker and compose files.',
+      matchDepNames: ['java'],
+      enabled: false,
+    },
+    {
+      description: 'Keep BellSoft Java container image updates manual because their tags encode the Java version.',
+      matchDatasources: ['docker'],
+      matchPackageNames: [
+        'ghcr.io/bell-sw/hardened-liberica-native-image-kit-container',
+        'ghcr.io/bell-sw/hardened-liberica-runtime-container',
+      ],
+      enabled: false,
+    },
+  ],
+}
