@@ -1,5 +1,6 @@
 package io.github.cxwudi.nijigenvideosite.apps.api.sampleusers
 
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
@@ -10,7 +11,9 @@ import java.time.OffsetDateTime
 data class SampleUser(
   val id: Long,
   val username: String,
+  val email: String,
   val displayName: String,
+  val bio: String?,
   val createdAt: OffsetDateTime,
 )
 
@@ -23,8 +26,16 @@ data class CreateSampleUserRequest(
   val username: String,
 
   @field:NotBlank
+  @field:Email
+  @field:Size(max = 255)
+  val email: String,
+
+  @field:NotBlank
   @field:Size(max = 120)
   val displayName: String,
+
+  @field:Size(max = 500)
+  val bio: String? = null,
 )
 
 /**
@@ -36,6 +47,14 @@ data class UpdateSampleUserRequest(
   val username: String,
 
   @field:NotBlank
+  @field:Email
+  @field:Size(max = 255)
+  val email: String,
+
+  @field:NotBlank
   @field:Size(max = 120)
   val displayName: String,
+
+  @field:Size(max = 500)
+  val bio: String? = null,
 )

@@ -18,13 +18,15 @@ class SampleUserRepository(private val jdbcClient: JdbcClient) {
     jdbcClient
       .sql(
         """
-        INSERT INTO sample_users (username, display_name)
-        VALUES (:username, :displayName)
-        RETURNING id, username, display_name, created_at
+        INSERT INTO sample_users (username, email, display_name, bio)
+        VALUES (:username, :email, :displayName, :bio)
+        RETURNING id, username, email, display_name, bio, created_at
         """.trimIndent(),
       )
       .param("username", request.username)
+      .param("email", request.email)
       .param("displayName", request.displayName)
+      .param("bio", request.bio)
       .query(sampleUserRowMapper)
       .single()
 
@@ -35,7 +37,7 @@ class SampleUserRepository(private val jdbcClient: JdbcClient) {
     jdbcClient
       .sql(
         """
-        SELECT id, username, display_name, created_at
+        SELECT id, username, email, display_name, bio, created_at
         FROM sample_users
         WHERE id = :id
         """.trimIndent(),
@@ -52,7 +54,7 @@ class SampleUserRepository(private val jdbcClient: JdbcClient) {
     jdbcClient
       .sql(
         """
-        SELECT id, username, display_name, created_at
+        SELECT id, username, email, display_name, bio, created_at
         FROM sample_users
         ORDER BY id
         """.trimIndent(),
@@ -69,14 +71,18 @@ class SampleUserRepository(private val jdbcClient: JdbcClient) {
         """
         UPDATE sample_users
         SET username = :username,
-            display_name = :displayName
+            email = :email,
+            display_name = :displayName,
+            bio = :bio
         WHERE id = :id
-        RETURNING id, username, display_name, created_at
+        RETURNING id, username, email, display_name, bio, created_at
         """.trimIndent(),
       )
       .param("id", id)
       .param("username", request.username)
+      .param("email", request.email)
       .param("displayName", request.displayName)
+      .param("bio", request.bio)
       .query(sampleUserRowMapper)
       .optional()
       .orElse(null)
@@ -101,7 +107,9 @@ class SampleUserRepository(private val jdbcClient: JdbcClient) {
         SampleUser(
           id = resultSet.getLong("id"),
           username = resultSet.getString("username"),
+          email = resultSet.getString("email"),
           displayName = resultSet.getString("display_name"),
+          bio = resultSet.getString("bio"),
           createdAt = resultSet.getObject("created_at", OffsetDateTime::class.java),
         )
       }

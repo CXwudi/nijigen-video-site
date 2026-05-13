@@ -1,6 +1,8 @@
 CREATE TABLE sample_users (
   id BIGSERIAL PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
+  email TEXT NOT NULL UNIQUE,
   display_name TEXT NOT NULL,
+  bio TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

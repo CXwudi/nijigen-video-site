@@ -77,10 +77,10 @@ class SampleUserController(private val repository: SampleUserRepository) {
    */
   @ExceptionHandler(DuplicateKeyException::class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  fun handleDuplicateUsername(): ProblemDetail =
+  fun handleDuplicateUsernameOrEmail(): ProblemDetail =
     ProblemDetail.forStatusAndDetail(
       HttpStatus.BAD_REQUEST,
-      "A sample user with that username already exists.",
+      "A sample user with that username or email already exists.",
     )
 
   private fun notFound(id: Long): ResponseStatusException =

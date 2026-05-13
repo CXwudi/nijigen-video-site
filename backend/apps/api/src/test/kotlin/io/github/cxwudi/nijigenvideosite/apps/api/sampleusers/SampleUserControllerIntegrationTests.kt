@@ -47,7 +47,9 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
     val created = postSampleUser(
       CreateSampleUserRequest(
         username = username,
+        email = nextEmail("create-read-list"),
         displayName = "Create Read List",
+        bio = "Created during a rollback-safe integration test.",
       ),
     )
 
@@ -56,7 +58,9 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
       .andExpect(status().isOk)
       .andExpect(jsonPath("\$.id").value(created.id))
       .andExpect(jsonPath("\$.username").value(username))
+      .andExpect(jsonPath("\$.email").value(nextEmail("create-read-list")))
       .andExpect(jsonPath("\$.displayName").value("Create Read List"))
+      .andExpect(jsonPath("\$.bio").value("Created during a rollback-safe integration test."))
 
     val listResult = mockMvc
       .perform(get("/sample-users"))
@@ -83,11 +87,14 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
     val created = postSampleUser(
       CreateSampleUserRequest(
         username = nextUsername("update-delete"),
+        email = nextEmail("update-delete"),
         displayName = "Before Update",
+        bio = null,
       ),
     )
 
     val updatedUsername = nextUsername("updated")
+    val updatedEmail = nextEmail("updated")
     val updateResult = mockMvc
       .perform(
         put("/sample-users/{id}", created.id)
@@ -96,7 +103,9 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
             objectMapper.writeValueAsString(
               UpdateSampleUserRequest(
                 username = updatedUsername,
+                email = updatedEmail,
                 displayName = "After Update",
+                bio = "Updated bio",
               ),
             ),
           ),
@@ -104,7 +113,9 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
       .andExpect(status().isOk)
       .andExpect(jsonPath("\$.id").value(created.id))
       .andExpect(jsonPath("\$.username").value(updatedUsername))
+      .andExpect(jsonPath("\$.email").value(updatedEmail))
       .andExpect(jsonPath("\$.displayName").value("After Update"))
+      .andExpect(jsonPath("\$.bio").value("Updated bio"))
       .andReturn()
 
     val updated = objectMapper.readValue<SampleUser>(
@@ -113,7 +124,9 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
 
     assertEquals(created.id, updated.id)
     assertEquals(updatedUsername, updated.username)
+    assertEquals(updatedEmail, updated.email)
     assertEquals("After Update", updated.displayName)
+    assertEquals("Updated bio", updated.bio)
 
     mockMvc
       .perform(delete("/sample-users/{id}", created.id))
@@ -137,6 +150,7 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
             objectMapper.writeValueAsString(
               CreateSampleUserRequest(
                 username = " ",
+                email = nextEmail("invalid"),
                 displayName = "Invalid User",
               ),
             ),
@@ -181,6 +195,7 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
       )
       .andExpect(status().isCreated)
       .andExpect(jsonPath("\$.username").value(request.username))
+      .andExpect(jsonPath("\$.email").value(request.email))
       .andExpect(jsonPath("\$.displayName").value(request.displayName))
       .andReturn()
 
@@ -191,4 +206,9 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
    * Builds a unique username for this test class execution.
    */
   private fun nextUsername(suffix: String): String = "$usernamePrefix$suffix"
+
+  /**
+   * Builds a unique email for this test class execution.
+   */
+  private fun nextEmail(suffix: String): String = "$usernamePrefix$suffix@example.test"
 }
