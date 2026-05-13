@@ -19,6 +19,8 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import dataclasses
+import functools
+import math
 import re
 import sys
 import urllib.parse
@@ -27,14 +29,7 @@ from pathlib import Path
 import httpx
 from markdown_it import MarkdownIt
 
-SKIPPED_DIRS = {
-  ".git",
-  ".gradle",
-  ".idea",
-  ".kotlin",
-  "build",
-  "node_modules",
-}
+SKIPPED_DIRS = {".git", ".gradle", ".idea", ".kotlin", "build", "node_modules"}
 SKIPPED_SCHEMES = {"mailto", "tel", "data", "javascript", "urn"}
 HTTP_WARNING_STATUSES = {401, 403, 429}
 MARKDOWN = MarkdownIt("commonmark")
@@ -105,7 +100,7 @@ def main() -> int:
   warnings = [finding for finding in remote_findings if finding.warning]
   failures = local_failures + [finding for finding in remote_findings if not finding.warning]
 
-  print_summary(files=files, links=links, skipped=skipped, failures=failures, warnings=warnings)
+  print_summary(files=files, links=links, skipped=skipped, failures=failures, strict=options.strict, warnings=warnings)
   return 1 if failures or (options.strict and warnings) else 0
 
 
@@ -161,8 +156,8 @@ def positive_float(value: str) -> float:
   """Parse an argparse positive floating point value."""
 
   parsed = float(value)
-  if parsed <= 0:
-    raise argparse.ArgumentTypeError("must be greater than 0")
+  if not math.isfinite(parsed) or parsed <= 0:
+    raise argparse.ArgumentTypeError("must be finite and greater than 0")
   return parsed
 
 
@@ -215,7 +210,7 @@ def classify_target(target: str) -> str:
   """Classify a link target as `local`, `remote`, or `skip`."""
 
   parsed = urllib.parse.urlsplit(target)
-  if parsed.scheme in {"http", "https"}:
+  if parsed.scheme in {"http", "https"} or (not parsed.scheme and parsed.netloc):
     return "remote"
   if parsed.scheme.lower() in SKIPPED_SCHEMES:
     return "skip"
@@ -238,6 +233,8 @@ def check_local_link(repo_root: Path, link: Link) -> str | None:
   else:
     target = source_file
 
+  if not target.is_relative_to(repo_root):
+    return f"local target escapes repository: {target_path or link.target}"
   if not target.exists():
     return f"missing local target: {target_path or link.target}"
   if parsed.fragment:
@@ -257,6 +254,8 @@ def check_local_anchor(target: Path, fragment: str) -> str | None:
   """Return a failure reason when a local Markdown anchor is missing."""
 
   anchor_file = target / "README.md" if target.is_dir() else target
+  if target.is_dir() and not anchor_file.exists():
+    return "missing README.md for directory anchor"
   if anchor_file.suffix != ".md" or not anchor_file.exists():
     return None
 
@@ -267,6 +266,7 @@ def check_local_anchor(target: Path, fragment: str) -> str | None:
   return f"missing heading anchor: #{fragment}"
 
 
+@functools.lru_cache(maxsize=None)
 def collect_heading_slugs(file: Path) -> set[str]:
   """Collect best-effort GitHub-style heading anchors from a Markdown file."""
 
@@ -317,34 +317,33 @@ def check_remote_links(links: list[Link], options: Options) -> list[Finding]:
 
   findings: list[Finding] = []
   max_workers = min(options.concurrency, len(links_by_target))
-  with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-    future_to_target = {
-      executor.submit(check_remote_target, target, options.timeout_seconds): target
-      for target in links_by_target
-    }
-    for future in concurrent.futures.as_completed(future_to_target):
-      reason, warning = future.result()
-      if reason is None:
-        continue
-      for link in links_by_target[future_to_target[future]]:
-        findings.append(Finding(link=link, reason=reason, warning=warning))
+  with httpx.Client(follow_redirects=True, timeout=options.timeout_seconds, headers=request_headers()) as client:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+      future_to_target = {executor.submit(check_remote_target, client, target): target for target in links_by_target}
+      for future in concurrent.futures.as_completed(future_to_target):
+        reason, warning = future.result()
+        if reason is None:
+          continue
+        for link in links_by_target[future_to_target[future]]:
+          findings.append(Finding(link=link, reason=reason, warning=warning))
   return sorted(findings, key=lambda finding: (finding.link.file.as_posix(), finding.link.line))
 
 
-def check_remote_target(target: str, timeout_seconds: float) -> tuple[str | None, bool]:
+def check_remote_target(client: httpx.Client, target: str) -> tuple[str | None, bool]:
   """Return a remote failure reason and whether it should be treated as warning."""
 
+  if target.startswith("//"):
+    target = f"https:{target}"
   try:
-    with httpx.Client(follow_redirects=True, timeout=timeout_seconds, headers=request_headers()) as client:
-      response = client.head(target)
-      if response.status_code < 400:
-        return None, False
-      response = client.get(target, headers={"range": "bytes=0-0"})
-      if response.status_code < 400:
-        return None, False
-      warning = response.status_code in HTTP_WARNING_STATUSES
-      suffix = "; checker may be blocked by the site" if warning else ""
-      return f"HTTP {response.status_code}{suffix}", warning
+    response = client.head(target)
+    if response.status_code < 400:
+      return None, False
+    response = client.get(target, headers={"range": "bytes=0-0"})
+    if response.status_code < 400:
+      return None, False
+    warning = response.status_code in HTTP_WARNING_STATUSES
+    suffix = "; checker may be blocked by the site" if warning else ""
+    return f"HTTP {response.status_code}{suffix}", warning
   except httpx.HTTPError as error:
     return f"request failed: {error}", False
 
@@ -364,6 +363,7 @@ def print_summary(
   links: list[Link],
   skipped: int,
   failures: list[Finding],
+  strict: bool,
   warnings: list[Finding],
 ) -> None:
   """Print a stable summary for local terminals and CI logs."""
@@ -373,10 +373,13 @@ def print_summary(
     print("\nHTTP warnings:")
     for warning in warnings:
       print(f"- {format_link(warning.link)}: {warning.reason}")
-  if failures:
-    print("\nBroken links:", file=sys.stderr)
+  if failures or (strict and warnings):
+    print("\nBuild-blocking findings:", file=sys.stderr)
     for failure in failures:
       print(f"- {format_link(failure.link)}: {failure.reason}", file=sys.stderr)
+    if strict:
+      for warning in warnings:
+        print(f"- {format_link(warning.link)}: {warning.reason}", file=sys.stderr)
   else:
     print("No broken links found.")
 
