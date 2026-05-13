@@ -1,5 +1,5 @@
 #!/usr/bin/env -S uv run --script
-#MISE description="Check Markdown inline links for reachable local files and URLs."
+#MISE description="Check Markdown inline links for reachable local files and optional URLs."
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
@@ -7,6 +7,11 @@
 #   "markdown-it-py>=3.0.0,<4",
 # ]
 # ///
+#USAGE flag "--check-web-links" help="Also check HTTP/HTTPS links. By default, web links are skipped."
+#USAGE flag "--strict" help="Fail on HTTP statuses commonly caused by bot blocking. Only applies with --check-web-links."
+#USAGE flag "--concurrency <count>" help="Number of HTTP links to check at once." default="8"
+#USAGE flag "--timeout-seconds <seconds>" help="Per-request HTTP timeout in seconds." default="15"
+#USAGE arg "[paths]..." help="Files or directories to scan. Defaults to the repo root."
 """Check Markdown inline links for reachable local files and URLs."""
 
 from __future__ import annotations
@@ -57,8 +62,8 @@ class Finding:
 class Options:
   """Runtime options parsed from the mise task arguments."""
 
+  check_web_links: bool
   concurrency: int
-  no_external: bool
   paths: list[str]
   strict: bool
   timeout_seconds: float
@@ -83,10 +88,10 @@ def main() -> int:
   for link in links:
     target_type = classify_target(link.target)
     if target_type == "remote":
-      if options.no_external:
-        skipped += 1
-      else:
+      if options.check_web_links:
         remote_links.append(link)
+      else:
+        skipped += 1
       continue
     if target_type == "skip":
       skipped += 1
@@ -112,14 +117,14 @@ def parse_args() -> Options:
   )
   parser.add_argument("paths", nargs="*", help="Files or directories to scan. Defaults to the repo root.")
   parser.add_argument(
-    "--no-external",
+    "--check-web-links",
     action="store_true",
-    help="Skip HTTP/HTTPS checks and only validate local links.",
+    help="Also check HTTP/HTTPS links. By default, web links are skipped.",
   )
   parser.add_argument(
     "--strict",
     action="store_true",
-    help="Fail on HTTP statuses commonly caused by bot blocking, such as 403 or 429.",
+    help="Fail on HTTP statuses commonly caused by bot blocking. Only applies with --check-web-links.",
   )
   parser.add_argument(
     "--concurrency",
@@ -135,8 +140,8 @@ def parse_args() -> Options:
   )
   args = parser.parse_args()
   return Options(
+    check_web_links=args.check_web_links,
     concurrency=args.concurrency,
-    no_external=args.no_external,
     paths=args.paths,
     strict=args.strict,
     timeout_seconds=args.timeout_seconds,

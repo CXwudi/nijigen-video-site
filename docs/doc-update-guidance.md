@@ -23,5 +23,6 @@ Without updating doc properly, AI will hallucinate, new comer will make mistake.
 
 Do this before each push in main branch, or before each PR
 
-1. Check referencing links like `[]()` in docs with `mise //:docs-link-check`, make sure they are still reachable
+1. Check referencing links like `[]()` in docs with `mise //:docs-link-check`, make sure local file links are still reachable.
+    - Add `--check-web-links` to also check external website reachability.
 2. For any modification made, check if the related documentation still holds. Modify if needed.
