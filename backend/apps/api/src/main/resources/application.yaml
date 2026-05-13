@@ -1,6 +1,9 @@
 spring:
   application:
     name: apps-api
+  threads:
+    virtual:
+      enabled: true
 
 # use the application-local.yml profile when connecting to external services via port forwarding in compose files
 # for CI and dev inside docker compose, the compose files have already configured connection details via env var
