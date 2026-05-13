@@ -1,0 +1,398 @@
+#!/usr/bin/env -S uv run --script
+#MISE description="Check Markdown inline links for reachable local files and optional URLs."
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#   "httpx>=0.28.1,<1",
+#   "markdown-it-py>=3.0.0,<4",
+# ]
+# ///
+#USAGE flag "--check-web-links" help="Also check HTTP/HTTPS links. By default, web links are skipped."
+#USAGE flag "--strict" help="Fail on HTTP statuses commonly caused by bot blocking. Only applies with --check-web-links."
+#USAGE flag "--concurrency <count>" help="Number of HTTP links to check at once." default="8"
+#USAGE flag "--timeout-seconds <seconds>" help="Per-request HTTP timeout in seconds." default="15"
+#USAGE arg "[paths]..." help="Files or directories to scan. Defaults to the repo root."
+"""Check Markdown inline links for reachable local files and URLs."""
+
+from __future__ import annotations
+
+import argparse
+import concurrent.futures
+import dataclasses
+import functools
+import math
+import re
+import sys
+import urllib.parse
+from pathlib import Path
+
+import httpx
+from markdown_it import MarkdownIt
+
+SKIPPED_DIRS = {".git", ".gradle", ".idea", ".kotlin", "build", "node_modules"}
+SKIPPED_SCHEMES = {"mailto", "tel", "data", "javascript", "urn"}
+HTTP_WARNING_STATUSES = {401, 403, 429}
+MARKDOWN = MarkdownIt("commonmark")
+
+
+@dataclasses.dataclass(frozen=True)
+class Link:
+  """A Markdown link target with source location context."""
+
+  file: Path
+  line: int
+  target: str
+
+
+@dataclasses.dataclass(frozen=True)
+class Finding:
+  """A link-check result that should be reported to the caller."""
+
+  link: Link
+  reason: str
+  warning: bool = False
+
+
+@dataclasses.dataclass(frozen=True)
+class Options:
+  """Runtime options parsed from the mise task arguments."""
+
+  check_web_links: bool
+  concurrency: int
+  paths: list[str]
+  strict: bool
+  timeout_seconds: float
+
+
+class CheckError(RuntimeError):
+  """Raised when the checker cannot continue due to invalid input."""
+
+
+def main() -> int:
+  """Run the Markdown link checker and return a process exit code."""
+
+  options = parse_args()
+  repo_root = Path(__file__).resolve().parents[2]
+  files = collect_markdown_files(repo_root, options.paths or ["."])
+  links = [link for file in files for link in extract_links(repo_root, file)]
+
+  local_failures: list[Finding] = []
+  remote_links: list[Link] = []
+  skipped = 0
+
+  for link in links:
+    target_type = classify_target(link.target)
+    if target_type == "remote":
+      if options.check_web_links:
+        remote_links.append(link)
+      else:
+        skipped += 1
+      continue
+    if target_type == "skip":
+      skipped += 1
+      continue
+
+    reason = check_local_link(repo_root, link)
+    if reason is not None:
+      local_failures.append(Finding(link=link, reason=reason))
+
+  remote_findings = check_remote_links(remote_links, options)
+  warnings = [finding for finding in remote_findings if finding.warning]
+  failures = local_failures + [finding for finding in remote_findings if not finding.warning]
+
+  print_summary(files=files, links=links, skipped=skipped, failures=failures, strict=options.strict, warnings=warnings)
+  return 1 if failures or (options.strict and warnings) else 0
+
+
+def parse_args() -> Options:
+  """Parse CLI arguments passed after `mise docs-link-check`."""
+
+  parser = argparse.ArgumentParser(
+    description="Check inline Markdown links like [text](target) and ![alt](target).",
+  )
+  parser.add_argument("paths", nargs="*", help="Files or directories to scan. Defaults to the repo root.")
+  parser.add_argument(
+    "--check-web-links",
+    action="store_true",
+    help="Also check HTTP/HTTPS links. By default, web links are skipped.",
+  )
+  parser.add_argument(
+    "--strict",
+    action="store_true",
+    help="Fail on HTTP statuses commonly caused by bot blocking. Only applies with --check-web-links.",
+  )
+  parser.add_argument(
+    "--concurrency",
+    type=positive_int,
+    default=8,
+    help="Number of HTTP links to check at once. Default: 8.",
+  )
+  parser.add_argument(
+    "--timeout-seconds",
+    type=positive_float,
+    default=15.0,
+    help="Per-request HTTP timeout in seconds. Default: 15.",
+  )
+  args = parser.parse_args()
+  return Options(
+    check_web_links=args.check_web_links,
+    concurrency=args.concurrency,
+    paths=args.paths,
+    strict=args.strict,
+    timeout_seconds=args.timeout_seconds,
+  )
+
+
+def positive_int(value: str) -> int:
+  """Parse an argparse positive integer value."""
+
+  parsed = int(value)
+  if parsed < 1:
+    raise argparse.ArgumentTypeError("must be at least 1")
+  return parsed
+
+
+def positive_float(value: str) -> float:
+  """Parse an argparse positive floating point value."""
+
+  parsed = float(value)
+  if not math.isfinite(parsed) or parsed <= 0:
+    raise argparse.ArgumentTypeError("must be finite and greater than 0")
+  return parsed
+
+
+def collect_markdown_files(repo_root: Path, inputs: list[str]) -> list[Path]:
+  """Collect Markdown files from explicit repo-relative files or directories."""
+
+  files: list[Path] = []
+  for input_path in inputs:
+    absolute = (repo_root / input_path).resolve()
+    if not absolute.exists():
+      raise CheckError(f"Input path does not exist: {input_path}")
+    if absolute.is_file() and absolute.suffix == ".md":
+      files.append(absolute)
+    elif absolute.is_dir():
+      files.extend(walk_markdown_files(absolute))
+  return sorted(set(files))
+
+
+def walk_markdown_files(directory: Path) -> list[Path]:
+  """Walk a directory tree while skipping generated and tool-owned folders."""
+
+  files: list[Path] = []
+  for child in sorted(directory.iterdir()):
+    if child.is_dir() and child.name not in SKIPPED_DIRS:
+      files.extend(walk_markdown_files(child))
+    elif child.is_file() and child.suffix == ".md":
+      files.append(child)
+  return files
+
+
+def extract_links(repo_root: Path, file: Path) -> list[Link]:
+  """Extract inline Markdown links and images from one Markdown file."""
+
+  relative_file = file.relative_to(repo_root)
+  tokens = MARKDOWN.parse(file.read_text(encoding="utf-8"))
+  links: list[Link] = []
+  for token in tokens:
+    if token.type != "inline" or not token.children:
+      continue
+    line = token.map[0] + 1 if token.map else 1
+    for child in token.children:
+      attrs = dict(child.attrs or {})
+      target = attrs.get("href") if child.type == "link_open" else attrs.get("src")
+      if target is not None:
+        links.append(Link(file=relative_file, line=line, target=target))
+  return links
+
+
+def classify_target(target: str) -> str:
+  """Classify a link target as `local`, `remote`, or `skip`."""
+
+  parsed = urllib.parse.urlsplit(target)
+  if parsed.scheme in {"http", "https"} or (not parsed.scheme and parsed.netloc):
+    return "remote"
+  if parsed.scheme.lower() in SKIPPED_SCHEMES:
+    return "skip"
+  if parsed.scheme:
+    return "skip"
+  return "local"
+
+
+def check_local_link(repo_root: Path, link: Link) -> str | None:
+  """Return a failure reason when a local link target cannot be reached."""
+
+  if not link.target:
+    return "empty link target"
+
+  parsed = urllib.parse.urlsplit(link.target)
+  target_path = urllib.parse.unquote(parsed.path)
+  source_file = repo_root / link.file
+  if target_path:
+    target = resolve_local_path(repo_root, source_file.parent, target_path)
+  else:
+    target = source_file
+
+  if not target.is_relative_to(repo_root):
+    return f"local target escapes repository: {target_path or link.target}"
+  if not target.exists():
+    return f"missing local target: {target_path or link.target}"
+  if parsed.fragment:
+    return check_local_anchor(target, parsed.fragment)
+  return None
+
+
+def resolve_local_path(repo_root: Path, source_dir: Path, target_path: str) -> Path:
+  """Resolve an absolute or relative Markdown file target."""
+
+  if target_path.startswith("/"):
+    return (repo_root / target_path.lstrip("/")).resolve()
+  return (source_dir / target_path).resolve()
+
+
+def check_local_anchor(target: Path, fragment: str) -> str | None:
+  """Return a failure reason when a local Markdown anchor is missing."""
+
+  anchor_file = target / "README.md" if target.is_dir() else target
+  if target.is_dir() and not anchor_file.exists():
+    return "missing README.md for directory anchor"
+  if anchor_file.suffix != ".md" or not anchor_file.exists():
+    return None
+
+  expected = decode_fragment(fragment)
+  slugs = collect_heading_slugs(anchor_file)
+  if expected in slugs or slugify_heading(expected) in slugs:
+    return None
+  return f"missing heading anchor: #{fragment}"
+
+
+@functools.lru_cache(maxsize=None)
+def collect_heading_slugs(file: Path) -> set[str]:
+  """Collect best-effort GitHub-style heading anchors from a Markdown file."""
+
+  tokens = MARKDOWN.parse(file.read_text(encoding="utf-8"))
+  slugs: set[str] = set()
+  slug_counts: dict[str, int] = {}
+  for index, token in enumerate(tokens):
+    if token.type != "heading_open" or index + 1 >= len(tokens):
+      continue
+    inline = tokens[index + 1]
+    if inline.type != "inline":
+      continue
+    base = slugify_heading(inline.content)
+    count = slug_counts.get(base, 0)
+    slug_counts[base] = count + 1
+    slugs.add(base if count == 0 else f"{base}-{count}")
+  return slugs
+
+
+def slugify_heading(heading: str) -> str:
+  """Approximate GitHub Markdown heading slug generation."""
+
+  without_code = re.sub(r"`([^`]*)`", r"\1", heading)
+  without_html = re.sub(r"<[^>]+>", "", without_code)
+  lowercase = without_html.lower()
+  alphanumeric = re.sub(r"[^\w\s-]", "", lowercase, flags=re.UNICODE)
+  return re.sub(r"\s+", "-", alphanumeric.strip())
+
+
+def decode_fragment(fragment: str) -> str:
+  """Decode a URL fragment for anchor comparison."""
+
+  try:
+    return urllib.parse.unquote(fragment).lower()
+  except ValueError:
+    return fragment.lower()
+
+
+def check_remote_links(links: list[Link], options: Options) -> list[Finding]:
+  """Check unique remote links concurrently and expand findings to each use site."""
+
+  if not links:
+    return []
+
+  links_by_target: dict[str, list[Link]] = {}
+  for link in links:
+    links_by_target.setdefault(link.target, []).append(link)
+
+  findings: list[Finding] = []
+  max_workers = min(options.concurrency, len(links_by_target))
+  with httpx.Client(follow_redirects=True, timeout=options.timeout_seconds, headers=request_headers()) as client:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+      future_to_target = {executor.submit(check_remote_target, client, target): target for target in links_by_target}
+      for future in concurrent.futures.as_completed(future_to_target):
+        reason, warning = future.result()
+        if reason is None:
+          continue
+        for link in links_by_target[future_to_target[future]]:
+          findings.append(Finding(link=link, reason=reason, warning=warning))
+  return sorted(findings, key=lambda finding: (finding.link.file.as_posix(), finding.link.line))
+
+
+def check_remote_target(client: httpx.Client, target: str) -> tuple[str | None, bool]:
+  """Return a remote failure reason and whether it should be treated as warning."""
+
+  if target.startswith("//"):
+    target = f"https:{target}"
+  try:
+    response = client.head(target)
+    if response.status_code < 400:
+      return None, False
+    response = client.get(target, headers={"range": "bytes=0-0"})
+    if response.status_code < 400:
+      return None, False
+    warning = response.status_code in HTTP_WARNING_STATUSES
+    suffix = "; checker may be blocked by the site" if warning else ""
+    return f"HTTP {response.status_code}{suffix}", warning
+  except httpx.HTTPError as error:
+    return f"request failed: {error}", False
+
+
+def request_headers() -> dict[str, str]:
+  """Build conservative HTTP headers for public documentation checks."""
+
+  return {
+    "accept": "text/html,application/xhtml+xml,application/xml,application/pdf,*/*;q=0.8",
+    "user-agent": "nijigen-video-site-doc-link-check/1.0",
+  }
+
+
+def print_summary(
+  *,
+  files: list[Path],
+  links: list[Link],
+  skipped: int,
+  failures: list[Finding],
+  strict: bool,
+  warnings: list[Finding],
+) -> None:
+  """Print a stable summary for local terminals and CI logs."""
+
+  print(f"Scanned {len(files)} Markdown file(s), {len(links)} inline link(s), skipped {skipped}.")
+  if warnings:
+    print("\nHTTP warnings:")
+    for warning in warnings:
+      print(f"- {format_link(warning.link)}: {warning.reason}")
+  if failures or (strict and warnings):
+    print("\nBuild-blocking findings:", file=sys.stderr)
+    for failure in failures:
+      print(f"- {format_link(failure.link)}: {failure.reason}", file=sys.stderr)
+    if strict:
+      for warning in warnings:
+        print(f"- {format_link(warning.link)}: {warning.reason}", file=sys.stderr)
+  else:
+    print("No broken links found.")
+
+
+def format_link(link: Link) -> str:
+  """Format a link location and target for quick fixing."""
+
+  return f"{link.file.as_posix()}:{link.line} {link.target}"
+
+
+if __name__ == "__main__":
+  try:
+    raise SystemExit(main())
+  except CheckError as error:
+    print(error, file=sys.stderr)
+    raise SystemExit(1) from error

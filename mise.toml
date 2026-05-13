@@ -21,3 +21,6 @@ java = "lts" # This is only needed for running Gradle itself. For building, Grad
 # Frontend
 node = "lts"
 pnpm = "latest"
+
+# Others
+uv = "latest"
