@@ -36,7 +36,7 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
   private val objectMapper: ObjectMapper,
   private val jdbcClient: JdbcClient,
 ) {
-  private val usernamePrefix = "sample-user-test-${UUID.randomUUID()}-"
+  private val usernamePrefix = "sut-${UUID.randomUUID().toString().take(8)}-"
 
   /**
    * Verifies that a created sample user can be fetched directly and listed.
@@ -210,5 +210,5 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
   /**
    * Builds a unique email for this test class execution.
    */
-  private fun nextEmail(suffix: String): String = "$usernamePrefix$suffix@example.test"
+  private fun nextEmail(suffix: String): String = "$usernamePrefix$suffix@example.com"
 }
