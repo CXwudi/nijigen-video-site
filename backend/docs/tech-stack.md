@@ -1,46 +1,17 @@
 # Backend Tech Stack
 
-This document lists the current committed backend stack.
+- **Languages & Runtime**: [Java 25 (GraalVM)](https://www.graalvm.org/), [Kotlin](https://kotlinlang.org/docs/home.html), [Spring Boot 4.x](https://docs.spring.io/spring-boot/index.html)
+- **Build & Dependency Management**: [Gradle](https://docs.gradle.org/current/userguide/userguide.html)
+- **Web & API**: [Spring Web MVC](https://docs.spring.io/spring-boot/reference/web/servlet.html), [Spring & OpenAPI](https://springdoc.org/)
+- **Infrastructure & Integrations**: [Spring Data JDBC](https://docs.spring.io/spring-data/relational/reference/jdbc.html), [PostgreSQL](https://www.postgresql.org/docs/), [Redis](https://redis.io/docs/latest/),
+- **Validation & Testing**: [JUnit](https://junit.org/junit5/docs/current/user-guide/), [MockK](https://mockk.io/)
 
-## Languages and Runtime
+## To Be Added
 
-- Java `25` (GraalVM)
-- [Kotlin](https://kotlinlang.org/docs/home.html)
-- [Spring Boot](https://docs.spring.io/spring-boot/reference/)
-  - For AI Agents: be aware that we are on Spring Boot `4.x`. Many things you
-    used to know are not applicable anymore. Make sure to always check the
-    latest documentation.
+- **Security**: [Keycloak](https://www.keycloak.org/documentation)
+- **Infrastructure & Integrations**: [Apache Pulsar](https://pulsar.apache.org/docs/)
+- **Observability & Operations**: [LGTM OpenTelemetry Stack](https://grafana.com/docs/)
 
-## Build and Dependency Management
+## Notes
 
-- [Gradle](https://docs.gradle.org/current/userguide/userguide.html)
-- [Develocity](https://docs.gradle.com/develocity/current/)
-- [Spring Configuration Processor](https://docs.spring.io/spring-boot/specification/configuration-metadata/annotation-processor.html)
-
-## Web and API
-
-- [Spring Web MVC](https://docs.spring.io/spring-boot/reference/web/servlet.html)
-- [SpringDoc OpenAPI](https://springdoc.org/)
-
-## Security
-
-- [Spring Security](https://docs.spring.io/spring-boot/reference/web/spring-security.html)
-- [OAuth2 Client](https://docs.spring.io/spring-boot/reference/web/spring-security.html#web.security.oauth2.client)
-
-## Data and Messaging
-
-- [Spring JDBC](https://docs.spring.io/spring-boot/reference/data/sql.html)
-- [PostgreSQL JDBC Driver](https://jdbc.postgresql.org/)
-- [Spring Cache Abstraction](https://docs.spring.io/spring-boot/reference/io/caching.html)
-- [Spring for Apache Pulsar](https://docs.spring.io/spring-boot/reference/messaging/pulsar.html)
-
-## Observability and Operations
-
-- [Spring Boot Actuator](https://docs.spring.io/spring-boot/reference/actuator/index.html)
-- [OpenTelemetry](https://docs.spring.io/spring-boot/reference/actuator/observability.html#actuator.observability.opentelemetry)
-
-## Validation and Testing
-
-- [Validation](https://docs.spring.io/spring-boot/reference/io/validation.html)
-- [JUnit](https://junit.org/junit5/docs/current/user-guide/)
-- [MockK](https://mockk.io/)
+- Spring Boot on `4.x` is quite different than what you think of; Make sure to check the latest documentation before applying deprecated methods/patterns
