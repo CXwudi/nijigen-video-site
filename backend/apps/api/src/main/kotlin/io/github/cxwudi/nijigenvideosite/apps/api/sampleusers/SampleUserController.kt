@@ -1,7 +1,6 @@
 package io.github.cxwudi.nijigenvideosite.apps.api.sampleusers
 
 import jakarta.validation.Valid
-import java.net.URI
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import org.springframework.web.server.ResponseStatusException
 
 /**
@@ -31,9 +31,14 @@ class SampleUserController(private val repository: SampleUserRepository) {
   @PostMapping
   fun create(@Valid @RequestBody request: CreateSampleUserRequest): ResponseEntity<SampleUser> {
     val sampleUser = repository.create(request)
+    val location = ServletUriComponentsBuilder
+      .fromCurrentRequest()
+      .path("/{id}")
+      .buildAndExpand(sampleUser.id)
+      .toUri()
 
     return ResponseEntity
-      .created(URI.create("/sample-users/${sampleUser.id}"))
+      .created(location)
       .body(sampleUser)
   }
 
@@ -76,10 +81,10 @@ class SampleUserController(private val repository: SampleUserRepository) {
    * Converts duplicate usernames into a client-correctable response.
    */
   @ExceptionHandler(DuplicateKeyException::class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ResponseStatus(HttpStatus.CONFLICT)
   fun handleDuplicateUsernameOrEmail(): ProblemDetail =
     ProblemDetail.forStatusAndDetail(
-      HttpStatus.BAD_REQUEST,
+      HttpStatus.CONFLICT,
       "A sample user with that username or email already exists.",
     )
 

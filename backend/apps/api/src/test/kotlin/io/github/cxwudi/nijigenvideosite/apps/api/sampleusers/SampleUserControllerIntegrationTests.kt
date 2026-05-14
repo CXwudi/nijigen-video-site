@@ -160,6 +160,30 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
   }
 
   /**
+   * Verifies duplicate unique sample-user fields are reported as conflicts.
+   */
+  @Test
+  fun rejectDuplicateUsernameOrEmail() {
+    val username = nextUsername("duplicate")
+    val email = nextEmail("duplicate")
+    val request = CreateSampleUserRequest(
+      username = username,
+      email = email,
+      displayName = "Duplicate User",
+    )
+
+    postSampleUser(request)
+
+    mockMvc
+      .perform(
+        post("/sample-users")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)),
+      )
+      .andExpect(status().isConflict)
+  }
+
+  /**
    * Verifies transaction rollback removes rows created by each test.
    */
   @AfterTransaction
@@ -199,7 +223,10 @@ class SampleUserControllerIntegrationTests @Autowired constructor(
       .andExpect(jsonPath("\$.displayName").value(request.displayName))
       .andReturn()
 
-    return objectMapper.readValue(result.response.contentAsString)
+    val sampleUser = objectMapper.readValue<SampleUser>(result.response.contentAsString)
+    assertEquals("http://localhost/sample-users/${sampleUser.id}", result.response.getHeader("Location"))
+
+    return sampleUser
   }
 
   /**

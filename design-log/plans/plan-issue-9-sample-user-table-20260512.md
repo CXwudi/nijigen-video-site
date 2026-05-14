@@ -301,11 +301,11 @@ Tasks 0-5
 | --- | --- | --- |
 | [GitHub issue #9](https://github.com/CXwudi/nijigen-video-site/issues/9) | Source issue: add CRUD for a user table, tests, and CI coverage. | Must Read |
 | [Spring Boot virtual threads docs](https://docs.spring.io/spring-boot/reference/features/spring-application.html) | Official Spring Boot 4 reference for `spring.threads.virtual.enabled=true`. | Important |
-| ![a file](../../infra/flyway/sql/baseline/V1__baseline.sql) | Existing Flyway baseline to modify for the disposable `sample_users` table. | Must Read |
-| ![a file](../../backend/apps/api/build.gradle.kts) | API module dependencies; confirms Spring JDBC/WebMVC/test stack. | Important |
-| ![a file](../../backend/apps/api/src/main/kotlin/io/github/cxwudi/nijigenvideosite/apps/api/ApiApp.kt) | API Spring Boot application package root and conventions. | Important |
-| ![a file](../../backend/apps/api/src/test/kotlin/io/github/cxwudi/nijigenvideosite/apps/api/ApiAppTests.kt) | Existing bootstrap test style for the API module. | |
-| ![a file](../../.github/workflows/backend-check.yml) | Backend CI workflow that should run the new tests. | Important |
-| ![a file](../../backend/docker/mise.toml) | Local/CI backend Compose task definitions used to run API tests. | Important |
+| [a file](../../infra/flyway/sql/baseline/V1__baseline.sql) | Existing Flyway baseline to modify for the disposable `sample_users` table. | Must Read |
+| [a file](../../backend/apps/api/build.gradle.kts) | API module dependencies; confirms Spring JDBC/WebMVC/test stack. | Important |
+| [a file](../../backend/apps/api/src/main/kotlin/io/github/cxwudi/nijigenvideosite/apps/api/ApiApp.kt) | API Spring Boot application package root and conventions. | Important |
+| [a file](../../backend/apps/api/src/test/kotlin/io/github/cxwudi/nijigenvideosite/apps/api/ApiAppTests.kt) | Existing bootstrap test style for the API module. | |
+| [a file](../../.github/workflows/backend-check.yml) | Backend CI workflow that should run the new tests. | Important |
+| [a file](../../backend/docker/mise.toml) | Local/CI backend Compose task definitions used to run API tests. | Important |
 
 <!-- markdownlint-enable MD013 -->
