@@ -55,5 +55,6 @@ export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
 export HOST_UID="${HOST_UID:-$(id -u)}"
 export HOST_GID="${HOST_GID:-$(id -g)}"
 mkdir -p "$HOST_GRADLE_USER_HOME"
+trap 'printf "\nBackend dependency services may still be running. Run: mise //backend/docker:down when you are done.\n"' EXIT
 {{ vars.compose }} run "$@"
 '''
