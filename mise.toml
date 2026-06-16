@@ -7,6 +7,7 @@ experimental = true
 [monorepo]
 # Automatic mise.toml discovery is deprecated, so config roots are listed explicitly.
 config_roots = [
+  "backend",
   "backend/docker",
   "frontend/docker",
   "infra/compose",

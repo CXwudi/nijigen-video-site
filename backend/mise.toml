@@ -1,0 +1,8 @@
+[tasks.gradle]
+description = "Run the backend Gradle wrapper."
+raw_args = true
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+./gradlew "$@"
+'''
