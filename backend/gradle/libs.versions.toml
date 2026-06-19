@@ -3,9 +3,9 @@
 # Keep single-use versions inline in the entry itself for clarity.
 java = "25" # If this is changed, make sure to also update the Dockerfile and related compose files.
 kotlin = "2.4.0"
-spring-boot = "4.0.6"
-graalvm-native = "1.1.1"
-develocity = "4.4.2"
+spring-boot = "4.1.0"
+graalvm-native = "1.1.2"
+develocity = "4.4.3"
 foojay-resolver = "1.0.0"
 
 [libraries]
