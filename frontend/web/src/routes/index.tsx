@@ -12,41 +12,36 @@ function Home() {
   ]
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen bg-base-200 text-base-content">
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-6 py-8">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-base-300 pb-5">
           <div>
-            <p className="text-sm font-medium text-cyan-300">Nijigen Video</p>
+            <p className="text-sm font-medium text-primary">Nijigen Video</p>
             <h1 className="mt-1 text-2xl font-semibold">Workspace</h1>
           </div>
-          <button className="rounded-md bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950">
-            New upload
-          </button>
+          <button className="btn btn-primary">New upload</button>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="stats stats-vertical border border-base-300 bg-base-100 shadow-sm md:stats-horizontal">
           {queueItems.map((item) => (
-            <article
-              className="rounded-md border border-slate-800 bg-slate-900 p-5"
-              key={item.label}
-            >
-              <p className="text-sm text-slate-400">{item.label}</p>
-              <p className="mt-3 text-3xl font-semibold">{item.count}</p>
-            </article>
+            <div className="stat" key={item.label}>
+              <div className="stat-title">{item.label}</div>
+              <div className="stat-value text-primary">{item.count}</div>
+            </div>
           ))}
         </div>
 
-        <section className="rounded-md border border-slate-800 bg-slate-900 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold">Review queue</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                No videos are waiting for review yet.
-              </p>
+        <section className="card border border-base-300 bg-base-100 shadow-sm">
+          <div className="card-body">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="card-title">Review queue</h2>
+                <p className="mt-1 text-sm text-base-content/70">
+                  No videos are waiting for review yet.
+                </p>
+              </div>
+              <span className="badge badge-info">Empty</span>
             </div>
-            <span className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300">
-              Empty
-            </span>
           </div>
         </section>
       </section>

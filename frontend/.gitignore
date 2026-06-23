@@ -18,4 +18,5 @@ __unconfig*
 *.local
 .env
 todos.json
+/snowmiku2019-E-pair.css
 /docker/.env

@@ -161,11 +161,11 @@ Wire Tailwind CSS and daisyUI into `frontend/web` and integrate the Snow Miku th
 
 Task 3.
 
-- [ ] **Step 1:** Add Tailwind CSS using the setup required by the selected current major version.
-- [ ] **Step 2:** Add daisyUI using the setup required by the selected current major version.
-- [ ] **Step 3:** Add Snow Miku light and dark theme tokens based on issue `#27` and any user-provided theme source.
-- [ ] **Step 4:** Configure the Snow Miku light and dark themes as the app defaults using daisyUI-supported default and prefers-dark behavior; do not add a manual theme selector yet.
-- [ ] **Step 5:** Remove or ignore scratch-only theme files that should not enter the PR.
+- [x] **Step 1:** Add Tailwind CSS using the setup required by the selected current major version.
+- [x] **Step 2:** Add daisyUI using the setup required by the selected current major version.
+- [x] **Step 3:** Add Snow Miku light and dark theme tokens based on issue `#27` and any user-provided theme source.
+- [x] **Step 4:** Configure the Snow Miku light and dark themes as the app defaults using daisyUI-supported default and prefers-dark behavior; do not add a manual theme selector yet.
+- [x] **Step 5:** Remove or ignore scratch-only theme files that should not enter the PR.
 
 #### 4.4 Verification:
 
@@ -176,6 +176,7 @@ Task 3.
 #### 4.5 Notes:
 
 - `frontend/snowmiku2019-E-pair.css` is currently untracked scratch context. Do not blindly commit it unless the implementation intentionally turns it into a maintained source file.
+- Task 4 verification confirmed daisyUI `5.5.23` is included, Snow Miku light and dark themes are configured in `styles.css`, and the app route renders daisyUI component classes.
 
 ## Task 5: Add Frontend Quality Tooling
 

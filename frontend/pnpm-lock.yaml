@@ -224,6 +224,9 @@ importers:
       '@tanstack/react-start':
         specifier: 1.168.26
         version: 1.168.26(crossws@0.4.6(srvx@0.8.16))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(vite@8.0.16(@types/node@26.0.0)(jiti@2.7.0))
+      daisyui:
+        specifier: 5.5.23
+        version: 5.5.23
       nitro:
         specifier: npm:nitro-nightly@latest
         version: nitro-nightly@4.0.0-20251010-091516-7cafddba(rolldown@1.0.3)(vite@8.0.16(@types/node@26.0.0)(jiti@2.7.0))
@@ -1158,6 +1161,9 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  daisyui@5.5.23:
+    resolution: {integrity: sha512-xuheNUSL4T6ZVtWXoioqcNkjoyGX85QTDz4HTw2aBPfqk4fuMjax5HDo8qCmpV6M1YN8bGvfx5BpYCoDeRlt+A==}
 
   db0@0.3.4:
     resolution: {integrity: sha512-RiXXi4WaNzPTHEOu8UPQKMooIbqOEyqA1t7Z6MsdxSCeb8iUC9ko3LcmsLmeUt2SM5bctfArZKkRQggKZz7JNw==}
@@ -2556,6 +2562,8 @@ snapshots:
       srvx: 0.8.16
 
   csstype@3.2.3: {}
+
+  daisyui@5.5.23: {}
 
   db0@0.3.4: {}
 
