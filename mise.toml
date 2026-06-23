@@ -9,6 +9,7 @@ experimental = true
 config_roots = [
   "backend",
   "backend/docker",
+  "frontend",
   "frontend/docker",
   "infra/compose",
 ]

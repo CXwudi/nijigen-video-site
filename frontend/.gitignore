@@ -1,2 +1,5 @@
+### Frontend dependencies ###
+node_modules/
+
 ### Local Docker env ###
 /docker/.env
