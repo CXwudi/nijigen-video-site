@@ -16,7 +16,7 @@
 
 ## File and Boundary Map
 
-- `frontend/package.json`, `frontend/pnpm-workspace.yaml`, `frontend/pnpm-lock.yaml`: new frontend-owned pnpm workspace root.
+- `frontend/package.json`, `frontend/pnpm-workspace.yaml`, `frontend/pnpm-lock.yaml`, `frontend/mise.toml`: new frontend-owned pnpm workspace root and mise task delegation.
 - `frontend/web/`: new first frontend application using TanStack Start, React, Tailwind CSS, daisyUI, TanStack Query, Zustand, Vite, Vitest, Oxlint, Oxfmt, TypeScript, and React.
 - `frontend/docker/Dockerfile`: new frontend-owned Dockerfile with `web-node-base`, `web-pnpm-base`, `web-build`, and `web-runtime` stages.
 - `frontend/docker/compose.local.yml`: replace the temporary `nginx` web service with the real `web` service, keep explicit backend dependency services, and declare frontend dependency volumes.
@@ -27,7 +27,7 @@
 - `infra/compose/compose.prod.yml` and `infra/compose/prod.env.example`: add production-like `web` service and web production env values.
 - `.github/workflows/`: add frontend CI workflow, likely `frontend-check.yml`, using Docker/Compose as the environment boundary and Docker layer caching for frontend builds.
 - `docs/`, `frontend/README.md`, `frontend/docs/`: update documentation after the runnable commands are verified.
-- `mise.toml`: update only if the frontend implementation requires additional monorepo config roots or tool declarations beyond the current root `node = "lts"` and `pnpm = "latest"` setup.
+- `mise.toml`: add `frontend` as a monorepo config root when `frontend/mise.toml` is introduced; keep tool declarations aligned with the current root `node = "lts"` and `pnpm = "latest"` setup.
 
 ## Task 1: Confirm Tool Versions and Scaffold Strategy
 
@@ -79,8 +79,9 @@ Create a frontend-owned JavaScript workspace under `frontend/` without turning t
 - Create: `frontend/package.json`
 - Create: `frontend/pnpm-workspace.yaml`
 - Create: `frontend/pnpm-lock.yaml`
+- Create: `frontend/mise.toml`
 - Modify: `frontend/README.md`
-- Modify if needed: `mise.toml`
+- Modify: `mise.toml`
 
 #### 2.3 Dependencies:
 
@@ -88,19 +89,23 @@ Task 1.
 
 - [ ] **Step 1:** Add `frontend/package.json` as a private workspace root with scripts that delegate to workspace packages where useful.
 - [ ] **Step 2:** Add `frontend/pnpm-workspace.yaml` with `web` included as the first package.
-- [ ] **Step 3:** Generate `frontend/pnpm-lock.yaml` through pnpm, not by hand.
-- [ ] **Step 4:** Keep root-level package files absent unless a tool proves they are required.
-- [ ] **Step 5:** Update `frontend/README.md` with the minimal host-run workspace command entrypoints.
+- [ ] **Step 3:** Add `frontend/mise.toml` with a raw-args pnpm delegation task, mirroring the backend `gradle` delegation pattern but using pnpm from the frontend workspace root.
+- [ ] **Step 4:** Add `frontend` to the root `mise.toml` `config_roots` list so `mise //frontend:pnpm` works consistently with `mise //backend:gradle`.
+- [ ] **Step 5:** Generate `frontend/pnpm-lock.yaml` through pnpm, not by hand.
+- [ ] **Step 6:** Keep root-level package files absent unless a tool proves they are required.
+- [ ] **Step 7:** Update `frontend/README.md` with the minimal host-run workspace command entrypoints.
 
 #### 2.4 Verification:
 
 - Run: `pnpm --dir frontend install --frozen-lockfile`
 - Run: `pnpm --dir frontend list --depth 0`
-- Expect: pnpm recognizes `frontend/` as the workspace root and no root-level JavaScript package files are created.
+- Run: `mise //frontend:pnpm --version`
+- Expect: pnpm recognizes `frontend/` as the workspace root, mise can delegate pnpm from `frontend/`, and no root-level JavaScript package files are created.
 
 #### 2.5 Notes:
 
 - If a generated scaffold tries to create a root workspace, move it under `frontend/` and regenerate the lockfile from that location.
+- Keep `frontend/mise.toml` focused on workspace-root tasks such as pnpm delegation; Docker-specific tasks stay in `frontend/docker/mise.toml`.
 
 ## Task 3: Scaffold `frontend/web`
 
