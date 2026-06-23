@@ -1,5 +1,21 @@
+### System files ###
+.DS_Store
+
 ### Frontend dependencies ###
 node_modules/
 
-### Local Docker env ###
+### Build outputs ###
+dist/
+dist-ssr/
+.nitro/
+.tanstack/
+.wrangler/
+.output/
+.vinxi/
+__unconfig*
+
+### Local files ###
+*.local
+.env
+todos.json
 /docker/.env

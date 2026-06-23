@@ -128,11 +128,11 @@ Create the first frontend app using the selected React and TanStack stack while 
 
 Tasks 1 and 2.
 
-- [ ] **Step 1:** Scaffold `frontend/web` from a pinned TanStack CLI app generated in `/tmp`, then adapt it into the existing `frontend/` pnpm workspace with TanStack Start, TanStack Router, React, TypeScript, and Vite.
-- [ ] **Step 2:** Add TanStack Query provider wiring at the app/root route level.
-- [ ] **Step 3:** Add Zustand as a dependency from the selected stack, but do not create a store until the app has a real local state need.
-- [ ] **Step 4:** Keep the first route simple and app-like, not a marketing landing page.
-- [ ] **Step 5:** Ensure the development server binds to `0.0.0.0` when Docker passes `--host 0.0.0.0`.
+- [x] **Step 1:** Scaffold `frontend/web` from a pinned TanStack CLI app generated in `/tmp`, then adapt it into the existing `frontend/` pnpm workspace with TanStack Start, TanStack Router, React, TypeScript, and Vite.
+- [x] **Step 2:** Add TanStack Query provider wiring at the app/root route level.
+- [x] **Step 3:** Add Zustand as a dependency from the selected stack, but do not create a store until the app has a real local state need.
+- [x] **Step 4:** Keep the first route simple and app-like, not a marketing landing page.
+- [x] **Step 5:** Ensure the development server binds to `0.0.0.0` when Docker passes `--host 0.0.0.0`.
 
 #### 3.4 Verification:
 
@@ -143,6 +143,7 @@ Tasks 1 and 2.
 #### 3.5 Notes:
 
 - Verify the actual TanStack Start output path, runtime command, and default port during this task. These values feed Dockerfile and Compose tasks later.
+- Task 3 verification confirmed dev port `3000`, production output `.output/`, and runtime command `node .output/server/index.mjs`.
 
 ## Task 4: Add Frontend Styling and Snow Miku daisyUI Theme
 

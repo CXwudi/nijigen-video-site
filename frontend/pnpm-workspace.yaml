@@ -1,2 +1,7 @@
 packages:
   - web
+onlyBuiltDependencies:
+  - esbuild
+  - lightningcss
+allowBuilds:
+  esbuild: true
