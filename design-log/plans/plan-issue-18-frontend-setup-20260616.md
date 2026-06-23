@@ -62,8 +62,8 @@ None.
 - Keep the Docker Node image aligned with the selected Node support story.
 - Task 1 findings from 2026-06-23: local mise resolves `node = "lts"` to Node `24.17.0` and `pnpm = "latest"` to pnpm `11.8.0`; `pnpm --version` also reports `11.8.0`.
 - Current npm `latest` package tags checked for implementation: `@tanstack/react-start@1.168.26`, `@tanstack/react-router@1.170.16`, `@tanstack/router-plugin@1.168.18`, `@tanstack/react-query@5.101.0`, `react@19.2.7`, `react-dom@19.2.7`, `tailwindcss@4.3.1`, `@tailwindcss/vite@4.3.1`, `daisyui@5.5.23`, `zustand@5.0.14`, `vite@8.0.16`, `@vitejs/plugin-react@6.0.2`, `vitest@4.1.9`, `typescript@6.0.3`, `oxlint@1.71.0`, `oxfmt@0.56.0`, `vite-tsconfig-paths@6.1.1`, `@types/react@19.2.17`, `@types/react-dom@19.2.3`, `@types/node@26.0.0`, and `jsdom@29.1.1` if a DOM test environment is needed.
-- TanStack current docs recommend `npx @tanstack/cli@latest create` for local scaffolding and also document a build-from-scratch path; the CLI execution probe was rejected by the sandbox because it would execute unpinned third-party code, so the implementation should build the minimal app manually from the official docs and current package metadata unless the user explicitly approves running the generator later.
-- The manual scaffold is also a better fit for this repo because the app must live inside an existing `frontend/` pnpm workspace, and the selected stack uses Oxlint/Oxfmt, daisyUI, Zustand, and Docker-specific conventions that the current TanStack CLI docs do not promise to generate cleanly.
+- TanStack current docs recommend `npx @tanstack/cli@latest create` for local scaffolding and also document a build-from-scratch path; generator execution is approved for the chosen frontend stack, but use a pinned CLI version and inspect the generated app before copying it into the repo.
+- Because the app must live inside an existing `frontend/` pnpm workspace, generate any TanStack scaffold in `/tmp` first, then adapt the useful files into `frontend/web/` and replace or add the repo-selected tooling such as Oxlint/Oxfmt, daisyUI, and Zustand.
 - TanStack Start docs currently label Start as RC while npm publishes `@tanstack/react-start` under the stable `latest` dist-tag; because issue `#18` explicitly selects TanStack Start, use the npm `latest` package and record the RC-docs caveat in the PR notes.
 - The TanStack Start docs show the default Vite dev server port as `3000` and the Node/Docker runtime command as `node .output/server/index.mjs`; verify both again after the real build before wiring Docker and Compose.
 - Docker should align with the local Node LTS story, starting with `node:24.17.0-slim` or the closest available Node 24 slim tag if that exact image tag is not available.
@@ -87,13 +87,13 @@ Create a frontend-owned JavaScript workspace under `frontend/` without turning t
 
 Task 1.
 
-- [ ] **Step 1:** Add `frontend/package.json` as a private workspace root with scripts that delegate to workspace packages where useful.
-- [ ] **Step 2:** Add `frontend/pnpm-workspace.yaml` with `web` included as the first package.
-- [ ] **Step 3:** Add `frontend/mise.toml` with a raw-args pnpm delegation task, mirroring the backend `gradle` delegation pattern but using pnpm from the frontend workspace root.
-- [ ] **Step 4:** Add `frontend` to the root `mise.toml` `config_roots` list so `mise //frontend:pnpm` works consistently with `mise //backend:gradle`.
-- [ ] **Step 5:** Generate `frontend/pnpm-lock.yaml` through pnpm, not by hand.
-- [ ] **Step 6:** Keep root-level package files absent unless a tool proves they are required.
-- [ ] **Step 7:** Update `frontend/README.md` with the minimal host-run workspace command entrypoints.
+- [x] **Step 1:** Scaffold `frontend/package.json` from `pnpm init --bare`, then adapt it into a private workspace root and defer package-delegating scripts until workspace packages exist.
+- [x] **Step 2:** Add `frontend/pnpm-workspace.yaml` with `web` included as the first package.
+- [x] **Step 3:** Add `frontend/mise.toml` with a raw-args pnpm delegation task, mirroring the backend `gradle` delegation pattern but using pnpm from the frontend workspace root.
+- [x] **Step 4:** Add `frontend` to the root `mise.toml` `config_roots` list so `mise //frontend:pnpm` works consistently with `mise //backend:gradle`.
+- [x] **Step 5:** Generate `frontend/pnpm-lock.yaml` through pnpm, not by hand.
+- [x] **Step 6:** Keep root-level package files absent unless a tool proves they are required.
+- [x] **Step 7:** Update `frontend/README.md` with the minimal host-run workspace command entrypoints.
 
 #### 2.4 Verification:
 
@@ -105,6 +105,7 @@ Task 1.
 #### 2.5 Notes:
 
 - If a generated scaffold tries to create a root workspace, move it under `frontend/` and regenerate the lockfile from that location.
+- `pnpm init --bare` in pnpm `11.8.0` generates a minimal `type = module` package with `devEngines.packageManager`; keep that pnpm-native shape rather than adding normal package-app defaults such as `main`, fake `test`, or `license`.
 - Keep `frontend/mise.toml` focused on workspace-root tasks such as pnpm delegation; Docker-specific tasks stay in `frontend/docker/mise.toml`.
 
 ## Task 3: Scaffold `frontend/web`
@@ -127,7 +128,7 @@ Create the first frontend app using the selected React and TanStack stack while 
 
 Tasks 1 and 2.
 
-- [ ] **Step 1:** Scaffold or create `frontend/web` with TanStack Start, TanStack Router, React, TypeScript, and Vite.
+- [ ] **Step 1:** Scaffold `frontend/web` from a pinned TanStack CLI app generated in `/tmp`, then adapt it into the existing `frontend/` pnpm workspace with TanStack Start, TanStack Router, React, TypeScript, and Vite.
 - [ ] **Step 2:** Add TanStack Query provider wiring at the app/root route level.
 - [ ] **Step 3:** Add Zustand as a dependency from the selected stack, but do not create a store until the app has a real local state need.
 - [ ] **Step 4:** Keep the first route simple and app-like, not a marketing landing page.
