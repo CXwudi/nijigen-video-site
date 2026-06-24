@@ -59,14 +59,14 @@ None.
 #### 1.5 Notes:
 
 - Use official documentation or package metadata for current versions when implementing. Do not rely on stale model memory for "latest" package versions.
-- Keep the Docker Node image aligned with the selected Node support story.
-- Task 1 findings from 2026-06-23: local mise resolves `node = "lts"` to Node `24.17.0` and `pnpm = "latest"` to pnpm `11.8.0`; `pnpm --version` also reports `11.8.0`.
+- Keep the Docker Node runtime aligned with the selected Node support story.
+- Task 1 findings from 2026-06-23: local mise resolved `node = "lts"` to Node `24.17.0` and `pnpm = "latest"` to pnpm `11.8.0`; the official pnpm Docker image later resolved pnpm `11.9.0` and installed Node LTS `24.18.0` during Task 6.
 - Current npm `latest` package tags checked for implementation: `@tanstack/react-start@1.168.26`, `@tanstack/react-router@1.170.16`, `@tanstack/router-plugin@1.168.18`, `@tanstack/react-query@5.101.0`, `react@19.2.7`, `react-dom@19.2.7`, `tailwindcss@4.3.1`, `@tailwindcss/vite@4.3.1`, `daisyui@5.5.23`, `zustand@5.0.14`, `vite@8.0.16`, `@vitejs/plugin-react@6.0.2`, `vitest@4.1.9`, `typescript@6.0.3`, `oxlint@1.71.0`, `oxfmt@0.56.0`, `vite-tsconfig-paths@6.1.1`, `@types/react@19.2.17`, `@types/react-dom@19.2.3`, `@types/node@26.0.0`, and `jsdom@29.1.1` if a DOM test environment is needed.
 - TanStack current docs recommend `npx @tanstack/cli@latest create` for local scaffolding and also document a build-from-scratch path; generator execution is approved for the chosen frontend stack, but use a pinned CLI version and inspect the generated app before copying it into the repo.
 - Because the app must live inside an existing `frontend/` pnpm workspace, generate any TanStack scaffold in `/tmp` first, then adapt the useful files into `frontend/web/` and replace or add the repo-selected tooling such as Oxlint/Oxfmt, daisyUI, and Zustand.
 - TanStack Start docs currently label Start as RC while npm publishes `@tanstack/react-start` under the stable `latest` dist-tag; because issue `#18` explicitly selects TanStack Start, use the npm `latest` package and record the RC-docs caveat in the PR notes.
 - The TanStack Start docs show the default Vite dev server port as `3000` and the Node/Docker runtime command as `node .output/server/index.mjs`; verify both again after the real build before wiring Docker and Compose.
-- Docker should align with the local Node LTS story, starting with `node:24.17.0-slim` or the closest available Node 24 slim tag if that exact image tag is not available.
+- Docker should use `ghcr.io/pnpm/pnpm:latest` and install Node LTS through `pnpm runtime set node lts -g`, allowing pnpm and Node to advance independently.
 
 ## Task 2: Create the Frontend pnpm Workspace
 
@@ -105,7 +105,7 @@ Task 1.
 #### 2.5 Notes:
 
 - If a generated scaffold tries to create a root workspace, move it under `frontend/` and regenerate the lockfile from that location.
-- `pnpm init --bare` in pnpm `11.8.0` generates a minimal `type = module` package with `devEngines.packageManager`; keep that pnpm-native shape rather than adding normal package-app defaults such as `main`, fake `test`, or `license`.
+- `pnpm init --bare` in pnpm `11.8.0` generated `devEngines.packageManager`, but it was removed during Task 6 because mise manages the host pnpm version and the Dockerfile installs pnpm independently. Keep the remaining bare workspace-root shape rather than adding package-app defaults such as `main`, fake `test`, or `license`.
 - Keep `frontend/mise.toml` focused on workspace-root tasks such as pnpm delegation; Docker-specific tasks stay in `frontend/docker/mise.toml`.
 
 ## Task 3: Scaffold `frontend/web`
@@ -217,8 +217,8 @@ Tasks 2 through 4.
 
 - Prefer a small, boring first test over a broad test harness that is not needed yet.
 - Task 5 completed on 2026-06-24 with `oxlint@1.71.0`, `oxfmt@0.56.0`, mise workspace orchestration, and a Node-environment Vitest test that verifies each router receives an isolated TanStack Query cache.
-- The committed Nitro nightly expects its Rollup configuration under `config.rollupConfig`; keeping that nesting allows the strict TypeScript check and production build to pass without changing the locked Nitro build.
-- Verified `pnpm --dir frontend install --frozen-lockfile` and the workspace-level mise tasks `lint`, `format-check`, `typecheck`, `test`, and `build`. Each task explicitly delegates to the current `web` app and can add another command when another frontend app is introduced. The build retains the previously observed non-fatal Nitro/Rolldown warnings.
+- Task 6 replaced the stale October 2025 Nitro nightly with exact `nitro@3.0.260610-beta`, matching the current Nitro v3 channel used by TanStack Start examples. The beta expects `rollupConfig` directly and fixes the packaged runtime's recursive self-fetch failure.
+- Verified `pnpm --dir frontend install --frozen-lockfile` and the workspace-level mise tasks `lint`, `format-check`, `typecheck`, `test`, and `build`. Each task explicitly delegates to the current `web` app and can add another command when another frontend app is introduced. The Task 6 Nitro refresh removed the previously observed Nitro/Rolldown build warnings.
 
 ## Task 6: Create the Frontend Dockerfile
 
@@ -235,11 +235,11 @@ Add the frontend-owned Dockerfile with a pnpm fetch stage for cacheable dependen
 
 Tasks 1 through 5.
 
-- [ ] **Step 1:** Add `web-node-base` with the selected Node image, Corepack enabled, `PNPM_HOME=/pnpm`, `PATH` updated, pnpm store configured at `/pnpm/store`, and `WORKDIR /workspace/frontend`.
-- [ ] **Step 2:** Add `web-pnpm-base` that copies `pnpm-lock.yaml`, `pnpm-workspace.yaml`, package manifests needed for workspace filtering, and runs `pnpm fetch`.
-- [ ] **Step 3:** Add `web-build` that copies the frontend workspace, runs `pnpm install --offline --frozen-lockfile`, and runs `pnpm --filter web build`.
-- [ ] **Step 4:** Add `web-runtime` that copies only the verified TanStack Start production artifact and runs the verified production command.
-- [ ] **Step 5:** Add `.dockerignore` to keep local dependency folders, build outputs, and irrelevant files out of Docker context.
+- [x] **Step 1:** Add `web-node-base` from the official pnpm image, install Node LTS through pnpm, configure the pnpm store at `/pnpm/store`, and set `WORKDIR /workspace/frontend`.
+- [x] **Step 2:** Add `web-pnpm-base` that copies `pnpm-lock.yaml`, `pnpm-workspace.yaml`, package manifests needed for workspace filtering, and runs `pnpm fetch`.
+- [x] **Step 3:** Add `web-build` that copies the frontend workspace, runs `pnpm install --offline --frozen-lockfile`, and runs `pnpm --filter web build`.
+- [x] **Step 4:** Add `web-runtime` that copies only the verified TanStack Start production artifact and runs the verified production command.
+- [x] **Step 5:** Add `.dockerignore` to keep local dependency folders, build outputs, and irrelevant files out of Docker context.
 
 #### 6.4 Verification:
 
@@ -252,6 +252,9 @@ Tasks 1 through 5.
 
 - If Docker filesystem boundaries cause pnpm hardlink or cross-device-link problems, set pnpm's package import method to `copy` inside Docker development.
 - Do not assume `.output/server/index.mjs`; verify it against the actual TanStack Start build result.
+- Task 6 completed on 2026-06-24 with `ghcr.io/pnpm/pnpm:latest` as the shared build/runtime base and Node LTS installed through `pnpm runtime set node lts -g`. The verification build resolved Node `24.18.0` and pnpm `11.9.0`.
+- Removing `devEngines.packageManager` also removed its separate pnpm self-runtime document from `pnpm-lock.yaml`. The normal workspace lock remains frozen-install compatible.
+- Exact `nitro@3.0.260610-beta` requires no pnpm minimum-release-age exception. The final runtime image starts with `node server/index.mjs`, listens on `0.0.0.0:3000`, and returned the expected `Nijigen Video` page during an HTTP smoke test.
 
 ## Task 7: Add Shared Compose Bases
 
@@ -300,7 +303,7 @@ Replace the temporary `nginx` service with the real local `web` service and pres
 Tasks 6 and 7.
 
 - [ ] **Step 1:** Replace the dummy `web` service with one extending `web-pnpm-base`.
-- [ ] **Step 2:** Add `profiles: [web]` to the `web` service.
+- [ ] **Step 2:** Add `profiles: [frontend]` to the `web` service.
 - [ ] **Step 3:** Publish `${FRONTEND_HTTP_PORT}` to the verified default TanStack Start dev server port.
 - [ ] **Step 4:** Keep `api`, `postgres`, `redis`, and `flyway` explicitly declared.
 - [ ] **Step 5:** Declare top-level frontend dependency volumes: `frontend-node-modules`, `web-node-modules`, and `frontend-pnpm-store`.
@@ -312,7 +315,7 @@ Tasks 6 and 7.
 - Run: `cp frontend/docker/.env.example frontend/docker/.env` if `.env` is absent.
 - Run: `mise //frontend/docker:config-check`
 - Run: `mise //frontend/docker:config`
-- Expect: resolved config includes the real `web` service only when the `web` profile is enabled by the task, all concrete services are visible, and all referenced volumes exist.
+- Expect: resolved config includes the real `web` service only when the `frontend` profile is enabled by the task, all concrete services are visible, and all referenced volumes exist.
 
 #### 8.5 Notes:
 
@@ -332,10 +335,10 @@ Make `mise` the blessed interface for Docker-first frontend development and host
 
 Task 8.
 
-- [ ] **Step 1:** Update `up` to export `HOST_UID`, `HOST_GID`, and backend cache variables, then run Compose with `--profile web up -d --build` or the final chosen equivalent.
-- [ ] **Step 2:** Add `up-backend` to start API and backend dependencies without the `web` profile for host-run frontend development.
+- [ ] **Step 1:** Update `up` to export `HOST_UID`, `HOST_GID`, and backend cache variables, then run Compose with `--profile frontend up -d --build` or the final chosen equivalent.
+- [ ] **Step 2:** Add `up-backend` to start API and backend dependencies without the `frontend` profile for host-run frontend development.
 - [ ] **Step 3:** Update `down` to stop the full frontend local stack and remove orphans.
-- [ ] **Step 4:** Update `config` and `config-check` to render and validate the full local stack with the `web` profile.
+- [ ] **Step 4:** Update `config` and `config-check` to render and validate the full local stack with the `frontend` profile.
 - [ ] **Step 5:** Add `clean-dependency-volumes` that removes only frontend dependency volumes and preserves `postgres-data` and `redis-data`.
 - [ ] **Step 6:** Update `run` so one-off frontend stack commands receive the same required environment exports as `up`.
 - [ ] **Step 7:** Add a short stale-volume hint to `up` output so developers know when to run `clean-dependency-volumes` after lockfile changes.

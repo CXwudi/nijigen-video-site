@@ -22,7 +22,7 @@
     "@tanstack/react-router-ssr-query": "1.167.1",
     "@tanstack/react-start": "1.168.26",
     "daisyui": "5.5.23",
-    "nitro": "npm:nitro-nightly@latest",
+    "nitro": "3.0.260610-beta",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "tailwindcss": "4.3.1",
