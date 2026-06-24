@@ -24,6 +24,10 @@ export function getRouter() {
     defaultPreloadStaleTime: 0,
   })
 
+  // Connect TanStack Query to the router's SSR lifecycle. The integration
+  // dehydrates server-side query results, streams pending queries to the
+  // browser, hydrates the same cache on the client, and wraps the router with
+  // QueryClientProvider so the root route must not add another provider.
   setupRouterSsrQueryIntegration({ router, queryClient })
 
   return router

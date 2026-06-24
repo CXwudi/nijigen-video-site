@@ -12,6 +12,7 @@
     "format:check": "oxfmt --check .",
     "lint": "oxlint --deny-warnings .",
     "preview": "vite preview",
+    "start": "node .output/server/index.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

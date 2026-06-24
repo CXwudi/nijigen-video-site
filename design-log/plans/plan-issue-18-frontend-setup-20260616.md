@@ -18,7 +18,7 @@
 
 - `frontend/package.json`, `frontend/pnpm-workspace.yaml`, `frontend/pnpm-lock.yaml`, `frontend/mise.toml`: new frontend-owned pnpm workspace root and mise task delegation.
 - `frontend/web/`: new first frontend application using TanStack Start, React, Tailwind CSS, daisyUI, TanStack Query, Zustand, Vite, Vitest, Oxlint, Oxfmt, TypeScript, and React.
-- `frontend/docker/Dockerfile`: new frontend-owned Dockerfile with `web-node-base`, `web-pnpm-base`, `web-build`, and `web-runtime` stages.
+- `frontend/docker/Dockerfile`: new frontend-owned Dockerfile with `frontend-pnpm-base`, `web-pnpm-base`, `web-build`, and `web-runtime` stages.
 - `frontend/docker/compose.local.yml`: replace the temporary `nginx` web service with the real `web` service, keep explicit backend dependency services, and declare frontend dependency volumes.
 - `frontend/docker/mise.toml`: update frontend Docker tasks for `up`, `up-backend`, `down`, `config`, `config-check`, `clean-dependency-volumes`, and `run`.
 - `frontend/docker/.env.example`: remove dummy web image settings and add frontend web Docker settings needed by the local stack.
@@ -235,10 +235,10 @@ Add the frontend-owned Dockerfile with a pnpm fetch stage for cacheable dependen
 
 Tasks 1 through 5.
 
-- [x] **Step 1:** Add `web-node-base` from the official pnpm image, install Node LTS through pnpm, configure the pnpm store at `/pnpm/store`, and set `WORKDIR /workspace/frontend`.
+- [x] **Step 1:** Add the generic `frontend-pnpm-base` Docker stage from the official pnpm image, install Node LTS through pnpm, configure the pnpm store at `/pnpm/store`, and set `WORKDIR /workspace/frontend`.
 - [x] **Step 2:** Add `web-pnpm-base` that copies `pnpm-lock.yaml`, `pnpm-workspace.yaml`, package manifests needed for workspace filtering, and runs `pnpm fetch`.
 - [x] **Step 3:** Add `web-build` that copies the frontend workspace, runs `pnpm install --offline --frozen-lockfile`, and runs `pnpm --filter web build`.
-- [x] **Step 4:** Add `web-runtime` that copies only the verified TanStack Start production artifact and runs the verified production command.
+- [x] **Step 4:** Add `web-runtime` from `node:lts-slim` so the production image contains Node and the verified TanStack Start artifact without pnpm.
 - [x] **Step 5:** Add `.dockerignore` to keep local dependency folders, build outputs, and irrelevant files out of Docker context.
 
 #### 6.4 Verification:
@@ -252,7 +252,7 @@ Tasks 1 through 5.
 
 - If Docker filesystem boundaries cause pnpm hardlink or cross-device-link problems, set pnpm's package import method to `copy` inside Docker development.
 - Do not assume `.output/server/index.mjs`; verify it against the actual TanStack Start build result.
-- Task 6 completed on 2026-06-24 with `ghcr.io/pnpm/pnpm:latest` as the shared build/runtime base and Node LTS installed through `pnpm runtime set node lts -g`. The verification build resolved Node `24.18.0` and pnpm `11.9.0`.
+- Task 6 completed on 2026-06-24 with `ghcr.io/pnpm/pnpm:latest` as the generic frontend build-tool base and Node LTS installed through `pnpm runtime set node lts -g`. The web runtime uses the Node-only `node:lts-slim` image. Verification resolved Node `24.18.0` and pnpm `11.9.0` in the build stages.
 - Removing `devEngines.packageManager` also removed its separate pnpm self-runtime document from `pnpm-lock.yaml`. The normal workspace lock remains frozen-install compatible.
 - Exact `nitro@3.0.260610-beta` requires no pnpm minimum-release-age exception. The final runtime image starts with `node server/index.mjs`, listens on `0.0.0.0:3000`, and returned the expected `Nijigen Video` page during an HTTP smoke test.
 
