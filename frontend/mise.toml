@@ -6,3 +6,51 @@ run = '''
 set -euo pipefail
 pnpm "$@"
 '''
+
+[tasks.build]
+description = "Build all frontend apps."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm --filter web build
+'''
+
+[tasks.format]
+description = "Format all frontend apps."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm --filter web format
+'''
+
+[tasks.format-check]
+description = "Check formatting in all frontend apps."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm --filter web format:check
+'''
+
+[tasks.lint]
+description = "Lint all frontend apps."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm --filter web lint
+'''
+
+[tasks.test]
+description = "Test all frontend apps."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm --filter web test
+'''
+
+[tasks.typecheck]
+description = "Type-check all frontend apps."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm --filter web typecheck
+'''

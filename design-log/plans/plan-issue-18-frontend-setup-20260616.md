@@ -187,6 +187,7 @@ Add the agreed frontend checks so the project can verify formatting, linting, ty
 #### 5.2 Files:
 
 - Modify: `frontend/package.json`
+- Modify: `frontend/mise.toml`
 - Modify: `frontend/web/package.json`
 - Create or modify: `frontend/web/tsconfig.json`
 - Create or modify: `frontend/web/vitest.config.*`
@@ -197,24 +198,27 @@ Add the agreed frontend checks so the project can verify formatting, linting, ty
 
 Tasks 2 through 4.
 
-- [ ] **Step 1:** Add scripts for `format`, `format:check`, `lint`, `typecheck`, `test`, and `build` at the workspace level or app level with clear delegation.
-- [ ] **Step 2:** Configure Oxlint and Oxfmt with minimal project-specific settings.
-- [ ] **Step 3:** Configure TypeScript strictness according to the generated stack and avoid weakening scaffold defaults.
-- [ ] **Step 4:** Add a small Vitest test that verifies app utilities, store behavior, or a simple component without creating brittle UI snapshots.
-- [ ] **Step 5:** Ensure all checks run from `frontend/` and can be called through `pnpm --dir frontend`.
+- [x] **Step 1:** Add app-level scripts for `format`, `format:check`, `lint`, `typecheck`, `test`, and `build`, then delegate their workspace-wide variants through `frontend/mise.toml`.
+- [x] **Step 2:** Configure Oxlint and Oxfmt with minimal project-specific settings.
+- [x] **Step 3:** Configure TypeScript strictness according to the generated stack and avoid weakening scaffold defaults.
+- [x] **Step 4:** Add a small Vitest test that verifies app utilities, store behavior, or a simple component without creating brittle UI snapshots.
+- [x] **Step 5:** Ensure all checks can run across frontend apps through workspace-level mise tasks with explicit per-app commands.
 
 #### 5.4 Verification:
 
-- Run: `pnpm --dir frontend lint`
-- Run: `pnpm --dir frontend format:check`
-- Run: `pnpm --dir frontend typecheck`
-- Run: `pnpm --dir frontend test`
-- Run: `pnpm --dir frontend build`
+- Run: `mise //frontend:lint`
+- Run: `mise //frontend:format-check`
+- Run: `mise //frontend:typecheck`
+- Run: `mise //frontend:test`
+- Run: `mise //frontend:build`
 - Expect: all frontend checks pass locally.
 
 #### 5.5 Notes:
 
 - Prefer a small, boring first test over a broad test harness that is not needed yet.
+- Task 5 completed on 2026-06-24 with `oxlint@1.71.0`, `oxfmt@0.56.0`, mise workspace orchestration, and a Node-environment Vitest test that verifies each router receives an isolated TanStack Query cache.
+- The committed Nitro nightly expects its Rollup configuration under `config.rollupConfig`; keeping that nesting allows the strict TypeScript check and production build to pass without changing the locked Nitro build.
+- Verified `pnpm --dir frontend install --frozen-lockfile` and the workspace-level mise tasks `lint`, `format-check`, `typecheck`, `test`, and `build`. Each task explicitly delegates to the current `web` app and can add another command when another frontend app is introduced. The build retains the previously observed non-fatal Nitro/Rolldown warnings.
 
 ## Task 6: Create the Frontend Dockerfile
 

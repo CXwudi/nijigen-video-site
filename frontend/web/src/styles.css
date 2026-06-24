@@ -24,19 +24,21 @@
  *   // automatically when the OS prefers dark.
  */
 
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui" {
-  themes: snowmiku2019-light --default, snowmiku2019-dark --prefersdark;
+  themes:
+    snowmiku2019-light --default,
+    snowmiku2019-dark --prefersdark;
 }
 
 @plugin "daisyui/theme" {
-  name: "snowmiku2019-light";
+  name: 'snowmiku2019-light';
   default: true;
   prefersdark: false;
   color-scheme: light;
   --color-base-100: oklch(99.7% 0.002 235);
-  --color-base-200: oklch(98% 0.010 235);
-  --color-base-300: oklch(93.5% 0.020 240);
+  --color-base-200: oklch(98% 0.01 235);
+  --color-base-300: oklch(93.5% 0.02 240);
   --color-base-content: oklch(30% 0.055 258);
   --color-primary: oklch(55% 0.15 250);
   --color-primary-content: oklch(99% 0.005 240);
@@ -65,7 +67,7 @@
 }
 
 @plugin "daisyui/theme" {
-  name: "snowmiku2019-dark";
+  name: 'snowmiku2019-dark';
   default: false;
   prefersdark: true;
   color-scheme: dark;
