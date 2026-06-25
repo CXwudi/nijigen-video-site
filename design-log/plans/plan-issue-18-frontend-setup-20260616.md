@@ -271,6 +271,7 @@ Add reusable web Compose service bases without moving concrete local resources o
 
 ### 7.2 Files
 
+- Modify: `frontend/docker/Dockerfile`
 - Modify: `infra/compose/common-services.yml`
 - Modify: `infra/compose/common-dev-services.yml`
 
@@ -278,11 +279,11 @@ Add reusable web Compose service bases without moving concrete local resources o
 
 Task 6.
 
-- [ ] **Step 1:** Add `web-compose-base` to `common-services.yml` with common API dependency wiring and stable common environment variables if any exist.
-- [ ] **Step 2:** Ensure `web-compose-base` depends on `api` in the same spirit as `api-compose-base` depends on its infrastructure services.
-- [ ] **Step 3:** Add `web-pnpm-base` to `common-dev-services.yml` extending `web-compose-base`.
-- [ ] **Step 4:** Configure `web-pnpm-base` to build `../../frontend` with Dockerfile `docker/Dockerfile` and target `web-pnpm-base`.
-- [ ] **Step 5:** Configure local pnpm behavior in `web-pnpm-base`: workspace working directory, host UID/GID user, source bind mount, dependency volume mounts, pnpm store path, default install-and-dev command, and `restart: "no"`.
+- [x] **Step 1:** Add `web-compose-base` to `common-services.yml` with common API dependency wiring and stable common environment variables if any exist.
+- [x] **Step 2:** Ensure `web-compose-base` depends on `api` in the same spirit as `api-compose-base` depends on its infrastructure services.
+- [x] **Step 3:** Add `web-pnpm-base` to `common-dev-services.yml` extending `web-compose-base`.
+- [x] **Step 4:** Configure `web-pnpm-base` to build `../../frontend` with Dockerfile `docker/Dockerfile` and target `web-pnpm-base`.
+- [x] **Step 5:** Configure local pnpm behavior in `web-pnpm-base`: workspace working directory, host UID/GID user, source bind mount, dependency volume mounts, pnpm store path, pnpm entrypoint, default web development command, and `restart: "no"`.
 
 ### 7.4 Verification
 
@@ -293,6 +294,10 @@ Task 6.
 
 - Keep `web-compose-base` small. Local-only pnpm mounts, users, commands, and cache behavior belong in `web-pnpm-base`.
 - Do not name the dev base `frontend-pnpm-base` yet; the approved spec keeps it web-specific until there is another consumer.
+- Task 7 completed on 2026-06-25. `web-compose-base` only owns the API startup dependency, while `web-pnpm-base` owns the frontend build target, host UID/GID mapping, source and dependency mounts, pnpm store configuration, `pnpm` entrypoint, and default web development command.
+- The Docker development target keeps the fetched pnpm store but removes pnpm 11's root-owned fetched `node_modules` tree before initializing the named-volume mount points. A host-UID smoke test reused all 175 cached packages with zero downloads, and the production `web-build` target still completed successfully.
+- Like the backend Gradle base, the pnpm entrypoint is intentionally separate from the default command so `mise //frontend/docker:run --rm web <pnpm-args>` can run arbitrary pnpm commands. The Task 9 `up` workflow owns the prerequisite frozen install before starting the default development command.
+- The Compose run contract was verified with pnpm version, frozen install, and `--filter web lint` commands.
 
 ## Task 8: Replace Frontend Local Compose Placeholder
 
@@ -342,7 +347,7 @@ Make `mise` the blessed interface for Docker-first frontend development and host
 
 Task 8.
 
-- [ ] **Step 1:** Update `up` to export `HOST_UID`, `HOST_GID`, and backend cache variables, then run Compose with `--profile frontend up -d --build` or the final chosen equivalent.
+- [ ] **Step 1:** Update `up` to export `HOST_UID`, `HOST_GID`, and backend cache variables, run `web` once with `--no-deps --build` for a frozen prefer-offline install, then start the `frontend` profile without rebuilding the same image again.
 - [ ] **Step 2:** Add `up-backend` to start API and backend dependencies without the `frontend` profile for host-run frontend development.
 - [ ] **Step 3:** Update `down` to stop the full frontend local stack and remove orphans.
 - [ ] **Step 4:** Update `config` and `config-check` to render and validate the full local stack with the `frontend` profile.
@@ -425,11 +430,11 @@ Tasks 5 through 10.
 
 - Run locally where possible: `act` or `gh workflow run frontend-check.yml` if the project normally uses those tools.
 - Run: `mise //frontend/docker:config-check`
-- Run: `mise //frontend/docker:run --rm web pnpm lint`
-- Run: `mise //frontend/docker:run --rm web pnpm format:check`
-- Run: `mise //frontend/docker:run --rm web pnpm typecheck`
-- Run: `mise //frontend/docker:run --rm web pnpm test`
-- Run: `mise //frontend/docker:run --rm web pnpm build`
+- Run: `mise //frontend/docker:run --rm web --filter web lint`
+- Run: `mise //frontend/docker:run --rm web --filter web format:check`
+- Run: `mise //frontend/docker:run --rm web --filter web typecheck`
+- Run: `mise //frontend/docker:run --rm web --filter web test`
+- Run: `mise //frontend/docker:run --rm web --filter web build`
 - Expect: CI commands mirror local Compose behavior and do not rely on Compose named volume caching.
 
 ### 11.5 Notes

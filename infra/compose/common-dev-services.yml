@@ -24,3 +24,30 @@ services:
     volumes:
       - ../../backend:/workspace/backend
       - ${HOST_GRADLE_USER_HOME:-${HOME}/.gradle}:/gradle-home
+
+  web-pnpm-base:
+    extends:
+      file: common-services.yml
+      service: web-compose-base
+    build:
+      context: ../../frontend
+      dockerfile: docker/Dockerfile
+      target: web-pnpm-base
+    working_dir: /workspace/frontend
+    user: "${HOST_UID:?HOST_UID must be provided}:${HOST_GID:?HOST_GID must be provided}"
+    environment:
+      PNPM_CONFIG_STORE_DIR: /pnpm/store
+    entrypoint:
+      - pnpm
+    command:
+      - --filter
+      - web
+      - dev
+      - --host
+      - 0.0.0.0
+    restart: "no"
+    volumes:
+      - ../../frontend:/workspace/frontend
+      - frontend-node-modules:/workspace/frontend/node_modules
+      - web-node-modules:/workspace/frontend/web/node_modules
+      - frontend-pnpm-store:/pnpm/store
