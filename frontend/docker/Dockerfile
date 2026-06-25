@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM ghcr.io/pnpm/pnpm:latest AS frontend-pnpm-base
-RUN pnpm runtime set node lts -g
+RUN pnpm runtime set node 24 -g
 RUN pnpm config set store-dir /pnpm/store
 WORKDIR /workspace/frontend
 
@@ -15,7 +15,8 @@ COPY . ./
 RUN pnpm install --offline --frozen-lockfile
 RUN pnpm --filter web build
 
-FROM node:lts-slim AS web-runtime
+# BellSoft's hardened Node.js image on GHCR requires authentication.
+FROM bellsoft/hardened-nodejs:24-glibc AS web-runtime
 ENV HOST="0.0.0.0"
 ENV PORT="3000"
 WORKDIR /app
