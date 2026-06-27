@@ -395,11 +395,11 @@ Add the web service to the production-like Compose stack using the frontend Dock
 
 Tasks 6 and 7.
 
-- [ ] **Step 1:** Add `web` to `compose.prod.yml` extending `web-compose-base`.
-- [ ] **Step 2:** Configure `web` build context `../../frontend`, Dockerfile `docker/Dockerfile`, and target `${WEB_PROD_RUNTIME_TARGET:-web-runtime}`.
-- [ ] **Step 3:** Publish the verified web runtime port if the production-like stack should expose it.
-- [ ] **Step 4:** Add `WEB_PROD_RUNTIME_TARGET` and any production-like web port variables to `prod.env.example`.
-- [ ] **Step 5:** Keep API production Dockerfile ownership unchanged under `backend/docker/Dockerfile`.
+- [x] **Step 1:** Add `web` to `compose.prod.yml` extending `web-compose-base`.
+- [x] **Step 2:** Configure `web` build context `../../frontend`, Dockerfile `docker/Dockerfile`, and target `${WEB_PROD_RUNTIME_TARGET:-web-runtime}`.
+- [x] **Step 3:** Keep the production-like stack aligned with backend production Compose by not publishing local-only web host ports.
+- [x] **Step 4:** Add `WEB_PROD_RUNTIME_TARGET` to `prod.env.example`.
+- [x] **Step 5:** Keep API production Dockerfile ownership unchanged under `backend/docker/Dockerfile`.
 
 ### 10.4 Verification
 
@@ -411,6 +411,12 @@ Tasks 6 and 7.
 ### 10.5 Notes
 
 - If the production runtime command differs from local dev, encode that in the Dockerfile runtime stage rather than in local pnpm Compose behavior.
+- Task 10 completed on 2026-06-27. The production-like `web` service extends
+  `web-compose-base`, builds the frontend-owned `web-runtime` target, and
+  restarts unless stopped like the backend production runtime service.
+- The production-like stack intentionally avoids local-only host port
+  publishing, matching the original production Compose design and current API
+  service shape.
 
 ## Task 11: Add Frontend CI
 
