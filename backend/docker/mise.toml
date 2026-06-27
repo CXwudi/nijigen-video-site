@@ -14,7 +14,7 @@ description = "Start backend dependencies and the local Gradle-backed API servic
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
 export HOST_UID="${HOST_UID:-$(id -u)}"
 export HOST_GID="${HOST_GID:-$(id -g)}"
 mkdir -p "$HOST_GRADLE_USER_HOME"
@@ -51,7 +51,7 @@ raw_args = true
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
 export HOST_UID="${HOST_UID:-$(id -u)}"
 export HOST_GID="${HOST_GID:-$(id -g)}"
 mkdir -p "$HOST_GRADLE_USER_HOME"

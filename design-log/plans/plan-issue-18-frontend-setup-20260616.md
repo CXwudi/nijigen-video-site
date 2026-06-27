@@ -314,13 +314,13 @@ Replace the temporary `nginx` service with the real local `web` service and pres
 
 Tasks 6 and 7.
 
-- [ ] **Step 1:** Replace the dummy `web` service with one extending `web-pnpm-base`.
-- [ ] **Step 2:** Add `profiles: [frontend]` to the `web` service.
-- [ ] **Step 3:** Publish `${FRONTEND_HTTP_PORT}` to the verified default TanStack Start dev server port.
-- [ ] **Step 4:** Keep `api`, `postgres`, `redis`, and `flyway` explicitly declared.
-- [ ] **Step 5:** Declare top-level frontend dependency volumes: `frontend-node-modules`, `web-node-modules`, and `frontend-pnpm-store`.
-- [ ] **Step 6:** Keep `postgres-data` and `redis-data` declarations unchanged.
-- [ ] **Step 7:** Remove `WEB_DUMMY_IMAGE` from `frontend/docker/.env.example` and add any real frontend settings, such as `FRONTEND_HTTP_PORT`, while preserving required backend env values.
+- [x] **Step 1:** Replace the dummy `web` service with one extending `web-pnpm-base`.
+- [x] **Step 2:** Add `profiles: [frontend]` to the `web` service.
+- [x] **Step 3:** Publish `${FRONTEND_HTTP_PORT}` to the verified default TanStack Start dev server port.
+- [x] **Step 4:** Keep `api`, `postgres`, `redis`, and `flyway` explicitly declared.
+- [x] **Step 5:** Declare top-level frontend dependency volumes: `frontend-node-modules`, `web-node-modules`, and `frontend-pnpm-store`.
+- [x] **Step 6:** Keep `postgres-data` and `redis-data` declarations unchanged.
+- [x] **Step 7:** Remove `WEB_DUMMY_IMAGE` from `frontend/docker/.env.example` and add any real frontend settings, such as `FRONTEND_HTTP_PORT`, while preserving required backend env values.
 
 ### 8.4 Verification
 
@@ -332,6 +332,9 @@ Tasks 6 and 7.
 ### 8.5 Notes
 
 - Compose `extends` does not import top-level resources, so volume declarations must remain in the concrete `frontend/docker/compose.local.yml`.
+- Task 8 completed on 2026-06-26. The concrete frontend stack now
+  declares a profiled `web-init` service because Compose
+  `extends` also does not import sibling services from the base file.
 
 ## Task 9: Update Frontend Docker mise Tasks
 
@@ -347,13 +350,13 @@ Make `mise` the blessed interface for Docker-first frontend development and host
 
 Task 8.
 
-- [ ] **Step 1:** Update `up` to export `HOST_UID`, `HOST_GID`, and backend cache variables, run `web` once with `--no-deps --build` for a frozen prefer-offline install, then start the `frontend` profile without rebuilding the same image again.
-- [ ] **Step 2:** Add `up-backend` to start API and backend dependencies without the `frontend` profile for host-run frontend development.
-- [ ] **Step 3:** Update `down` to stop the full frontend local stack and remove orphans.
-- [ ] **Step 4:** Update `config` and `config-check` to render and validate the full local stack with the `frontend` profile.
-- [ ] **Step 5:** Add `clean-dependency-volumes` that removes only frontend dependency volumes and preserves `postgres-data` and `redis-data`.
-- [ ] **Step 6:** Update `run` so one-off frontend stack commands receive the same required environment exports as `up`.
-- [ ] **Step 7:** Add a short stale-volume hint to `up` output so developers know when to run `clean-dependency-volumes` after lockfile changes.
+- [x] **Step 1:** Update `up` to export `HOST_UID`, `HOST_GID`, and backend cache variables, then start the `frontend` profile with build enabled.
+- [x] **Step 2:** Add `up-backend` to start API and backend dependencies without the `frontend` profile for host-run frontend development.
+- [x] **Step 3:** Update `down` to stop the full frontend local stack and remove orphans.
+- [x] **Step 4:** Update `config` and `config-check` to render and validate the full local stack with the `frontend` profile.
+- [x] **Step 5:** Add `clean-dependency-volumes` that removes only frontend dependency volumes and preserves `postgres-data` and `redis-data`.
+- [x] **Step 6:** Update `run` so one-off frontend stack commands receive the same required environment exports as `up`.
+- [x] **Step 7:** Add a short stale-volume hint to `up` output so developers know when to run `clean-dependency-volumes` after lockfile changes.
 
 ### 9.4 Verification
 
@@ -368,6 +371,14 @@ Task 8.
 ### 9.5 Notes
 
 - The frontend task semantics intentionally differ from backend: frontend `up` means full Docker-first web stack, while frontend `up-backend` means host-run frontend fallback.
+- Task 9 completed on 2026-06-26. The `up` task now starts the full
+  `frontend` profile with build enabled. Compose owns the
+  init-container flow through `web` depending on `web-init` with
+  `condition: service_completed_successfully`, and pnpm materializes
+  dependencies from the fetched store when project scripts run.
+- `WEB_PNPM_IMAGE` keeps the `web` and init services on the same local
+  image, avoiding duplicate service-name-generated images for the same
+  Docker target.
 
 ## Task 10: Add Production-Like Web Compose
 
