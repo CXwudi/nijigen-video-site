@@ -1,0 +1,105 @@
+name: 'Frontend Check'
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/frontend-check.yml'
+      - 'frontend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+      - 'mise.toml'
+  push:
+    paths:
+      - '.github/workflows/frontend-check.yml'
+      - 'frontend/**'
+      - 'infra/compose/**'
+      - 'infra/flyway/**'
+      - 'mise.toml'
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  check-frontend:
+    name: 'Check Frontend'
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 75
+    permissions:
+      contents: 'read'
+    env:
+      DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
+      DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}'
+    steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v6'
+
+      - name: 'Install mise'
+        uses: 'jdx/mise-action@v4'
+        with:
+          experimental: true
+          install: true
+          cache: true
+
+      - name: 'Set up Docker Buildx'
+        uses: 'docker/setup-buildx-action@v3'
+
+      - name: 'Validate Docker Hub credentials'
+        run: |
+          if [[ -z "${DOCKERHUB_USERNAME}" || -z "${DOCKERHUB_TOKEN}" ]]; then
+            echo "::error::DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets must be configured."
+            exit 1
+          fi
+
+      - name: 'Login to Docker Hub'
+        uses: 'docker/login-action@v3'
+        with:
+          username: '${{ env.DOCKERHUB_USERNAME }}'
+          password: '${{ env.DOCKERHUB_TOKEN }}'
+
+      - name: 'Prepare Compose env file'
+        run: 'cp frontend/docker/.env.example frontend/docker/.env'
+
+      - name: 'Render frontend Compose stack'
+        run: 'mise //frontend/docker:config-check'
+
+      - name: 'Build frontend pnpm image'
+        uses: 'docker/build-push-action@v6'
+        with:
+          context: 'frontend'
+          file: 'frontend/docker/Dockerfile'
+          target: 'web-pnpm-base'
+          tags: 'nijigen-video-site-web-pnpm:local'
+          load: true
+          cache-from: 'type=gha,scope=frontend-web'
+          cache-to: 'type=gha,scope=frontend-web,mode=max'
+
+      - name: 'Initialize frontend dependency volumes'
+        run: 'mise //frontend/docker:run --rm --no-deps web-init'
+
+      - name: 'Run web format check'
+        run: 'mise //frontend/docker:run --rm --no-deps web --filter web format:check'
+
+      - name: 'Run web lint'
+        run: 'mise //frontend/docker:run --rm --no-deps web --filter web lint'
+
+      - name: 'Run web typecheck'
+        run: 'mise //frontend/docker:run --rm --no-deps web --filter web typecheck'
+
+      # Tests may require backend stack services to be available.
+      - name: 'Run web test'
+        run: 'mise //frontend/docker:run --rm web --filter web test'
+
+      - name: 'Run web build'
+        run: 'mise //frontend/docker:run --rm --no-deps web --filter web build'
+
+      - name: 'Clean frontend Compose stack'
+        if: 'always()'
+        run: 'mise //frontend/docker:down'

@@ -427,30 +427,40 @@ Add CI checks for the frontend using Docker/Compose as the environment boundary 
 
 Tasks 5 through 10.
 
-- [ ] **Step 1:** Add workflow triggers for frontend files, frontend Docker files, shared Compose files, root `mise.toml`, and the workflow itself.
-- [ ] **Step 2:** Install `mise` in CI consistently with the backend workflow.
-- [ ] **Step 3:** Prepare `frontend/docker/.env` from the example.
-- [ ] **Step 4:** Configure Docker Buildx and GitHub Actions cache for frontend Docker builds.
-- [ ] **Step 5:** Run `mise //frontend/docker:config-check`.
-- [ ] **Step 6:** Run frontend install, lint, format check, typecheck, tests, and production build through Docker or Compose-managed services.
-- [ ] **Step 7:** Build the frontend Docker stages with layer caching, including at least the production `web-runtime` target.
-- [ ] **Step 8:** Clean the frontend Compose stack in an `always()` step.
-- [ ] **Step 9:** Upload frontend test or build reports only if the tooling produces useful report directories.
+- [x] **Step 1:** Add workflow triggers for frontend files, frontend Docker files, shared Compose files, root `mise.toml`, and the workflow itself.
+- [x] **Step 2:** Install `mise` in CI consistently with the backend workflow.
+- [x] **Step 3:** Prepare `frontend/docker/.env` from the example.
+- [x] **Step 4:** Configure Docker Buildx and GitHub Actions cache for frontend Docker builds.
+- [x] **Step 5:** Run `mise //frontend/docker:config-check`.
+- [x] **Step 6:** Initialize frontend dependency volumes, then run format check, lint, typecheck, tests, and production build through the Compose-managed web service.
+- [x] **Step 7:** Build the frontend pnpm Docker stage with layer caching so Compose can reuse it for checks.
+- [x] **Step 8:** Clean the frontend Compose stack in an `always()` step.
+- [x] **Step 9:** Upload frontend test or build reports only if the tooling produces useful report directories.
 
 ### 11.4 Verification
 
 - Run locally where possible: `act` or `gh workflow run frontend-check.yml` if the project normally uses those tools.
 - Run: `mise //frontend/docker:config-check`
-- Run: `mise //frontend/docker:run --rm web --filter web lint`
-- Run: `mise //frontend/docker:run --rm web --filter web format:check`
-- Run: `mise //frontend/docker:run --rm web --filter web typecheck`
+- Run: `docker buildx build -f frontend/docker/Dockerfile --target web-pnpm-base -t nijigen-video-site-web-pnpm:local --load frontend`
+- Run: `mise //frontend/docker:run --rm --no-deps web-init`
+- Run: `mise //frontend/docker:run --rm --no-deps web --filter web format:check`
+- Run: `mise //frontend/docker:run --rm --no-deps web --filter web lint`
+- Run: `mise //frontend/docker:run --rm --no-deps web --filter web typecheck`
 - Run: `mise //frontend/docker:run --rm web --filter web test`
-- Run: `mise //frontend/docker:run --rm web --filter web build`
+- Run: `mise //frontend/docker:run --rm --no-deps web --filter web build`
 - Expect: CI commands mirror local Compose behavior and do not rely on Compose named volume caching.
 
 ### 11.5 Notes
 
 - Accept fresh package downloads on cache miss. The important cache target is Docker build layers, not Compose named volumes.
+- The workflow initializes frontend dependency volumes with `web-init`, then
+  runs format check, lint, typecheck, and build with `--no-deps`; test starts
+  normal Compose dependencies so backend-backed tests can be added later.
+- The workflow intentionally does not build `web-runtime`, matching the backend
+  check workflow's current scope. Runtime image verification remains part of
+  production-like Compose or final integrated verification.
+- Current Vitest and build commands do not emit useful report directories, so
+  no artifact upload step is needed yet.
 
 ## Task 12: Update Documentation
 
