@@ -1,3 +1,4 @@
+import { Button } from '@base-ui/react/button'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
@@ -19,7 +20,7 @@ function Home() {
             <p className="text-sm font-medium text-primary">Nijigen Video</p>
             <h1 className="mt-1 text-2xl font-semibold">Workspace</h1>
           </div>
-          <button className="btn btn-primary">New upload</button>
+          <Button className="btn btn-primary">New upload</Button>
         </header>
 
         <div className="stats stats-vertical border border-base-300 bg-base-100 shadow-sm md:stats-horizontal">
