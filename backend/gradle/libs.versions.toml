@@ -4,8 +4,8 @@
 java = "25" # If this is changed, make sure to also update the Dockerfile and related compose files.
 kotlin = "2.4.0"
 spring-boot = "4.1.0"
-graalvm-native = "1.1.2"
-develocity = "4.4.3"
+graalvm-native = "1.1.3"
+develocity = "4.5.0"
 foojay-resolver = "1.0.0"
 
 [libraries]
@@ -13,7 +13,7 @@ foojay-resolver = "1.0.0"
 # libraries it manages. Do not add separate catalog entries for BOM-managed
 # libraries unless they intentionally need to live outside that BOM.
 bom-springBoot = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
-bom-junit = "org.junit:junit-bom:6.1.0"
+bom-junit = "org.junit:junit-bom:6.1.1"
 dep-mockk = "io.mockk:mockk:1.14.11"
 dep-springdocOpenapiStarterWebmvcUi = "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3"
 
