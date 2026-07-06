@@ -5,6 +5,7 @@ name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site-frontend}
 services:
 
   # This is only used to set correct permission for node_modules and pnpm store for web service
+  # Because those node-modules and pnpm store files are saved during image creation (Dockerfile), so need to use the same image as what `web` is using
   web-init:
     extends:
       file: ../../infra/compose/common-dev-services.yml
@@ -60,6 +61,9 @@ services:
       - frontend-node-modules:/workspace/frontend/node_modules
       - web-node-modules:/workspace/frontend/web/node_modules
       - frontend-pnpm-store:/pnpm/store
+
+### Backend Part ###
+# Just a simple replicate from the backend side compose.yml file
 
   api:
     extends:
