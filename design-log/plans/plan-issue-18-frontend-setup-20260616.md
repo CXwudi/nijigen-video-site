@@ -517,13 +517,13 @@ Verify the feature as a whole before handoff.
 
 Tasks 1 through 12.
 
-- [ ] **Step 1:** Start from a clean or understood git status and confirm no unintended files are included.
-- [ ] **Step 2:** Run all frontend host checks.
-- [ ] **Step 3:** Confirm root mise tooling, the frontend build base, and the final web runtime all report Node.js major version 24.
-- [ ] **Step 4:** Run frontend local Compose config and startup checks.
-- [ ] **Step 5:** Run production-like Compose config and web build checks.
-- [ ] **Step 6:** Run or simulate frontend CI checks as far as the local environment allows.
-- [ ] **Step 7:** Review docs for command accuracy.
+- [x] **Step 1:** Start from a clean or understood git status and confirm no unintended files are included.
+- [x] **Step 2:** Run all frontend host checks.
+- [x] **Step 3:** Confirm root mise tooling, the frontend build base, and the final web runtime all report Node.js major version 24.
+- [x] **Step 4:** Run frontend local Compose config and startup checks.
+- [x] **Step 5:** Run production-like Compose config and web build checks.
+- [x] **Step 6:** Run or simulate frontend CI checks as far as the local environment allows.
+- [x] **Step 7:** Review docs for command accuracy.
 
 ### 13.4 Verification
 
@@ -569,27 +569,27 @@ Tasks 1 through 12.
 | [GitHub Issue #18: Frontend Setup](https://github.com/CXwudi/nijigen-video-site/issues/18) | Source issue for the selected frontend stack, tools, and Compose setup requirement. | Must Read |
 | [GitHub Issue #27: Design DaisyUI themes based on Snow Miku](https://github.com/CXwudi/nijigen-video-site/issues/27) | Source issue for the Snow Miku daisyUI theme direction. | Must Read |
 | [../spec/spec-issue-18-frontend-setup-20260614.md](../spec/spec-issue-18-frontend-setup-20260614.md) | Approved design spec for this implementation plan. | Must Read |
-| [../README.md](../README.md) | Repository documentation entrypoint and reminder to use docs and design-log as sources of truth. | Must Read |
-| [../docs/environment-setup.md](../docs/environment-setup.md) | Existing environment setup and mise task guidance. | Important |
-| [../docs/docker-setup-explain.md](../docs/docker-setup-explain.md) | Current Docker setup explanation and Compose reuse model. | Must Read |
-| [../design-log/adl/004-component-owned-docker-modules.md](../design-log/adl/004-component-owned-docker-modules.md) | Architecture decision for component-owned Docker modules and shared Compose service bases. | Important |
+| [../../README.md](../../README.md) | Repository documentation entrypoint and reminder to use docs and design-log as sources of truth. | Must Read |
+| [../../docs/environment-setup.md](../../docs/environment-setup.md) | Existing environment setup and mise task guidance. | Important |
+| [../../docs/docker-setup-explain.md](../../docs/docker-setup-explain.md) | Current Docker setup explanation and Compose reuse model. | Must Read |
+| [../adl/004-component-owned-docker-modules.md](../adl/004-component-owned-docker-modules.md) | Architecture decision for component-owned Docker modules and shared Compose service bases. | Important |
 | [../../mise.toml](../../mise.toml) | Root mise monorepo task and Node.js 24 tool configuration. | Must Read |
-| [../infra/compose/common-services.yml](../infra/compose/common-services.yml) | Shared runtime Compose service bases that should gain `web-compose-base`. | Must Read |
-| [../infra/compose/common-dev-services.yml](../infra/compose/common-dev-services.yml) | Shared development Compose service bases that should gain `web-pnpm-base`. | Must Read |
-| [../infra/compose/compose.prod.yml](../infra/compose/compose.prod.yml) | Production-like Compose stack that should gain the `web` service. | Must Read |
-| [../infra/compose/prod.env.example](../infra/compose/prod.env.example) | Production-like Compose env template that should gain web settings. | Important |
-| [../infra/compose/mise.toml](../infra/compose/mise.toml) | Production-like Compose task entrypoints used for config validation. | Important |
-| [../frontend/README.md](../frontend/README.md) | Frontend documentation entrypoint to update with host and Docker workflows. | Important |
-| [../frontend/docs/README.md](../frontend/docs/README.md) | Frontend-specific docs index. | Important |
-| [../frontend/docker/compose.local.yml](../frontend/docker/compose.local.yml) | Current frontend local Compose stack with the temporary web placeholder. | Must Read |
-| [../frontend/docker/mise.toml](../frontend/docker/mise.toml) | Current frontend Docker task definitions to update. | Must Read |
-| [../frontend/docker/.env.example](../frontend/docker/.env.example) | Current frontend local env template that still contains dummy web image settings. | Important |
-| [../backend/docker/compose.local.yml](../backend/docker/compose.local.yml) | Existing backend local Compose profile pattern for comparison. | Important |
-| [../backend/docker/mise.toml](../backend/docker/mise.toml) | Existing backend Docker task style for environment exports and run commands. | Important |
-| [../backend/docker/Dockerfile](../backend/docker/Dockerfile) | Backend production Dockerfile pattern for build and runtime targets. | Important |
+| [../../infra/compose/common-services.yml](../../infra/compose/common-services.yml) | Shared runtime Compose service bases that should gain `web-compose-base`. | Must Read |
+| [../../infra/compose/common-dev-services.yml](../../infra/compose/common-dev-services.yml) | Shared development Compose service bases that should gain `web-pnpm-base`. | Must Read |
+| [../../infra/compose/compose.prod.yml](../../infra/compose/compose.prod.yml) | Production-like Compose stack that should gain the `web` service. | Must Read |
+| [../../infra/compose/prod.env.example](../../infra/compose/prod.env.example) | Production-like Compose env template that should gain web settings. | Important |
+| [../../infra/compose/mise.toml](../../infra/compose/mise.toml) | Production-like Compose task entrypoints used for config validation. | Important |
+| [../../frontend/README.md](../../frontend/README.md) | Frontend documentation entrypoint to update with host and Docker workflows. | Important |
+| [../../frontend/docs/README.md](../../frontend/docs/README.md) | Frontend-specific docs index. | Important |
+| [../../frontend/docker/compose.local.yml](../../frontend/docker/compose.local.yml) | Current frontend local Compose stack with the temporary web placeholder. | Must Read |
+| [../../frontend/docker/mise.toml](../../frontend/docker/mise.toml) | Current frontend Docker task definitions to update. | Must Read |
+| [../../frontend/docker/.env.example](../../frontend/docker/.env.example) | Current frontend local env template that still contains dummy web image settings. | Important |
+| [../../backend/docker/compose.local.yml](../../backend/docker/compose.local.yml) | Existing backend local Compose profile pattern for comparison. | Important |
+| [../../backend/docker/mise.toml](../../backend/docker/mise.toml) | Existing backend Docker task style for environment exports and run commands. | Important |
+| [../../backend/docker/Dockerfile](../../backend/docker/Dockerfile) | Backend production Dockerfile pattern for build and runtime targets. | Important |
 | [../../frontend/docker/Dockerfile](../../frontend/docker/Dockerfile) | Frontend build and runtime stages that must be updated together for Node.js 24. | Must Read |
-| [../.github/workflows/backend-check.yml](../.github/workflows/backend-check.yml) | Existing backend CI pattern to mirror where appropriate. | Important |
-| [../.github/renovate.json5](../.github/renovate.json5) | Renovate include paths and dependency grouping behavior. | Important |
+| [../../.github/workflows/backend-check.yml](../../.github/workflows/backend-check.yml) | Existing backend CI pattern to mirror where appropriate. | Important |
+| [../../.github/renovate.json5](../../.github/renovate.json5) | Renovate include paths and dependency grouping behavior. | Important |
 | [pnpm Docker documentation](https://pnpm.io/docker) | Docker guidance, including the `pnpm fetch` CI/CD layering pattern. | Important |
 | [pnpm symlinked node_modules structure](https://pnpm.io/symlinked-node-modules-structure) | Explains pnpm's content-addressable store, hardlinks, and symlinked dependency layout. | Important |
 | [BellSoft hardened image documentation](https://docs.bell-sw.com/alpaquita-linux/latest/how-to/images-getting-started-guide/#hardened-nodejs) | Defines the hardened Node.js version, variant, and libc tag structure. | Must Read |
