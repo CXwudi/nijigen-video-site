@@ -67,7 +67,7 @@ set -euo pipefail
 export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
 export HOST_UID="${HOST_UID:-$(id -u)}"
 export HOST_GID="${HOST_GID:-$(id -g)}"
-project_name="$({{ vars.compose }} --profile frontend config --format json | yq -r '.name')"
+project_name="${COMPOSE_PROJECT_NAME:-nijigen-video-site-frontend}"
 {{ vars.compose }} --profile frontend rm --stop --force --volumes web web-init
 for volume in frontend-node-modules web-node-modules frontend-pnpm-store; do
   full_name="${project_name}_${volume}"

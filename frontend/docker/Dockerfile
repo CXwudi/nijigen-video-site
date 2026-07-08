@@ -11,7 +11,7 @@ COPY web/package.json web/package.json
 # Seed the pnpm store and temporary node_modules artifacts.
 # Compose uses a root-run init service to chown the mounted volumes
 # before the source-mounted pnpm service runs as HOST_UID:HOST_GID.
-RUN pnpm fetch --frozen-lockfile
+RUN pnpm fetch
 
 FROM web-pnpm-base AS web-build
 COPY . ./
@@ -25,4 +25,5 @@ ENV PORT="3000"
 WORKDIR /app
 COPY --from=web-build /workspace/frontend/web/.output ./
 EXPOSE 3000
+ENTRYPOINT ["/usr/sbin/tini", "--"]
 CMD ["node", "server/index.mjs"]
