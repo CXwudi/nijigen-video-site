@@ -7,7 +7,7 @@ Before any development work, make sure to have:
 1. (For Windows) git-bash or MSYS2 bash
    - Make sure `PATH` resolves `bash` to git-bash or MSYS2 bash, not `C:\Windows\System32\bash.exe`. Use `Get-Command bash` in PowerShell to check which executable `bash` resolves to.
    - All mise tasks are written for bash. PowerShell is not supported for running tasks.
-   - You can still use PowerShell to run mise and docker commands.
+   - You can still use PowerShell to run docker commands or mise commands other than mise tasks
 
 ## mise-en-place
 
