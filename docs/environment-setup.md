@@ -11,8 +11,8 @@ Before any development work, make sure to have:
 
 ## mise-en-place
 
-`mise` manages the rest of the tools needed for development.
-See [`mise.toml`](../mise.toml) for the complete tool list.
+`mise` manages the rest of the tools needed for development, and also set necessary environment variables.
+See [`mise.toml`](../mise.toml) for more details of the setup.
 
 ### `mise install`
 
@@ -30,7 +30,7 @@ From the repository root, assuming mise is installed:
    mise install
    ```
 
-   If `mise activate` is configured in your shell profile, this step is run automatically when you enter the repository.
+   It is highly recommended to configure `mise activate` in your shell profile, so that `mise install` will be run automatically when you enter the repository.
 
 ### `mise` tasks
 
@@ -51,6 +51,11 @@ cd backend/docker
 mise :config-check
 mise :run --rm api :apps:api:test
 ```
+
+### `mise` envrionment variables
+
+mise also manage some environment variables.
+So far only some runtime versions (JDK, node, pnpm) are managed by environment variables, to be used in Dockerfile and docker compose
 
 ## Unified Environment by Docker Compose
 

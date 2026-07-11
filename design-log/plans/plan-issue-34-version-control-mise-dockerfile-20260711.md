@@ -194,7 +194,7 @@ Tasks 1 through 3.
 - [ ] **Step 1:** Document root `mise.toml` as the normal place to change JDK, Node.js, or pnpm major versions and list the downstream consumers. For a JDK upgrade, also update the intentional `libs.versions.toml` fallback in the same change.
 - [ ] **Step 2:** Explain that mise activation or `mise exec`/mise tasks exports versions to Compose, while standalone `docker build` calls must pass the corresponding build args.
 - [ ] **Step 3:** Document Compose shell-over-env-file precedence so developers understand why local and production env templates no longer own runtime versions.
-- [ ] **Step 4:** Search for stale literal version declarations and comments; enumerate and review every remaining match. Retain literals only in root `mise.toml`, the intentional Gradle catalog fallback, immutable historical design logs, or documentation and verification examples that are not active configuration sources.
+- [x] **Step 4:** Search for stale literal version declarations and comments; enumerate and review every remaining match. Retain literals only in root `mise.toml`, the intentional Gradle catalog fallback, immutable historical design logs, or documentation and verification examples that are not active configuration sources.
 
 #### 4.4 Verification
 
