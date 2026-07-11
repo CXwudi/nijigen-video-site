@@ -30,7 +30,7 @@ From the repository root, assuming mise is installed:
    mise install
    ```
 
-   It is highly recommended to configure `mise activate` in your shell profile, so that `mise install` will be run automatically when you enter the repository.
+   It is highly recommended to configure `mise activate` in your shell profile, so that the repository's tools and environment variables are activated automatically when you enter the repository.
 
 ### `mise` tasks
 
