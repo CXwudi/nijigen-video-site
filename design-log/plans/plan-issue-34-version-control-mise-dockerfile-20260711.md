@@ -58,11 +58,11 @@ Create one exported version policy for normal workflows and connect the included
 
 None.
 
-- [ ] **Step 1:** Add root `[env]` entries for `JDK_VERSION="25"`, `NODE_VERSION="24"`, and `PNPM_VERSION="11"`.
-- [ ] **Step 2:** Change `[tools]` so Java, Node.js, and pnpm use mise templates referencing the corresponding exported variables; keep unrelated tools unchanged.
-- [ ] **Step 3:** In `backend/gradle/plugins/settings.gradle.kts`, keep the existing single `from(files("../libs.versions.toml"))` import and conditionally call `version("java", value)` only when `providers.environmentVariable("JDK_VERSION")` is present. Let the imported `versions.java` value remain untouched when the variable is absent.
-- [ ] **Step 4:** Leave `backend/gradle/libs.versions.toml`, the generated `Versions.Java` adapter in `backend/gradle/plugins/version-catalog/build.gradle.kts`, and `backend/gradle/plugins/backend/src/main/kotlin/my.jvm-common.gradle.kts` unchanged.
-- [ ] **Step 5:** Update the Gradle setup documentation to identify root `mise.toml` as the normal Java version owner and `libs.versions.toml` as the compatibility fallback for Gradle commands invoked without `JDK_VERSION`.
+- [x] **Step 1:** Add root `[env]` entries for `JDK_VERSION="25"`, `NODE_VERSION="24"`, and `PNPM_VERSION="11"`.
+- [x] **Step 2:** Change `[tools]` so Java, Node.js, and pnpm use mise templates referencing the corresponding exported variables; keep unrelated tools unchanged.
+- [x] **Step 3:** In `backend/gradle/plugins/settings.gradle.kts`, keep the existing single `from(files("../libs.versions.toml"))` import and conditionally call `version("java", value)` only when `providers.environmentVariable("JDK_VERSION")` is present. Let the imported `versions.java` value remain untouched when the variable is absent.
+- [x] **Step 4:** Leave `backend/gradle/libs.versions.toml`, the generated `Versions.Java` adapter in `backend/gradle/plugins/version-catalog/build.gradle.kts`, and `backend/gradle/plugins/backend/src/main/kotlin/my.jvm-common.gradle.kts` unchanged.
+- [x] **Step 5:** Update the Gradle setup documentation to identify root `mise.toml` as the normal Java version owner and `libs.versions.toml` as the compatibility fallback for Gradle commands invoked without `JDK_VERSION`.
 
 #### 1.4 Verification
 
@@ -108,13 +108,13 @@ Make every development and production-like image consume the mise-owned values t
 
 Task 1.
 
-- [ ] **Step 1:** Add a global `JDK_VERSION` build argument to the backend Dockerfile and substitute it into the NIK builder and JVM runtime tags. Expose the same value inside `gradle-base` so Gradle toolchain configuration sees it during JVM and native builds.
-- [ ] **Step 2:** Add global `PNPM_VERSION` and `NODE_VERSION` arguments to the frontend Dockerfile. Use them for the pnpm base tag, `pnpm runtime set node`, and the hardened Node.js runtime tag.
-- [ ] **Step 3:** In the shared development Compose file, require `JDK_VERSION` for the API development image, pass it into the API container, and pass required Node.js/pnpm build args into `web-pnpm-base`.
-- [ ] **Step 4:** Require `JDK_VERSION` in the JetBrains API image reference in backend local Compose. Do not add it to that container's environment: IntelliJ replaces this minimal service's entrypoint and mounts built jars, so Gradle does not evaluate the project inside `api-jb`.
-- [ ] **Step 5:** Add required JDK build args to the production-like API build and required Node.js/pnpm build args to its web build.
-- [ ] **Step 6:** Remove `JDK_VERSION` from all three checked-in env templates; do not add Node.js or pnpm versions to them. Retain deployment settings, credentials, ports, runtime targets, and `WEB_PNPM_IMAGE` unchanged.
-- [ ] **Step 7:** Refresh ignored local env files from their templates when needed for verification, preserving any developer-specific credentials or port overrides instead of overwriting them blindly.
+- [x] **Step 1:** Add a global `JDK_VERSION` build argument to the backend Dockerfile and substitute it into the NIK builder and JVM runtime tags. Expose the same value inside `gradle-base` so Gradle toolchain configuration sees it during JVM and native builds.
+- [x] **Step 2:** Add global `PNPM_VERSION` and `NODE_VERSION` arguments to the frontend Dockerfile. Use them for the pnpm base tag, `pnpm runtime set node`, and the hardened Node.js runtime tag.
+- [x] **Step 3:** In the shared development Compose file, require `JDK_VERSION` for the API development image, pass it into the API container, and pass required Node.js/pnpm build args into `web-pnpm-base`.
+- [x] **Step 4:** Require `JDK_VERSION` in the JetBrains API image reference in backend local Compose. Do not add it to that container's environment: IntelliJ replaces this minimal service's entrypoint and mounts built jars, so Gradle does not evaluate the project inside `api-jb`.
+- [x] **Step 5:** Add required JDK build args to the production-like API build and required Node.js/pnpm build args to its web build.
+- [x] **Step 6:** Remove `JDK_VERSION` from all three checked-in env templates; do not add Node.js or pnpm versions to them. Retain deployment settings, credentials, ports, runtime targets, and `WEB_PNPM_IMAGE` unchanged.
+- [x] **Step 7:** Refresh ignored local env files from their templates when needed for verification, preserving any developer-specific credentials or port overrides instead of overwriting them blindly.
 
 #### 2.4 Verification
 
@@ -158,9 +158,9 @@ Prevent CI from bypassing the version bridge and remove maintenance guidance tha
 
 Task 2.
 
-- [ ] **Step 1:** Add a frontend workflow step that reads `NODE_VERSION` and `PNPM_VERSION` through `mise exec`, validates that both are non-empty, and publishes them as step outputs or `GITHUB_ENV` values.
-- [ ] **Step 2:** Pass those derived values to `docker/build-push-action` using its `build-args` input. Do not place `24` or `11` directly in workflow YAML.
-- [ ] **Step 3:** Update Renovate comments so the disabled Java catalog rule is described as protecting the direct-Gradle fallback, which must be kept aligned manually with root `JDK_VERSION`; remove references to literal BellSoft tags as the synchronization mechanism. Keep major language-runtime upgrades manual unless issue #34 explicitly expands into dependency automation.
+- [x] **Step 1:** Add a frontend workflow step that reads `NODE_VERSION` and `PNPM_VERSION` through `mise exec`, validates that both are non-empty, and publishes them as step outputs or `GITHUB_ENV` values.
+- [x] **Step 2:** Pass those derived values to `docker/build-push-action` using its `build-args` input. Do not place `24` or `11` directly in workflow YAML.
+- [x] **Step 3:** Update Renovate comments so the disabled Java catalog rule is described as protecting the direct-Gradle fallback, which must be kept aligned manually with root `JDK_VERSION`; remove references to literal BellSoft tags as the synchronization mechanism. Keep major language-runtime upgrades manual unless issue #34 explicitly expands into dependency automation.
 
 #### 3.4 Verification
 
