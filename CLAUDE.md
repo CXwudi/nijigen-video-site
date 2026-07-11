@@ -1,1 +1,3 @@
+<ProjectPrompt>
 @README.md
+</ProjectPrompt>
