@@ -7,6 +7,10 @@ dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
       from(files("../libs.versions.toml"))
+
+      providers.environmentVariable("JDK_VERSION")
+        .orNull
+        ?.let { version("java", it) }
     }
   }
 }

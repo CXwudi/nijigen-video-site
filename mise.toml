@@ -15,15 +15,20 @@ config_roots = [
   "infra/compose",
 ]
 
+[env]
+JDK_VERSION = "25"
+NODE_VERSION = "24"
+PNPM_VERSION = "11"
+
 [tools]
 # We mostly use floating version unless there is a specific reason to pin the version.
 
 # Backend
-java = "lts" # This is only needed for running Gradle itself. For building, Gradle java toolchain is configured with fixed graalvm version 25 to build native image
+java = "{{ env.JDK_VERSION }}"
 
 # Frontend
-node = "24" # pinned the version since this is really used in development
-pnpm = "latest"
+node = "{{ env.NODE_VERSION }}"
+pnpm = "{{ env.PNPM_VERSION }}"
 
 # Others
 uv = "latest"
