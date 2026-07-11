@@ -77,6 +77,20 @@ jobs:
       - name: 'Render frontend Compose stack'
         run: 'mise //frontend/docker:config-check'
 
+      - name: 'Resolve frontend runtime versions'
+        id: 'runtime_versions'
+        run: |
+          node_version="$(mise exec -- printenv NODE_VERSION)"
+          pnpm_version="$(mise exec -- printenv PNPM_VERSION)"
+          if [[ -z "${node_version}" || -z "${pnpm_version}" ]]; then
+            echo '::error::NODE_VERSION and PNPM_VERSION must resolve through mise.'
+            exit 1
+          fi
+          {
+            echo "node_version=${node_version}"
+            echo "pnpm_version=${pnpm_version}"
+          } >> "${GITHUB_OUTPUT}"
+
       - name: 'Build frontend pnpm image'
         uses: 'docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8'
         with:
@@ -85,6 +99,9 @@ jobs:
           target: 'web-pnpm-base'
           tags: 'nijigen-video-site-web-pnpm:local'
           load: true
+          build-args: |
+            NODE_VERSION=${{ steps.runtime_versions.outputs.node_version }}
+            PNPM_VERSION=${{ steps.runtime_versions.outputs.pnpm_version }}
           cache-from: 'type=gha,scope=frontend-web'
           cache-to: 'type=gha,scope=frontend-web,mode=max'
 
