@@ -12,3 +12,4 @@ Thumbs.db
 .gemini/
 gha-creds-*.json
 .codex
+.temp/

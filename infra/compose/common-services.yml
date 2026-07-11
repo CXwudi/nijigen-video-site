@@ -23,6 +23,11 @@ services:
       SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
       <<: *shared-spring-env
 
+  web-compose-base:
+    depends_on:
+      api:
+        condition: service_started
+
   postgres-base:
     image: postgres:17
     environment:

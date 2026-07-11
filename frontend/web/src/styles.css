@@ -1,0 +1,118 @@
+/* Snow Miku 2019 - paired light/dark themes (daisyUI v5)
+ *
+ * light = snowmiku2019-E (default):
+ *   B's frozen-sapphire palette on a brighter, de-blued snow canvas.
+ *   base-100 is near-pure white (cards), base-200 a whisper of cool, the blue
+ *   deepening into the base-300 borders - "pure-white peaks, blue shadows",
+ *   the way real snow reads. Same brand tokens as snowmiku2019-B; only the
+ *   base ramp moved (brighter + lower chroma on 100/200) to quiet the blue.
+ * dark = snowmiku2019-B-dark-2 (prefers-color-scheme: dark):
+ *   雪夜 (snow night) - 2019 hues at the bottom of the snow-shadow ramp;
+ *   luminous ice primary, literal skirt navy as neutral, coral error.
+ * Character-sourced semantics (both):
+ *   success = official Hatsune Miku teal #39C5BB
+ *   error   = her warm magenta-red accent, pulled toward true-red
+ *   warning = the Snow Miku 2019 gold #efd04d
+ * Verified (verify_theme.py THEME_E / THEME_B_DARK2):
+ *   every -content pair >= WCAG AA (4.5); cool tokens mutually dE2000 > 10;
+ *   base depth steps card/page dE ~3.0, page/border dE ~4.3.
+ *
+ * Usage (Tailwind v4 + daisyUI v5):
+ *   @import "tailwindcss";
+ *   @plugin "daisyui";
+ *   // then paste both blocks below; light applies by default, dark applies
+ *   // automatically when the OS prefers dark.
+ */
+
+@import 'tailwindcss';
+@plugin "daisyui" {
+  themes:
+    snowmiku2019-light --default,
+    snowmiku2019-dark --prefersdark;
+}
+
+@plugin "daisyui/theme" {
+  /* snowmiku2019-E-light */
+  name: 'snowmiku2019-light';
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: oklch(99.7% 0.002 235);
+  --color-base-200: oklch(98% 0.01 235);
+  --color-base-300: oklch(93.5% 0.02 240);
+  --color-base-content: oklch(30% 0.055 258);
+  --color-primary: oklch(55% 0.15 250);
+  --color-primary-content: oklch(99% 0.005 240);
+  --color-secondary: oklch(80% 0.075 230);
+  --color-secondary-content: oklch(30% 0.05 258);
+  --color-accent: oklch(88% 0.075 205);
+  --color-accent-content: oklch(30% 0.05 220);
+  --color-neutral: oklch(34% 0.07 263);
+  --color-neutral-content: oklch(96% 0.01 235);
+  --color-info: oklch(70% 0.12 233);
+  --color-info-content: oklch(28% 0.05 230);
+  --color-success: oklch(72% 0.13 187);
+  --color-success-content: oklch(27% 0.05 200);
+  --color-warning: oklch(85% 0.155 95);
+  --color-warning-content: oklch(33% 0.06 88);
+  --color-error: oklch(57% 0.215 22);
+  --color-error-content: oklch(99% 0 0);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  /* snowmiku2019-B-dark-2 */
+  name: 'snowmiku2019-dark';
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: oklch(26% 0.04 262);
+  --color-base-200: oklch(23% 0.035 262);
+  --color-base-300: oklch(20% 0.03 263);
+  --color-base-content: oklch(93% 0.015 235);
+  --color-primary: oklch(76% 0.11 245);
+  --color-primary-content: oklch(25% 0.05 255);
+  --color-secondary: oklch(46% 0.085 257);
+  --color-secondary-content: oklch(95% 0.01 235);
+  --color-accent: oklch(85% 0.08 200);
+  --color-accent-content: oklch(25% 0.05 210);
+  --color-neutral: oklch(38% 0.066 263);
+  --color-neutral-content: oklch(95% 0.01 235);
+  --color-info: oklch(63% 0.115 230);
+  --color-info-content: oklch(22% 0.04 235);
+  --color-success: oklch(74% 0.115 188);
+  --color-success-content: oklch(22% 0.04 195);
+  --color-warning: oklch(85% 0.155 95);
+  --color-warning-content: oklch(30% 0.06 88);
+  --color-error: oklch(70% 0.18 22);
+  --color-error-content: oklch(25% 0.08 25);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}

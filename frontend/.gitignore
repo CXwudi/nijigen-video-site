@@ -1,2 +1,22 @@
-### Local Docker env ###
+### System files ###
+.DS_Store
+
+### Frontend dependencies ###
+node_modules/
+
+### Build outputs ###
+dist/
+dist-ssr/
+.nitro/
+.tanstack/
+.wrangler/
+.output/
+.vinxi/
+__unconfig*
+
+### Local files ###
+*.local
+.env
+todos.json
+/snowmiku2019-E-pair.css
 /docker/.env

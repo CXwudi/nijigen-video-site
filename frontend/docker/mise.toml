@@ -6,7 +6,20 @@ description = "Start the frontend local stack: web, api, postgres, redis, and fl
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+mkdir -p "$HOST_GRADLE_USER_HOME"
+{{ vars.compose }} --profile frontend up -d --build
+printf '\nIf frontend dependency volumes look stale after lockfile changes, run: mise //frontend/docker:clean-dependency-volumes\n'
+'''
+
+[tasks.up-backend]
+description = "Start the API and backend dependencies for host-run frontend development."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
 export HOST_UID="${HOST_UID:-$(id -u)}"
 export HOST_GID="${HOST_GID:-$(id -g)}"
 mkdir -p "$HOST_GRADLE_USER_HOME"
@@ -18,7 +31,10 @@ description = "Stop all frontend local Docker services managed by this file."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-{{ vars.compose }} down --remove-orphans
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+{{ vars.compose }} --profile frontend down --remove-orphans
 '''
 
 [tasks.config]
@@ -26,7 +42,10 @@ description = "Print the fully resolved Compose config."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-{{ vars.compose }} config
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+{{ vars.compose }} --profile frontend config
 '''
 
 [tasks.config-check]
@@ -34,7 +53,30 @@ description = "Validate the resolved Compose config."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-{{ vars.compose }} config --quiet
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+{{ vars.compose }} --profile frontend config --quiet
+'''
+
+[tasks.clean-dependency-volumes]
+description = "Remove frontend dependency volumes while preserving postgres and redis data."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
+export HOST_UID="${HOST_UID:-$(id -u)}"
+export HOST_GID="${HOST_GID:-$(id -g)}"
+project_name="${COMPOSE_PROJECT_NAME:-nijigen-video-site-frontend}"
+{{ vars.compose }} --profile frontend rm --stop --force --volumes web web-init
+for volume in frontend-node-modules web-node-modules frontend-pnpm-store; do
+  full_name="${project_name}_${volume}"
+  if docker volume inspect "$full_name" >/dev/null 2>&1; then
+    docker volume rm "$full_name"
+  else
+    printf 'Volume not found, skipping: %s\n' "$full_name"
+  fi
+done
 '''
 
 [tasks.run]
@@ -43,9 +85,10 @@ raw_args = true
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-$HOME/.gradle}"
+export HOST_GRADLE_USER_HOME="${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-$HOME/.gradle}}"
 export HOST_UID="${HOST_UID:-$(id -u)}"
 export HOST_GID="${HOST_GID:-$(id -g)}"
 mkdir -p "$HOST_GRADLE_USER_HOME"
-{{ vars.compose }} run "$@"
+trap 'printf "\nFrontend stack services may still be running. Run: mise //frontend/docker:down when you are done.\n"' EXIT
+{{ vars.compose }} --profile frontend run "$@"
 '''

@@ -3,6 +3,16 @@
 name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
 
 services:
+  web:
+    extends:
+      file: common-services.yml
+      service: web-compose-base
+    build:
+      context: ../../frontend
+      dockerfile: docker/Dockerfile
+      target: ${WEB_PROD_RUNTIME_TARGET:-web-runtime}
+    restart: unless-stopped
+
   api:
     extends:
       file: common-services.yml

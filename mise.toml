@@ -1,5 +1,5 @@
 # Monorepo task paths are currently an experimental mise feature.
-experimental_monorepo_root = true
+monorepo_root = true
 
 [settings]
 experimental = true
@@ -7,8 +7,11 @@ experimental = true
 [monorepo]
 # Automatic mise.toml discovery is deprecated, so config roots are listed explicitly.
 config_roots = [
+  "backend",
   "backend/docker",
+  "frontend",
   "frontend/docker",
+  "frontend/web",
   "infra/compose",
 ]
 
@@ -16,10 +19,10 @@ config_roots = [
 # We mostly use floating version unless there is a specific reason to pin the version.
 
 # Backend
-java = "lts" # This is only needed for running Gradle itself. For building, Gradle java toolchain is configured to use graalvm to build native image
+java = "lts" # This is only needed for running Gradle itself. For building, Gradle java toolchain is configured with fixed graalvm version 25 to build native image
 
 # Frontend
-node = "lts"
+node = "24" # pinned the version since this is really used in development
 pnpm = "latest"
 
 # Others

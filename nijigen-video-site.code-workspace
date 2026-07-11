@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      // this must be front so that AI Agent inside a vscode plugin won't frake out
+      "path": "."
+    },
+    {
       "path": ".github"
     },
     {
@@ -19,10 +23,6 @@
     {
       "path": "infra"
     },
-    {
-      "name": "root",
-      "path": "."
-    }
   ],
   "settings": {
     // "terminal.integrated.cwd": "${workspaceFolder:root}" // set to whatever the project we are opening for now

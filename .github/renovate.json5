@@ -8,6 +8,10 @@
   commitMessageAction: '⬆ upgrade',
   schedule: ['* * 1-7,14-21 * 4'],
   timezone: 'America/Toronto',
+  // Wait at least 1 day before proposing a release, aligning with the 24h
+  // minimumReleaseAge defaults of pnpm (1440 min) and mise (24h) so Renovate
+  // won't open PRs for versions those tools would reject at install/CI time.
+  minimumReleaseAge: '1 day',
   includePaths: [
     'backend/**',
     'frontend/**',

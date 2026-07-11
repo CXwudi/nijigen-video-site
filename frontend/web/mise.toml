@@ -1,0 +1,24 @@
+[tasks.pnpm]
+description = "Run pnpm from the frontend web app directory."
+raw_args = true
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm "$@"
+'''
+
+[tasks.dev]
+description = "Start the TanStack Start development server."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm dev
+'''
+
+[tasks.build]
+description = "Build the frontend web app."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+pnpm build
+'''

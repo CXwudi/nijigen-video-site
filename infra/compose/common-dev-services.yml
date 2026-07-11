@@ -23,4 +23,15 @@ services:
     restart: "no"
     volumes:
       - ../../backend:/workspace/backend
-      - ${HOST_GRADLE_USER_HOME:-${HOME}/.gradle}:/gradle-home
+      - ${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-${HOME}/.gradle}}:/gradle-home
+
+  web-pnpm-base:
+    build:
+      context: ../../frontend
+      dockerfile: docker/Dockerfile
+      target: web-pnpm-base
+    image: ${WEB_PNPM_IMAGE:-nijigen-video-site-web-pnpm:local}
+    working_dir: /workspace/frontend
+    environment:
+      PNPM_CONFIG_STORE_DIR: /pnpm/store
+    restart: "no"
