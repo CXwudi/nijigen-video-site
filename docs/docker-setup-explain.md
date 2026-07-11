@@ -43,8 +43,6 @@ So, each application service, for example, the `api` service on the backend side
 5. The `entrypoint` will use the build tool command. E.g. `./gradlew --no-daemon` for backend services
 6. The `command` defaults to the launch command. E.g. `:apps:api:bootRun` for the API service to make `./gradlew --no-daemon :apps:api:bootRun`
 
-<!-- TODO: more to add -->
-
 ## Q&A
 
 ### For just running any build tool command, why not have a Dockerfile simply copy the source code

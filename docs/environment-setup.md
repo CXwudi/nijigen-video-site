@@ -52,10 +52,14 @@ mise :config-check
 mise :run --rm api :apps:api:test
 ```
 
-### `mise` envrionment variables
+### `mise` environment variables
 
-mise also manage some environment variables.
-So far only some runtime versions (JDK, node, pnpm) are managed by environment variables, to be used in Dockerfile and docker compose
+Root [`mise.toml`](../mise.toml) `[env]` owns environment variables used across the whole monorepo. So far only some runtime versions are set this way.
+
+Those values are exported by shell activation, `mise exec`, and mise tasks.
+To change a major version, update `[env]` in the root `mise.toml`.
+
+Environment variables set by root [`mise.toml`](../mise.toml) have higher priority than `.env` / `.env.example` files.
 
 ## Unified Environment by Docker Compose
 
