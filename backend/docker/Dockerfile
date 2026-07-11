@@ -1,10 +1,12 @@
 # syntax=docker/dockerfile:1
 
+ARG JDK_VERSION
+
 ## Shared Gradle build stage
 
-# If we changed this image, also update it in the compose files
-# TODO: how to make Java version unified? using mise and env var?
-FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-25-nik-25-glibc AS gradle-base
+FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION}-nik-${JDK_VERSION}-glibc AS gradle-base
+ARG JDK_VERSION
+ENV JDK_VERSION="${JDK_VERSION}"
 WORKDIR /workspace/backend
 COPY . /workspace/backend/
 RUN chmod 0755 gradlew
@@ -26,7 +28,7 @@ RUN set -eux; \
     test -n "$dist_dir"; \
     cp -R "$dist_dir"/. /workspace/dist/app/
 
-FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-25-crac-glibc AS api-jvm-runtime
+FROM ghcr.io/bell-sw/hardened-liberica-runtime-container:jre-${JDK_VERSION}-crac-glibc AS api-jvm-runtime
 # TODO(new issue, optional): investigate and configure CRAC
 WORKDIR /app
 COPY --from=api-jvm-build /workspace/dist/app/ /app/

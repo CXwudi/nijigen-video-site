@@ -11,6 +11,9 @@ services:
       context: ../../frontend
       dockerfile: docker/Dockerfile
       target: ${WEB_PROD_RUNTIME_TARGET:-web-runtime}
+      args:
+        NODE_VERSION: ${NODE_VERSION:?NODE_VERSION must be provided}
+        PNPM_VERSION: ${PNPM_VERSION:?PNPM_VERSION must be provided}
     restart: unless-stopped
 
   api:
@@ -21,6 +24,8 @@ services:
       context: ../../backend
       dockerfile: docker/Dockerfile
       target: ${API_PROD_RUNTIME_TARGET:-api-native-runtime}
+      args:
+        JDK_VERSION: ${JDK_VERSION:?JDK_VERSION must be provided}
     restart: unless-stopped
 
   postgres:
