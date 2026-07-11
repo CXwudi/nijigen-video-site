@@ -7,12 +7,12 @@ Before any development work, make sure to have:
 1. (For Windows) git-bash or MSYS2 bash
    - Make sure `PATH` resolves `bash` to git-bash or MSYS2 bash, not `C:\Windows\System32\bash.exe`. Use `Get-Command bash` in PowerShell to check which executable `bash` resolves to.
    - All mise tasks are written for bash. PowerShell is not supported for running tasks.
-   - You can still use PowerShell to run mise and docker commands.
+   - You can still use PowerShell to run docker commands or mise commands other than mise tasks
 
 ## mise-en-place
 
-`mise` manages the rest of the tools needed for development.
-See [`mise.toml`](../mise.toml) for the complete tool list.
+`mise` manages the rest of the tools needed for development, and also set necessary environment variables.
+See [`mise.toml`](../mise.toml) for more details of the setup.
 
 ### `mise install`
 
@@ -30,7 +30,7 @@ From the repository root, assuming mise is installed:
    mise install
    ```
 
-   If `mise activate` is configured in your shell profile, this step is run automatically when you enter the repository.
+   It is highly recommended to configure `mise activate` in your shell profile, so that the repository's tools and environment variables are activated automatically when you enter the repository.
 
 ### `mise` tasks
 
@@ -51,6 +51,15 @@ cd backend/docker
 mise :config-check
 mise :run --rm api :apps:api:test
 ```
+
+### `mise` environment variables
+
+Root [`mise.toml`](../mise.toml) `[env]` owns environment variables used across the whole monorepo. So far only some runtime versions are set this way.
+
+Those values are exported by shell activation, `mise exec`, and mise tasks.
+To change a major version, update `[env]` in the root `mise.toml`.
+
+Environment variables set by root [`mise.toml`](../mise.toml) have higher priority than `.env` / `.env.example` files.
 
 ## Unified Environment by Docker Compose
 

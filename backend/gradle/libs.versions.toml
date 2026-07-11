@@ -1,7 +1,7 @@
 [versions]
 # Add a version here only when it is reused in more than one place.
 # Keep single-use versions inline in the entry itself for clarity.
-java = "25" # If this is changed, make sure to also update the Dockerfile and related compose files.
+java = "25" # Keep aligned with JDK_VERSION in root mise.toml; this value is the Gradle fallback.
 kotlin = "2.4.0"
 spring-boot = "4.1.0"
 graalvm-native = "1.1.3"

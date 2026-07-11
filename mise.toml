@@ -15,15 +15,28 @@ config_roots = [
   "infra/compose",
 ]
 
+[env]
+# Centralized major versions of important runtimes consumed by Dockerfiles and Compose files
+# See docs/docker-setup-explain.md for the unified container-based dev/prod/CI environment
+JDK_VERSION = "25" # keep aligned with java in backend/gradle/libs.versions.toml
+NODE_VERSION = "24"
+PNPM_VERSION = "11"
+# Downstream consumers include:
+# - mise [tools] for the host JDK, Node.js, and pnpm installs
+# - Docker Compose image tags, container environment, and build.args
+# - Dockerfiles via ARG (Compose or CLI --build-arg must supply them)
+# - frontend CI, which reads the values through mise exec and passes Docker build args
+# - the backend Gradle included-plugin build, which overlays JDK_VERSION onto the imported catalog when present
+
 [tools]
 # We mostly use floating version unless there is a specific reason to pin the version.
 
 # Backend
-java = "lts" # This is only needed for running Gradle itself. For building, Gradle java toolchain is configured with fixed graalvm version 25 to build native image
+java = "{{ env.JDK_VERSION }}"
 
 # Frontend
-node = "24" # pinned the version since this is really used in development
-pnpm = "latest"
+node = "{{ env.NODE_VERSION }}"
+pnpm = "{{ env.PNPM_VERSION }}"
 
 # Others
 uv = "latest"

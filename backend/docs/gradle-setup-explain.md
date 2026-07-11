@@ -21,8 +21,8 @@ The backend root is intentionally thin:
 - plugin coordinates
 
 The catalog is shared by the main backend build and the internal plugin build.
-When a BOM is cataloged, it becomes the source of truth for the versions it
-manages, so those libraries should not also get individual catalog entries.
+
+When a BOM is cataloged, it becomes the source of truth for the versions it manages, so those libraries should not also get individual catalog entries.
 
 ## Internal Plugin Build
 
