@@ -15,6 +15,10 @@
   includePaths: [
     'backend/**',
     'frontend/**',
+    'infra/**',
+    'mise.toml',
+    '.github/workflows/**',
+    '.github/renovate.json5',
   ],
   packageRules: [
     {
@@ -22,24 +26,23 @@
       groupName: 'all dependencies',
       groupSlug: 'all-deps',
     },
+    // Keep centralized runtime versions manual.
     {
-      description: 'Keep Java toolchain versions manual everywhere Renovate can detect them.',
+      description: 'Keep JDK upgrades manual if Renovate can detect a version declaration.',
       matchDatasources: ['java-version'],
       matchPackageNames: ['java-jdk', 'java-jre'],
       enabled: false,
     },
     {
-      description: 'Keep the Java version catalog fallback manual because it must stay aligned with root JDK_VERSION.',
-      matchDepNames: ['java'],
+      description: 'Keep Node.js upgrades manual if Renovate can detect a version declaration.',
+      matchDatasources: ['node-version'],
+      matchPackageNames: ['node'],
       enabled: false,
     },
     {
-      description: 'Keep BellSoft Java container upgrades manual; Dockerfiles receive the Java major from root JDK_VERSION.',
-      matchDatasources: ['docker'],
-      matchPackageNames: [
-        'ghcr.io/bell-sw/hardened-liberica-native-image-kit-container',
-        'ghcr.io/bell-sw/hardened-liberica-runtime-container',
-      ],
+      description: 'Keep pnpm upgrades manual if Renovate can detect a version declaration.',
+      matchDatasources: ['npm'],
+      matchPackageNames: ['pnpm'],
       enabled: false,
     },
   ],

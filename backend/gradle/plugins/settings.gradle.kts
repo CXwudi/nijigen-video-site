@@ -8,6 +8,7 @@ dependencyResolutionManagement {
     create("libs") {
       from(files("../libs.versions.toml"))
 
+      // Override the catalog fallback when mise provides JDK_VERSION.
       providers.environmentVariable("JDK_VERSION")
         .orNull
         ?.let { version("java", it) }

@@ -16,6 +16,8 @@ config_roots = [
 ]
 
 [env]
+# Centralized major versions of important runtimes consumed by Dockerfiles and Compose files
+# See docs/docker-setup-explain.md for the unified container-based dev/prod/CI environment
 JDK_VERSION = "25"
 NODE_VERSION = "24"
 PNPM_VERSION = "11"

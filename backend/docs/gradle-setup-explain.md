@@ -20,7 +20,7 @@ The backend root is intentionally thin:
 - dependency coordinates
 - plugin coordinates
 
-The catalog is shared by the main backend build and the internal plugin build. The root `mise.toml` normally supplies the Java version through `JDK_VERSION`; the internal plugin build overlays that value on the imported catalog. When Gradle is invoked without `JDK_VERSION`, the Java version in `gradle/libs.versions.toml` remains the compatibility fallback.
+The catalog is shared by the main backend build and the internal plugin build.
 
 When a BOM is cataloged, it becomes the source of truth for the versions it manages, so those libraries should not also get individual catalog entries.
 

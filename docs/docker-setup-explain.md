@@ -31,16 +31,17 @@ However, looking at all 4 scenarios, except the last one, all others can be redu
 1. Running a build tool command, whether it is a Gradle task, a pnpm command, a test command, or a server launch command
 2. Production launch
 
-Production launch is the outlier because it is the only one using the Dockerfile, which produces running artifacts with no knowledge of source code or build tools.
+Production launch is the outlier because the final image built only contains running artifacts with no knowledge of source code or build tools.
 
 So, each application service, for example, the `api` service on the backend side, is designed around being able to run any build tool command. Hence the service is set up as:
 
-1. Mount the source code, instead of using Dockerfile
-   - Including directories that are worth caching. E.g. `~/.gradle` for Gradle, so that we can reuse caches in CI
-2. Since source code is mounted, the image would be a standard public image. E.g. Liberica Hardened JDK image for backend services
-3. Since source code is mounted, the user ID and group ID should match the host
-4. The `entrypoint` will use the build tool command. E.g. `./gradlew --no-daemon` for backend services
-5. The `command` defaults to the launch command. E.g. `:apps:api:bootRun` for the API service to make `./gradlew --no-daemon :apps:api:bootRun`
+1. Mount the source code
+2. Mount directories that are worth caching. E.g. `~/.gradle` for Gradle, so that we can reuse caches in CI
+    - The frontend uses named volumes because pnpm relies on symlinks.
+3. Since source code is mounted, the image would need to be based on standard public image. E.g. Liberica Hardened JDK image for backend services
+4. Since source code is mounted, the user ID and group ID should match the host
+5. The `entrypoint` will use the build tool command. E.g. `./gradlew --no-daemon` for backend services
+6. The `command` defaults to the launch command. E.g. `:apps:api:bootRun` for the API service to make `./gradlew --no-daemon :apps:api:bootRun`
 
 <!-- TODO: more to add -->
 

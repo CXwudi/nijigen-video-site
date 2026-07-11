@@ -9,12 +9,12 @@ services:
     extends:
       file: common-services.yml
       service: api-compose-base
-    image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:?JDK_VERSION must be provided}-nik-${JDK_VERSION:?JDK_VERSION must be provided}-glibc
+    image: ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION:?JDK_VERSION must be provided, likely from mise.toml}-nik-${JDK_VERSION:?JDK_VERSION must be provided, likely from mise.toml}-glibc
     working_dir: /workspace/backend
     user: "${HOST_UID:?HOST_UID must be provided}:${HOST_GID:?HOST_GID must be provided}"
     environment:
       GRADLE_USER_HOME: /gradle-home
-      JDK_VERSION: ${JDK_VERSION:?JDK_VERSION must be provided}
+      JDK_VERSION: ${JDK_VERSION:?JDK_VERSION must be provided, likely from mise.toml}
       CI: ${CI:-}
     entrypoint:
       - ./gradlew
@@ -32,8 +32,8 @@ services:
       dockerfile: docker/Dockerfile
       target: web-pnpm-base
       args:
-        NODE_VERSION: ${NODE_VERSION:?NODE_VERSION must be provided}
-        PNPM_VERSION: ${PNPM_VERSION:?PNPM_VERSION must be provided}
+        NODE_VERSION: ${NODE_VERSION:?NODE_VERSION must be provided, likely from mise.toml}
+        PNPM_VERSION: ${PNPM_VERSION:?PNPM_VERSION must be provided, likely from mise.toml}
     image: ${WEB_PNPM_IMAGE:-nijigen-video-site-web-pnpm:local}
     working_dir: /workspace/frontend
     environment:
