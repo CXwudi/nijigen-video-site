@@ -39,19 +39,19 @@ jobs:
       DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}'
     steps:
       - name: 'Checkout repository'
-        uses: 'actions/checkout@v6'
+        uses: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10' # v6.0.3
         with:
           persist-credentials: false
 
       - name: 'Install mise'
-        uses: 'jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d'
+        uses: 'jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d' # v4.2.0
         with:
           experimental: true
           install: true
           cache: false # code rabbit says this one can get runtime-artifact-poisoning risk (cache populated by potentially untrusted PR runs could later be consumed by trusted runs)
 
       - name: 'Set up Docker Buildx'
-        uses: 'docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f'
+        uses: 'docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f' # v3.12.0
 
       - name: 'Validate Docker Hub credentials'
         run: |
@@ -66,7 +66,7 @@ jobs:
 
       - name: 'Login to Docker Hub'
         if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
-        uses: 'docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9'
+        uses: 'docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9' # v3.7.0
         with:
           username: '${{ env.DOCKERHUB_USERNAME }}'
           password: '${{ env.DOCKERHUB_TOKEN }}'
@@ -92,7 +92,7 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
 
       - name: 'Build frontend pnpm image'
-        uses: 'docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8'
+        uses: 'docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8' # v6.19.2
         with:
           context: 'frontend'
           file: 'frontend/docker/Dockerfile'

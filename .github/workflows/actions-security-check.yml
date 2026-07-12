@@ -1,4 +1,4 @@
-name: 'Docs Link Check'
+name: 'Actions Security Check'
 
 on:
   pull_request:
@@ -16,8 +16,8 @@ defaults:
     shell: 'bash'
 
 jobs:
-  check-docs-links:
-    name: 'Check Docs Links'
+  check-actions-security:
+    name: 'Check Actions Security'
     runs-on: 'ubuntu-latest'
     timeout-minutes: 15
     permissions:
@@ -28,12 +28,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: 'Install mise'
-        uses: 'jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d' # v4.2.0
+      - name: 'Run zizmor'
+        uses: 'zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa' # v0.5.7
         with:
-          experimental: true
-          install: true
-          cache: true
-
-      - name: 'Check local Markdown links'
-        run: 'mise //:docs-link-check'
+          inputs: '.github/workflows'
+          config: '.github/zizmor.yml'
+          version: '1.26.1'
+          advanced-security: false
+          annotations: true

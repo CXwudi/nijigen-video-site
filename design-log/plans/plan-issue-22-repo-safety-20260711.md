@@ -65,12 +65,12 @@ Make every workflow dependency immutable and add a stable, specialized security 
 
 None.
 
-- [ ] **Step 1:** Resolve every current Action tag to a full commit SHA from the upstream repository and replace all tagged `uses:` references. Add the corresponding release tag as an inline comment, including already-pinned frontend actions that currently lack comments.
-- [ ] **Step 2:** Add `persist-credentials: false` to checkout steps in the backend and documentation workflows; retain the existing frontend setting.
-- [ ] **Step 3:** Keep explicit least-privilege job permissions. Use `contents: read` only where checkout or online analysis needs it, and do not add `id-token: write`, repository write permissions, or secrets to the zizmor job.
-- [ ] **Step 4:** Add `.github/zizmor.yml` with an explicit `"*": hash-pin` `unpinned-uses` policy. Add no broad audit disablement; suppress a finding only at the narrowest file/line boundary and document why it is a false positive.
-- [ ] **Step 5:** Add `actions-security-check.yml` on every `pull_request`, push to `main`, and manual dispatch. Pin checkout and `zizmorcore/zizmor-action` by full SHA, set `persist-credentials: false`, use the checked-in config, set `version: 1.26.1`, and explicitly set `advanced-security: false` plus `annotations: true` so findings fail the job without CodeQL/SARIF upload.
-- [ ] **Step 6:** Run zizmor against all current workflows, remediate actionable findings, and avoid weakening the configuration merely to make the initial check pass.
+- [x] **Step 1:** Resolve every current Action tag to a full commit SHA from the upstream repository and replace all tagged `uses:` references. Add the corresponding release tag as an inline comment, including already-pinned frontend actions that currently lack comments.
+- [x] **Step 2:** Add `persist-credentials: false` to checkout steps in the backend and documentation workflows; retain the existing frontend setting.
+- [x] **Step 3:** Keep explicit least-privilege job permissions. Use `contents: read` only where checkout or online analysis needs it, and do not add `id-token: write`, repository write permissions, or secrets to the zizmor job.
+- [x] **Step 4:** Add `.github/zizmor.yml` with an explicit `"*": hash-pin` `unpinned-uses` policy. Add no broad audit disablement; suppress a finding only at the narrowest file/line boundary and document why it is a false positive.
+- [x] **Step 5:** Add `actions-security-check.yml` on every `pull_request`, push to `main`, and manual dispatch. Pin checkout and `zizmorcore/zizmor-action` by full SHA, set `persist-credentials: false`, use the checked-in config, set `version: 1.26.1`, and explicitly set `advanced-security: false` plus `annotations: true` so findings fail the job without CodeQL/SARIF upload.
+- [x] **Step 6:** Run zizmor against all current workflows, remediate actionable findings, and avoid weakening the configuration merely to make the initial check pass.
 
 #### 1.4 Verification
 
