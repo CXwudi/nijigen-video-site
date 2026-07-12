@@ -2,6 +2,7 @@
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: [
     'config:recommended',
+    'helpers:pinGitHubActionDigests',
     ':automergeMinor',
     ':automergeBranch',
   ],
@@ -12,6 +13,8 @@
   // minimumReleaseAge defaults of pnpm (1440 min) and mise (24h) so Renovate
   // won't open PRs for versions those tools would reject at install/CI time.
   minimumReleaseAge: '1 day',
+  // Do not create a branch or PR until internal checks such as release age pass.
+  internalChecksFilter: 'strict',
   includePaths: [
     'backend/**',
     'frontend/**',
@@ -21,10 +24,21 @@
     '.github/renovate.json5',
   ],
   packageRules: [
+    // Split dependencies into groups to avoid PRs with too many changes.
     {
-      matchUpdateTypes: ['major', 'minor', 'patch', 'pin', 'digest'],
-      groupName: 'all dependencies',
-      groupSlug: 'all-deps',
+      matchManagers: ['npm'],
+      groupName: 'frontend dependencies',
+      groupSlug: 'frontend-deps',
+    },
+    {
+      matchManagers: ['gradle', 'gradle-wrapper'],
+      groupName: 'backend dependencies',
+      groupSlug: 'backend-deps',
+    },
+    {
+      matchManagers: ['github-actions'],
+      groupName: 'CI actions',
+      groupSlug: 'ci-actions',
     },
     // Keep centralized runtime versions manual.
     {

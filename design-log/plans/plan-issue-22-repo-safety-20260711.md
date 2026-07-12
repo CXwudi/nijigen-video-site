@@ -143,12 +143,12 @@ Make immutable Action references maintainable, reduce dependency PR coupling, an
 
 Task 1.
 
-- [ ] **Step 1:** Add Renovate's `helpers:pinGitHubActionDigests` preset so tagged Actions are converted to SHA references with version comments and existing pinned Actions remain updateable.
-- [ ] **Step 2:** Remove the `all dependencies` package rule. Add distinct groups for the npm manager (`frontend dependencies`), Gradle and Gradle Wrapper managers (`backend dependencies`), and the GitHub Actions manager (`CI actions`).
-- [ ] **Step 3:** Let all three groups inherit the same top-level first/third-Thursday schedule, `America/Toronto` timezone, one-day `minimumReleaseAge`, and `internalChecksFilter: 'strict'`. Do not add group-specific schedules.
-- [ ] **Step 4:** Preserve `:automergeMinor` and `:automergeBranch`, including for CI Actions. Do not add blanket major-version or digest automerge; required checks and the one-day release age must pass before eligible version updates merge.
-- [ ] **Step 5:** Retain the existing manual JDK, Node.js, and pnpm runtime-version rules. Do not add a container/tooling group; unrelated detected dependencies remain ungrouped.
-- [ ] **Step 6:** Add `minimumReleaseAge: 1440`, `minimumReleaseAgeStrict: true`, and `minimumReleaseAgeIgnoreMissingTime: false` to `frontend/pnpm-workspace.yaml`. Keep the `allowBuilds` entries for `esbuild` and `lightningcss` unchanged.
+- [x] **Step 1:** Add Renovate's `helpers:pinGitHubActionDigests` preset so tagged Actions are converted to SHA references with version comments and existing pinned Actions remain updateable.
+- [x] **Step 2:** Remove the `all dependencies` package rule. Add distinct groups for the npm manager (`frontend dependencies`), Gradle and Gradle Wrapper managers (`backend dependencies`), and the GitHub Actions manager (`CI actions`).
+- [x] **Step 3:** Let all three groups inherit the same top-level first/third-Thursday schedule, `America/Toronto` timezone, one-day `minimumReleaseAge`, and `internalChecksFilter: 'strict'`. Do not add group-specific schedules.
+- [x] **Step 4:** Preserve `:automergeMinor` and `:automergeBranch`, including for CI Actions. Do not add blanket major-version or digest automerge; required checks and the one-day release age must pass before eligible version updates merge.
+- [x] **Step 5:** Retain the existing manual JDK, Node.js, and pnpm runtime-version rules. Do not add a container/tooling group; unrelated detected dependencies remain ungrouped.
+- [x] **Step 6:** Add `minimumReleaseAge: 1440`, `minimumReleaseAgeStrict: true`, and `minimumReleaseAgeIgnoreMissingTime: false` to `frontend/pnpm-workspace.yaml`. Keep the `allowBuilds` entries for `esbuild` and `lightningcss` unchanged.
 - [ ] **Step 7:** Let Renovate open or refresh its pin-digest PR and verify that each Action receives a full SHA plus a parseable release comment before enabling server-side SHA enforcement.
 
 #### 3.4 Verification
