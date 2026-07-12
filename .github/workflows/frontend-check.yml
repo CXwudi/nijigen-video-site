@@ -126,7 +126,7 @@ jobs:
           type=gha,scope=frontend-web-main"
               ;;
             *)
-              ## Unsupported event type. 
+              # Unsupported event type. 
               echo "::error::Unsupported event type: ${EVENT_NAME}"
               exit 1
               ;;
