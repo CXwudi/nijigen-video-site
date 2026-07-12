@@ -48,7 +48,7 @@ jobs:
         with:
           experimental: true
           install: true
-          cache: false # code rabbit says this one can get runtime-artifact-poisoning risk (cache populated by potentially untrusted PR runs could later be consumed by trusted runs)
+          cache: true
 
       - name: 'Set up Docker Buildx'
         uses: 'docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f' # v3.12.0
@@ -91,6 +91,48 @@ jobs:
             echo "pnpm_version=${pnpm_version}"
           } >> "${GITHUB_OUTPUT}"
 
+      - name: 'Resolve BuildKit cache scope'
+        id: 'buildkit_cache'
+        env:
+          EVENT_NAME: '${{ github.event_name }}'
+          PR_NUMBER: '${{ github.event.pull_request.number }}'
+          REF: '${{ github.ref }}'
+          REF_NAME: '${{ github.ref_name }}'
+        run: |
+          case "${EVENT_NAME}" in
+            pull_request)
+              # PR caches are merge-ref isolated. Restore this PR first, then
+              # use the trusted main cache as a read-only fallback.
+              scope="frontend-web-pr-${PR_NUMBER}"
+              cache_from="type=gha,scope=${scope}
+          type=gha,scope=frontend-web-main"
+              ;;
+            push)
+              # Only a push to main may update the trusted main cache. Keep
+              # this check even if the workflow trigger is widened later.
+              if [[ "${REF}" != 'refs/heads/main' ]]; then
+                echo "::error::Push cache writes are restricted to refs/heads/main."
+                exit 1
+              fi
+              scope='frontend-web-main'
+              cache_from="type=gha,scope=${scope}"
+              ;;
+            workflow_dispatch)
+              # Manual runs use a branch-local scope. Remove BuildKit CSV
+              # delimiter characters before embedding the branch in scope=.
+              safe_ref_name="$(printf '%s' "${REF_NAME}" | tr -c 'A-Za-z0-9._-' '-')"
+              scope="frontend-web-manual-${safe_ref_name}"
+              cache_from="type=gha,scope=${scope}
+          type=gha,scope=frontend-web-main"
+              ;;
+          esac
+          {
+            echo "scope=${scope}"
+            echo 'cache_from<<EOF'
+            echo "${cache_from}"
+            echo 'EOF'
+          } >> "${GITHUB_OUTPUT}"
+
       - name: 'Build frontend pnpm image'
         uses: 'docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8' # v6.19.2
         with:
@@ -99,11 +141,12 @@ jobs:
           target: 'web-pnpm-base'
           tags: 'nijigen-video-site-web-pnpm:local'
           load: true
+          push: false
           build-args: |
             NODE_VERSION=${{ steps.runtime_versions.outputs.node_version }}
             PNPM_VERSION=${{ steps.runtime_versions.outputs.pnpm_version }}
-          cache-from: 'type=gha,scope=frontend-web'
-          cache-to: 'type=gha,scope=frontend-web,mode=max'
+          cache-from: '${{ steps.buildkit_cache.outputs.cache_from }}'
+          cache-to: 'type=gha,scope=${{ steps.buildkit_cache.outputs.scope }},mode=max'
 
       - name: 'Initialize frontend dependency volumes'
         run: 'mise //frontend/docker:run --rm --no-deps web-init'

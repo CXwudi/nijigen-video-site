@@ -106,11 +106,11 @@ Retain CI performance without allowing PR-produced cache entries to become trust
 
 Task 1.
 
-- [ ] **Step 1:** Re-enable the frontend mise cache. Remove the comment that treats an ordinary `pull_request` cache as if it could overwrite the default-branch cache.
-- [ ] **Step 2:** Derive a BuildKit cache scope from trusted event fields: `frontend-web-main` for pushes to `main`, and `frontend-web-pr-<number>` for pull requests.
-- [ ] **Step 3:** Save BuildKit cache output only to the derived scope. For PR builds, restore the PR scope first and the read-only `frontend-web-main` scope as a fallback; for `main`, restore and save the main scope.
-- [ ] **Step 4:** Retain mise and Gradle caching in backend/docs workflows. Document in workflow comments only where useful that GitHub's native cache service applies merge-ref isolation to `pull_request` entries.
-- [ ] **Step 5:** Audit triggers and confirm that no workflow running untrusted repository code uses `pull_request_target`, `workflow_run`, `issue_comment`, or another privileged trigger. If such a trigger becomes necessary later, require a separate security design before sharing caches or checking out PR code.
+- [x] **Step 1:** Re-enable the frontend mise cache. Remove the comment that treats an ordinary `pull_request` cache as if it could overwrite the default-branch cache.
+- [x] **Step 2:** Derive a BuildKit cache scope from trusted event fields: `frontend-web-main` for pushes to `main`, `frontend-web-pr-<number>` for pull requests, and `frontend-web-manual-<sanitized-branch>` for manual runs.
+- [x] **Step 3:** Save BuildKit cache output only to the derived scope. For PR and manual builds, restore their isolated scope first and the read-only `frontend-web-main` scope as a fallback; for `main`, restore and save the main scope.
+- [x] **Step 4:** Retain mise and Gradle caching in backend/docs workflows. Document in workflow comments only where useful that GitHub's native cache service applies merge-ref isolation to `pull_request` entries.
+- [x] **Step 5:** Audit triggers and confirm that no workflow running untrusted repository code uses `pull_request_target`, `workflow_run`, `issue_comment`, or another privileged trigger. If such a trigger becomes necessary later, require a separate security design before sharing caches or checking out PR code.
 
 #### 2.4 Verification
 
