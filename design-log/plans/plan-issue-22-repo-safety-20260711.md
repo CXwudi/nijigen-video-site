@@ -263,11 +263,11 @@ Tasks 1 through 4.
 | [GitHub PR #33](https://github.com/CXwudi/nijigen-video-site/pull/33) | Merged while `SonarCloud Code Analysis` was failing, providing evidence that SonarQube Cloud is currently non-blocking. | Important |
 | [TanStack npm supply-chain compromise postmortem](https://tanstack.com/blog/npm-supply-chain-compromise-postmortem) | Describes the privileged PR, cache poisoning, and token-theft attack chain motivating the issue. | Must Read |
 | [TanStack hardening follow-up](https://tanstack.com/blog/incident-followup) | Identifies SHA pinning, cache controls, zizmor, and workflow ownership as follow-up controls. | Important |
-| ![Backend workflow](../../.github/workflows/backend-check.yml) | Contains mutable Action tags and enabled mise/Gradle caches. | Must Read |
-| ![Documentation workflow](../../.github/workflows/docs-link-check.yml) | Contains mutable Action tags and an enabled mise cache. | Important |
-| ![Frontend workflow](../../.github/workflows/frontend-check.yml) | Contains partial SHA pinning, disabled mise caching, and the shared BuildKit cache scope. | Must Read |
-| ![Renovate configuration](../../.github/renovate.json5) | Defines the shared schedule, one-day release age, broad dependency group, and current automerge behavior. | Must Read |
-| ![pnpm workspace policy](../../frontend/pnpm-workspace.yaml) | Restricts dependency lifecycle scripts and will own the explicit strict install cooldown. | Must Read |
+| [Backend workflow](../../.github/workflows/backend-check.yml) | Contains mutable Action tags and enabled mise/Gradle caches. | Must Read |
+| [Documentation workflow](../../.github/workflows/docs-link-check.yml) | Contains mutable Action tags and an enabled mise cache. | Important |
+| [Frontend workflow](../../.github/workflows/frontend-check.yml) | Contains partial SHA pinning, disabled mise caching, and the shared BuildKit cache scope. | Must Read |
+| [Renovate configuration](../../.github/renovate.json5) | Defines the shared schedule, one-day release age, broad dependency group, and current automerge behavior. | Must Read |
+| [pnpm workspace policy](../../frontend/pnpm-workspace.yaml) | Restricts dependency lifecycle scripts and will own the explicit strict install cooldown. | Must Read |
 | [GitHub secure-use reference](https://docs.github.com/en/actions/reference/security/secure-use) | Recommends full-length Action SHAs, least privilege, and safe handling of privileged triggers. | Must Read |
 | [GitHub dependency caching reference](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching) | Defines merge-ref cache isolation, low-trust cache behavior, and secure cache practices. | Must Read |
 | [GitHub Actions repository settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository) | Documents repository Action policies and default token permissions. | Important |

@@ -125,6 +125,11 @@ jobs:
               cache_from="type=gha,scope=${scope}
           type=gha,scope=frontend-web-main"
               ;;
+            *)
+              ## Unsupported event type. 
+              echo "::error::Unsupported event type: ${EVENT_NAME}"
+              exit 1
+              ;;
           esac
           {
             echo "scope=${scope}"
