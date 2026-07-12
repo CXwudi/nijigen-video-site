@@ -1,5 +1,10 @@
 packages:
   - web
+minimumReleaseAge: 1440
+# Fail resolution instead of falling back to a dependency version under 24 hours old.
+minimumReleaseAgeStrict: true
+# Fail when registry metadata has no publish time instead of bypassing the cooldown.
+minimumReleaseAgeIgnoreMissingTime: false
 allowBuilds:
   esbuild: true
   lightningcss: true
