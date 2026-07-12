@@ -6,7 +6,7 @@
 
 **Scope:** Includes immutable GitHub Action references, zizmor analysis, PR/main cache isolation, Renovate grouping and scheduling, an explicit strict 24-hour pnpm release age, and GitHub repository rules. It excludes CodeQL, CODEOWNERS, new container/tooling Renovate groups, release/publishing controls, and Gradle dependency verification.
 
-**Approach:** Pin every GitHub Action to a full commit SHA and let Renovate preserve readable version comments and update the digests. Add a required zizmor PR check, retain caches while separating PR-produced entries from `main`, align frontend/backend/CI Renovate groups on the existing twice-monthly schedule, and enable repository settings only after the corresponding committed controls are green. Give repository administrators a PR-only emergency bypass without permitting direct pushes to `main`.
+**Approach:** Pin every GitHub Action to a full commit SHA and let Renovate preserve readable version comments and update the digests. Add a required zizmor PR check, retain caches while separating PR-produced entries from `main`, align frontend/backend/CI Renovate groups on the existing twice-monthly schedule, and enable repository settings only after the corresponding committed controls are green. Give the repository owner a PR-only emergency bypass without permitting direct pushes to `main`.
 
 **Verification:** Validate workflow syntax and zizmor findings locally, validate Renovate and pnpm configuration, exercise PR and `main` cache behavior in GitHub Actions, confirm SonarQube Cloud continues reporting without gating merges, and inspect the live Actions policy and default-branch ruleset after rollout.
 
@@ -25,7 +25,7 @@
 - Make pnpm's 24-hour release age explicit and strict. Keep `allowBuilds` limited to the currently approved lifecycle-script packages.
 - Keep SonarQube Cloud as the general code-quality and security analyzer. Add zizmor for GitHub Actions-specific analysis and do not enable CodeQL.
 - Preserve SonarQube Cloud as a non-blocking informational check. PR #33 demonstrates the current behavior: it merged while `SonarCloud Code Analysis` was failing. Only zizmor becomes a required security check in this plan.
-- Keep the default branch usable by a single maintainer: require a PR but zero approving reviews. Give repository administrators `For pull requests only` bypass permission so an emergency PR can bypass rules without enabling direct pushes to `main`. Do not introduce mandatory CODEOWNERS review.
+- Keep the default branch usable by a single maintainer: require a PR but zero approving reviews. Give only the repository owner `For pull requests only` bypass permission so an emergency PR can bypass rules without enabling direct pushes to `main`. Do not introduce mandatory CODEOWNERS review.
 
 ## File and Setting Impact Map
 
@@ -37,7 +37,7 @@
 - `.github/renovate.json5`: enable Action digest pinning, split dependency groups, and retain the shared schedule, release age, and runtime exclusions.
 - `frontend/pnpm-workspace.yaml`: explicitly enforce the strict 24-hour install cooldown while retaining the lifecycle-script allowlist.
 - GitHub Actions settings: require SHA-pinned actions while retaining read-only default workflow permissions and disallowing Actions from approving PRs.
-- GitHub default-branch ruleset: require pull requests and the stable zizmor check while retaining deletion and non-fast-forward protections; leave SonarQube Cloud non-blocking and grant repository administrators PR-only bypass permission.
+- GitHub default-branch ruleset: require pull requests and the stable zizmor check while retaining deletion and non-fast-forward protections; leave SonarQube Cloud non-blocking and grant only the repository owner PR-only bypass permission.
 
 ## Task Steps
 
@@ -183,11 +183,11 @@ Make the committed controls mandatory on `main` without introducing a second-mai
 
 Tasks 1 through 3 merged to `main`, with a successful zizmor check and SonarQube Cloud still reporting its informational result.
 
-- [ ] **Step 1:** Confirm all workflows on `main`, including the new zizmor workflow, use full 40-character Action SHAs.
-- [ ] **Step 2:** Enable `sha_pinning_required` in the repository Actions policy. Keep default workflow permissions read-only and keep the ability for Actions to approve pull requests disabled.
-- [ ] **Step 3:** Export the complete existing `Default Rule` ruleset JSON as rollback evidence before editing it. Prefer the GitHub UI to add required pull requests with zero approving reviews and the repository administrator role with `For pull requests only` bypass mode. If using the REST API, construct and review a writable update-schema payload containing only accepted fields while preserving `name`, `target`, `enforcement`, `conditions`, every existing rule, and every existing bypass actor; do not submit the GET response because it contains read-only fields. Compare the post-update ruleset with the export to ensure no existing protection was removed.
-- [ ] **Step 4:** Require only the stable zizmor job. Keep `SonarCloud Code Analysis` informational, matching current behavior, and do not require path-filtered backend/frontend checks until they have an always-present aggregator because skipped required checks can block unrelated PRs.
-- [ ] **Step 5:** Open a small verification PR and prove that a failing zizmor check blocks an ordinary merge, a failing SonarQube Cloud check does not block merging, and a PR with the required zizmor check green can be merged by the sole maintainer without another approval. Confirm that the repository administrator can explicitly bypass rules from the PR when handling an emergency.
+- [x] **Step 1:** Confirm all workflows on `main`, including the new zizmor workflow, use full 40-character Action SHAs.
+- [x] **Step 2:** Enable `sha_pinning_required` in the repository Actions policy. Keep default workflow permissions read-only and keep the ability for Actions to approve pull requests disabled.
+- [x] **Step 3:** Export the complete existing `Default Rule` ruleset JSON as rollback evidence before editing it. Prefer the GitHub UI to add required pull requests with zero approving reviews and the repository owner with `For pull requests only` bypass mode. If using the REST API, construct and review a writable update-schema payload containing only accepted fields while preserving `name`, `target`, `enforcement`, `conditions`, every existing rule, and every existing bypass actor; do not submit the GET response because it contains read-only fields. Compare the post-update ruleset with the export to ensure no existing protection was removed.
+- [x] **Step 4:** Require only the stable zizmor job. Keep `SonarCloud Code Analysis` informational, matching current behavior, and do not require path-filtered backend/frontend checks until they have an always-present aggregator because skipped required checks can block unrelated PRs.
+- [ ] **Step 5:** Open a small verification PR and prove that a failing zizmor check blocks an ordinary merge, a failing SonarQube Cloud check does not block merging, and a PR with the required zizmor check green can be merged by the sole maintainer without another approval. Confirm that the repository owner can explicitly bypass rules from the PR when handling an emergency.
 
 #### 4.4 Verification
 
@@ -196,7 +196,7 @@ Tasks 1 through 3 merged to `main`, with a successful zizmor check and SonarQube
 - Run: `gh api repos/CXwudi/nijigen-video-site/actions/permissions/workflow`
 - Expect: `default_workflow_permissions` is `read` and `can_approve_pull_request_reviews` is `false`.
 - Run: `gh api repos/CXwudi/nijigen-video-site/rulesets/8850102 > /tmp/issue-22-ruleset-after.json`
-- Expect: the active default-branch ruleset retains deletion/non-fast-forward rules, requires pull requests with zero approvals, requires only the stable zizmor check, and grants repository administrators `pull_request` bypass mode; SonarQube Cloud is absent from required status checks.
+- Expect: the active default-branch ruleset retains deletion/non-fast-forward rules, requires pull requests with zero approvals, requires only the stable zizmor check, and grants only the repository owner `pull_request` bypass mode; SonarQube Cloud is absent from required status checks.
 - Attempt to add an Action tag in a test branch and run the workflow.
 - Expect: repository policy rejects the unpinned Action, and zizmor also reports the violation.
 - Inspect the effective ruleset JSON, ruleset insights, and verification PR merge box without attempting a direct push to `main`.
