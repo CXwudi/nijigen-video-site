@@ -68,13 +68,13 @@ The `CI Gate` job must use `if: always()` with `needs` covering change detection
 | Selected frontend check | `success` |
 | Non-selected frontend check | `skipped` |
 
-Any `failure`, `cancelled`, missing selection output, or mismatch between selection and result fails the gate. Requiring `skipped` for a non-selected component proves that it was intentionally omitted rather than silently accepted in an unexpected state.
+Any `failure`, `cancelled`, missing selection output, or mismatch between selection and result prevents the gate from succeeding. Requiring `skipped` for a non-selected component proves that it was intentionally omitted rather than silently accepted in an unexpected state.
 
 ### Permissions and secrets
 
 Set top-level workflow permissions to none and grant permissions per job. The change detector receives `contents: read` and `pull-requests: read`; each of the four caller jobs explicitly receives `contents: read`, and the called jobs retain the same or narrower permissions; the gate receives no repository permissions. A called workflow cannot elevate permissions removed by its caller.
 
-Declare `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` as optional `workflow_call` secrets only in the backend and frontend reusable workflows, then pass those two secrets explicitly from the caller. Do not use `secrets: inherit`, because the component checks do not need every repository secret.
+Declare `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` as required `workflow_call` secrets in the backend workflow and optional secrets in the frontend workflow, preserving their existing credential policies. Pass only those two secrets explicitly from the caller. Do not use `secrets: inherit`, because the component checks do not need every repository secret.
 
 ### Concurrency
 
@@ -109,7 +109,7 @@ Create the complete aggregate workflow and reusable check boundaries without rem
 3. Define the path lists from the Path selection table. Include `.github/workflows/ci.yml` in both filters so a change to selection or gate logic runs both component suites.
 4. Convert documentation, backend, and frontend workflows to `workflow_call` only. Remove their automatic triggers and concurrency blocks without changing their check steps.
 5. Add `workflow_call` to the Actions security workflow but retain its existing automatic triggers as a temporary migration bridge. Remove its local concurrency block so concurrency is owned by the aggregate caller.
-6. Define the two Docker Hub secrets as optional reusable-workflow secrets in backend and frontend. Pass only those named secrets from the top-level caller.
+6. Define the two Docker Hub secrets as required reusable-workflow secrets in backend and optional secrets in frontend. Pass only those named secrets from the top-level caller.
 7. Add caller jobs for all four reusable workflows and explicitly grant each caller job `contents: read`, because the top-level default denies all permissions. Actions security and documentation run unconditionally; backend and frontend use the detector outputs in job-level `if` expressions.
 8. Add the `CI Gate` job with `if: always()`, every upstream job in `needs`, no repository permissions, and a short shell function that enforces the Gate contract table.
 9. Under the existing `docs/README.md` structure heading, document the top-level workflow, always-run checks, exact backend/frontend path groups, manual runs selecting both components, and gate result rules. Identify the duplicate standalone Actions security run as a temporary migration bridge without adding or changing headings.
@@ -214,9 +214,9 @@ Review the recorded pull request runs, final workflow files, documentation, and 
 
 #### Step 5 verification
 
-- Backend-only changes run backend; a backend failure or cancellation makes `CI Gate` fail.
+- Backend-only changes run backend; a backend failure or cancellation leaves `CI Gate` non-successful and blocks merging.
 - Non-backend changes skip backend without preventing a successful `CI Gate`.
-- Frontend-only changes run frontend; a frontend failure or cancellation makes `CI Gate` fail.
+- Frontend-only changes run frontend; a frontend failure or cancellation leaves `CI Gate` non-successful and blocks merging.
 - Non-frontend changes skip frontend without preventing a successful `CI Gate`.
 - Shared or orchestration changes run both component checks and require both to succeed.
 - Actions security and documentation checks run and are aggregated on every pull request.

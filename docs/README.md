@@ -20,6 +20,7 @@ folders linked below.
   - Actions security and documentation link checks always run.
   - Backend checks run for `.github/workflows/ci.yml`, `.github/workflows/backend-check.yml`, `backend/**`, `infra/compose/**`, `infra/flyway/**`, `mise.toml`, and `backend/docker/mise.toml` changes.
   - Frontend checks run for `.github/workflows/ci.yml`, `.github/workflows/frontend-check.yml`, `frontend/**`, `infra/compose/**`, `infra/flyway/**`, and `mise.toml` changes.
+  - Backend checks require Docker Hub credentials. Frontend checks log in when both credentials are available and fail when only one is configured.
   - Manual runs select both backend and frontend checks.
-  - `CI Gate` succeeds only when change detection and both always-run checks succeed, each selected component succeeds, and each unselected component is skipped. Failures, cancellations, missing selections, and unexpected results fail the gate.
+  - `CI Gate` succeeds only when change detection and both always-run checks succeed, each selected component succeeds, and each unselected component is skipped. Failures, cancellations, missing selections, and unexpected results prevent a successful gate.
   - `Actions Security Check` also runs independently during the required-check migration. This temporary compatibility trigger will be removed after the ruleset requires `CI Gate`.
