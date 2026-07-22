@@ -1,29 +1,12 @@
 name: 'Backend Check'
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/backend-check.yml'
-      - 'backend/**'
-      - 'infra/compose/**'
-      - 'infra/flyway/**'
-      - 'mise.toml'
-      - 'backend/docker/mise.toml'
-  push:
-    paths:
-      - '.github/workflows/backend-check.yml'
-      - 'backend/**'
-      - 'infra/compose/**'
-      - 'infra/flyway/**'
-      - 'mise.toml'
-      - 'backend/docker/mise.toml'
-    branches:
-      - 'main'
-  workflow_dispatch:
-
-concurrency:
-  group: '${{ github.workflow }}-${{ github.ref }}'
-  cancel-in-progress: true
+  workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
 
 defaults:
   run:
