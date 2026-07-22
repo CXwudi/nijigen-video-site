@@ -149,7 +149,7 @@ Task 1.
 - [x] **Step 4:** Preserve `:automergeMinor` and `:automergeBranch`, including for CI Actions. Do not add blanket major-version or digest automerge; required checks and the one-day release age must pass before eligible version updates merge.
 - [x] **Step 5:** Retain the existing manual JDK, Node.js, and pnpm runtime-version rules. Do not add a container/tooling group; unrelated detected dependencies remain ungrouped.
 - [x] **Step 6:** Add `minimumReleaseAge: 1440`, `minimumReleaseAgeStrict: true`, and `minimumReleaseAgeIgnoreMissingTime: false` to `frontend/pnpm-workspace.yaml`. Keep the `allowBuilds` entries for `esbuild` and `lightningcss` unchanged.
-- [ ] **Step 7:** Let Renovate open or refresh its pin-digest PR and verify that each Action receives a full SHA plus a parseable release comment before enabling server-side SHA enforcement.
+- [x] **Step 7:** Let Renovate open or refresh its pin-digest PR and verify that each Action receives a full SHA plus a parseable release comment before enabling server-side SHA enforcement.
 
 #### 3.4 Verification
 
@@ -222,10 +222,10 @@ Confirm the controls work together and leave issue #22 with evidence that future
 
 Tasks 1 through 4.
 
-- [ ] **Step 1:** Run all local workflow, zizmor, Renovate, pnpm, and documentation-link validations from prior tasks.
-- [ ] **Step 2:** Confirm the verification PR receives successful required zizmor and all path-relevant application checks, while SonarQube Cloud reports a result without becoming a merge requirement.
-- [ ] **Step 3:** Validate and review the resolved Renovate policy: the GitHub Actions manager must inherit SHA pinning, the shared schedule, strict one-day release age, and minor/patch automerge, while digest and major updates remain manual. Record the next natural CI Action automerge as follow-up evidence rather than requiring an eligible upstream release to complete issue #22.
-- [ ] **Step 4:** Mark completed plan items, record any intentional deviations in the implementation PR, and update issue #22 with links to the merged PR and live ruleset.
+- [x] **Step 1:** Run all local workflow, zizmor, Renovate, pnpm, and documentation-link validations from prior tasks.
+- [x] **Step 2:** Confirm the verification PR receives successful required zizmor and all path-relevant application checks, while SonarQube Cloud reports a result without becoming a merge requirement.
+- [x] **Step 3:** Validate and review the resolved Renovate policy: the GitHub Actions manager must inherit SHA pinning, the shared schedule, strict one-day release age, and minor/patch automerge, while digest and major updates remain manual. Record the next natural CI Action automerge as follow-up evidence rather than requiring an eligible upstream release to complete issue #22.
+- [x] **Step 4:** Mark completed plan items, record any intentional deviations in the implementation PR, and update issue #22 with links to the merged PR and live ruleset.
 
 #### 5.4 Verification
 
