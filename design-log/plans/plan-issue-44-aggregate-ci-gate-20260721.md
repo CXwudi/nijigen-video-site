@@ -155,7 +155,7 @@ Use short-lived pull requests targeting the implementation branch so they exerci
 - Keep deliberate failures only on short-lived verification branches and revert them before merging.
 - A skipped job can appear successful in the pull request UI; inspect `needs.<job>.result` behavior through the gate logs, where the expected value is `skipped`.
 
-### [ ] Step 3: Switch the default-branch ruleset to `CI Gate`
+### [x] Step 3: Switch the default-branch ruleset to `CI Gate`
 
 Replace the old required check only after the new stable check has demonstrated all acceptance scenarios.
 
@@ -179,7 +179,7 @@ Replace the old required check only after the new stable check has demonstrated 
 - Do not remove the compatibility trigger before this step is complete; doing so could leave the old required check permanently pending.
 - Keep Actions SHA pinning and read-only default workflow permissions unchanged.
 
-### [ ] Step 4: Remove the compatibility trigger and finalize the design
+### [x] Step 4: Remove the compatibility trigger and finalize the design
 
 Finish the one-entrypoint architecture after the ruleset safely depends on the aggregate gate.
 
@@ -199,7 +199,7 @@ Finish the one-entrypoint architecture after the ruleset safely depends on the a
 - Manually dispatch the top-level workflow. Expect both component outputs to be forced to `true`, all four checks to run, and `CI Gate` to succeed only after all four checks succeed.
 - Inspect the Actions run list after merging. Expect no duplicate standalone Actions security, documentation, backend, or frontend automatic runs.
 
-### [ ] Step 5: Perform final acceptance verification
+### [x] Step 5: Perform final acceptance verification
 
 Confirm the repository matches every issue #44 acceptance criterion in its final state.
 
