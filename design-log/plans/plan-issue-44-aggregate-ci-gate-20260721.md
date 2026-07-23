@@ -126,7 +126,7 @@ Create the complete aggregate workflow and reusable check boundaries without rem
 - Do not move all implementation steps into `ci.yml`; keeping the existing workflows reusable keeps files below the project size limit and preserves component ownership.
 - The temporary duplicate Actions security run is intentional and must be removed in Step 4.
 
-### [ ] Step 2: Validate the path and failure matrix in pull requests
+### [x] Step 2: Validate the path and failure matrix in pull requests
 
 Prove the aggregate behavior on GitHub before making it the required branch gate.
 
