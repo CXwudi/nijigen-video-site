@@ -63,6 +63,9 @@ jobs:
       - name: 'Render frontend Compose stack'
         run: 'mise //frontend/docker:config-check'
 
+      - name: 'Deliberate Issue 44 verification failure'
+        run: 'exit 1'
+
       - name: 'Resolve frontend runtime versions'
         id: 'runtime_versions'
         run: |
