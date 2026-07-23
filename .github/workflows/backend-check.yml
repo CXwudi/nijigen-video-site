@@ -67,6 +67,9 @@ jobs:
       - name: 'Render backend Compose stack'
         run: 'mise //backend/docker:config-check'
 
+      - name: 'Deliberate Issue 44 verification failure'
+        run: 'exit 1'
+
       - name: 'Run api test'
         run: 'mise //backend/docker:run --rm api :apps:api:test'
 
