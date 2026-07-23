@@ -1,27 +1,12 @@
 name: 'Frontend Check'
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/frontend-check.yml'
-      - 'frontend/**'
-      - 'infra/compose/**'
-      - 'infra/flyway/**'
-      - 'mise.toml'
-  push:
-    paths:
-      - '.github/workflows/frontend-check.yml'
-      - 'frontend/**'
-      - 'infra/compose/**'
-      - 'infra/flyway/**'
-      - 'mise.toml'
-    branches:
-      - 'main'
-  workflow_dispatch:
-
-concurrency:
-  group: '${{ github.workflow }}-${{ github.ref }}'
-  cancel-in-progress: true
+  workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
 
 defaults:
   run:
@@ -59,6 +44,7 @@ jobs:
             echo "::notice::Docker Hub credentials are unavailable; skipping login."
             exit 0
           fi
+          # A partial pair cannot authenticate and indicates a configuration error.
           if [[ -z "${DOCKERHUB_USERNAME}" || -z "${DOCKERHUB_TOKEN}" ]]; then
             echo "::error::Both DOCKERHUB_USERNAME and DOCKERHUB_TOKEN must be configured when either is set."
             exit 1
