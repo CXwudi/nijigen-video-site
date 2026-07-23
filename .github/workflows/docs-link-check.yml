@@ -29,3 +29,6 @@ jobs:
 
       - name: 'Check local Markdown links'
         run: 'mise //:docs-link-check'
+
+      - name: 'Deliberate CI Gate verification failure'
+        run: 'exit 1'
