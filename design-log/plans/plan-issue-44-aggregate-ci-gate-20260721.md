@@ -18,7 +18,7 @@ Assumptions:
 - Preserve manual CI through the top-level workflow and run both component checks for a manual dispatch because there is no pull request change set to classify.
 - Preserve the current backend and frontend path scopes, adding the top-level CI workflow itself to both scopes so orchestration changes exercise both components.
 - Do not add merge queue support because the repository does not currently use a merge queue. Add `merge_group` in a separate change if that setting is enabled later.
-- Document the CI contract under the existing `docs/README.md` headings; do not create or change documentation headings.
+- Keep the CI contract in this implementation plan; do not add workflow details to the documentation structure index.
 
 ## Approach
 
@@ -74,7 +74,7 @@ Any `failure`, `cancelled`, missing selection output, or mismatch between select
 
 Set top-level workflow permissions to none and grant permissions per job. The change detector receives `contents: read` and `pull-requests: read`; each of the four caller jobs explicitly receives `contents: read`, and the called jobs retain the same or narrower permissions; the gate receives no repository permissions. A called workflow cannot elevate permissions removed by its caller.
 
-Declare `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` as required `workflow_call` secrets in the backend workflow and optional secrets in the frontend workflow, preserving their existing credential policies. Pass only those two secrets explicitly from the caller. Do not use `secrets: inherit`, because the component checks do not need every repository secret.
+Declare `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` as optional `workflow_call` secrets in both component workflows. Each check logs in when both secrets are available, continues with anonymous pulls when neither is available, and fails when only one is configured. A partial pair cannot authenticate and indicates that an intended credential is missing; silently falling back would hide the configuration error and unexpectedly expose CI to anonymous pull rate limits. Pass only those two secrets explicitly from the caller. Do not use `secrets: inherit`, because the component checks do not need every repository secret.
 
 ### Concurrency
 
@@ -87,7 +87,6 @@ Keep the existing `${{ github.workflow }}-${{ github.ref }}` concurrency policy 
 - Modify `.github/workflows/docs-link-check.yml` to be reusable only.
 - Modify `.github/workflows/backend-check.yml` to be reusable and declare its two Docker Hub secrets.
 - Modify `.github/workflows/frontend-check.yml` to be reusable and declare its two Docker Hub secrets.
-- Modify `docs/README.md` under its existing structure heading to document the top-level workflow, path mapping, gate behavior, and manual-run behavior.
 - Modify the external GitHub `Default Rule` ruleset only after `CI Gate` has been observed and validated.
 
 ## Steps
@@ -107,12 +106,11 @@ Create the complete aggregate workflow and reusable check boundaries without rem
 1. Add `.github/workflows/ci.yml` with `pull_request`, push-to-`main`, and `workflow_dispatch` triggers. Move the current workflow-level concurrency policy to this file and set workflow permissions to none by default.
 2. Add a change-detection job using the existing pinned checkout Action and `dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2`. Publish `backend` and `frontend` string outputs. Force both outputs to `true` for `workflow_dispatch`.
 3. Define the path lists from the Path selection table. Include `.github/workflows/ci.yml` in both filters so a change to selection or gate logic runs both component suites.
-4. Convert documentation, backend, and frontend workflows to `workflow_call` only. Remove their automatic triggers and concurrency blocks without changing their check steps.
+4. Convert documentation, backend, and frontend workflows to `workflow_call` only. Remove their automatic triggers and concurrency blocks, retaining their check steps except for the credential behavior in the following item.
 5. Add `workflow_call` to the Actions security workflow but retain its existing automatic triggers as a temporary migration bridge. Remove its local concurrency block so concurrency is owned by the aggregate caller.
-6. Define the two Docker Hub secrets as required reusable-workflow secrets in backend and optional secrets in frontend. Pass only those named secrets from the top-level caller.
+6. Define the two Docker Hub secrets as optional reusable-workflow secrets in backend and frontend. In each workflow, log in when both are available, continue anonymously when neither is available, and fail when only one is configured. Pass only those named secrets from the top-level caller.
 7. Add caller jobs for all four reusable workflows and explicitly grant each caller job `contents: read`, because the top-level default denies all permissions. Actions security and documentation run unconditionally; backend and frontend use the detector outputs in job-level `if` expressions.
 8. Add the `CI Gate` job with `if: always()`, every upstream job in `needs`, no repository permissions, and a short shell function that enforces the Gate contract table.
-9. Under the existing `docs/README.md` structure heading, document the top-level workflow, always-run checks, exact backend/frontend path groups, manual runs selecting both components, and gate result rules. Identify the duplicate standalone Actions security run as a temporary migration bridge without adding or changing headings.
 
 #### Step 1 verification
 
@@ -191,13 +189,12 @@ Finish the one-entrypoint architecture after the ruleset safely depends on the a
 
 1. Change `.github/workflows/actions-security-check.yml` to `workflow_call` only, removing the temporary `pull_request`, push-to-`main`, and `workflow_dispatch` triggers.
 2. Search all workflow files and confirm `.github/workflows/ci.yml` is the only workflow with automatic pull request and `main` push triggers.
-3. Remove the temporary migration-bridge wording from `docs/README.md` and verify the remaining content describes the final one-entrypoint design. Do not add or alter headings.
-4. Record final validation links and ruleset evidence in issue #44. Do not modify this plan after it has been merged; create a new design-log document if repository-local follow-up history is needed.
+3. Record final validation links and ruleset evidence in issue #44. Do not modify this plan after it has been merged; create a new design-log document if repository-local follow-up history is needed.
 
 #### Step 4 verification
 
 - Run actionlint, zizmor, the full-SHA search, and `mise //:docs-link-check`.
-- Open a documentation-only cleanup pull request and expect exactly one aggregate workflow run, successful security and documentation jobs, skipped component jobs, and a successful required `CI Gate`.
+- Open the compatibility-trigger cleanup pull request and expect exactly one aggregate workflow run, successful security and documentation jobs, skipped component jobs, and a successful required `CI Gate`.
 - Inspect the push-to-`main` run created by merging the cleanup pull request. Expect change detection to complete, both non-applicable component jobs to skip, and `CI Gate` to succeed.
 - Manually dispatch the top-level workflow. Expect both component outputs to be forced to `true`, all four checks to run, and `CI Gate` to succeed only after all four checks succeed.
 - Inspect the Actions run list after merging. Expect no duplicate standalone Actions security, documentation, backend, or frontend automatic runs.
@@ -225,7 +222,7 @@ Review the recorded pull request runs, final workflow files, documentation, and 
 - A manual dispatch intentionally runs both component checks and still reports `CI Gate`.
 - The `Default Rule` ruleset requires only `CI Gate` from GitHub Actions.
 - All workflow permissions remain least-privilege and every third-party Action remains pinned to a full commit SHA.
-- `docs/README.md` accurately describes path selection, manual behavior, and gate semantics.
+- The repository design record accurately describes path selection, manual behavior, and gate semantics.
 
 ## Risks and guardrails
 
@@ -233,9 +230,9 @@ Review the recorded pull request runs, final workflow files, documentation, and 
 - Concurrency collision: do not retain identical concurrency blocks in reusable workflows. The caller owns cancellation for the complete aggregate run.
 - False-positive gate: do not treat `skipped` as universally acceptable. It is acceptable only when the matching path output is exactly `false`.
 - False-negative gate: `CI Gate` must use `if: always()` as a job condition; otherwise an upstream failure can skip the gate entirely.
-- Secret expansion: pass only the two Docker Hub secrets to component workflows and preserve the current backend/frontend credential behavior.
+- Secret expansion: pass only the two Docker Hub secrets to component workflows. Keep login optional in both checks, but reject partial credential configuration.
 - Ruleset overwrite: preserve all unrelated rules and bypass actors when replacing the required status context.
-- Path drift: keep the path definitions centralized in the top-level workflow and update `docs/README.md` in the same change whenever they change.
+- Path drift: keep the path definitions centralized in the top-level workflow and record later selection changes in a follow-up design-log document.
 
 ## References
 

@@ -44,6 +44,7 @@ jobs:
             echo "::notice::Docker Hub credentials are unavailable; skipping login."
             exit 0
           fi
+          # A partial pair cannot authenticate and indicates a configuration error.
           if [[ -z "${DOCKERHUB_USERNAME}" || -z "${DOCKERHUB_TOKEN}" ]]; then
             echo "::error::Both DOCKERHUB_USERNAME and DOCKERHUB_TOKEN must be configured when either is set."
             exit 1

@@ -4,9 +4,9 @@ on:
   workflow_call:
     secrets:
       DOCKERHUB_USERNAME:
-        required: true
+        required: false
       DOCKERHUB_TOKEN:
-        required: true
+        required: false
 
 defaults:
   run:
@@ -44,12 +44,18 @@ jobs:
 
       - name: 'Validate Docker Hub credentials'
         run: |
+          if [[ -z "${DOCKERHUB_USERNAME}" && -z "${DOCKERHUB_TOKEN}" ]]; then
+            echo "::notice::Docker Hub credentials are unavailable; skipping login."
+            exit 0
+          fi
+          # A partial pair cannot authenticate and indicates a configuration error.
           if [[ -z "${DOCKERHUB_USERNAME}" || -z "${DOCKERHUB_TOKEN}" ]]; then
-            echo "::error::DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets must be configured."
+            echo "::error::Both DOCKERHUB_USERNAME and DOCKERHUB_TOKEN must be configured when either is set."
             exit 1
           fi
 
       - name: 'Login to Docker Hub'
+        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
         uses: 'docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0' # v4.4.0
         with:
           username: '${{ env.DOCKERHUB_USERNAME }}'
