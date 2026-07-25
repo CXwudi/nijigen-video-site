@@ -37,9 +37,11 @@ The Backend API is intended for public use, so need to allow different external 
 
 ## Decision
 
-Use **ZITADEL** as the IdP and issue opaque bearer access tokens. Initially, each Spring resource server will authenticate requests by calling ZITADEL's token-introspection endpoint. Introspection results may be cached briefly, never beyond token expiration.
+Use **ZITADEL** as the IdP and issue opaque bearer access tokens. Initially, each Spring resource server will call ZITADEL's token-introspection endpoint using a private-key JWT client assertion. It will accept only active tokens whose audience includes the resource server and whose scopes and roles authorize the requested operation.
 
-Do not introduce an API gateway at the beginning. Only add it when it worth to do so, like multiple APIs, have extra time for refactoring, etc. Right now speed is first.
+Positive introspection results may be cached by a hash of the opaque token for at most 30 seconds and never beyond token expiration. Revocation may therefore take up to 30 seconds to affect a cached token. Resource servers requiring immediate revocation must disable positive-result caching.
+
+Do not introduce an API gateway at the beginning. Only add it when it is worth doing so, such as when the project has multiple APIs or time for the refactoring. Right now speed is first.
 
 ### Bootstrapping ZITADEL in our Docker Compose setup
 
@@ -57,7 +59,7 @@ Authelia supports opaque tokens and offers simple YAML configuration, but it is 
 
 ### Logto
 
-Logto issues JWTs for registered API resources. Its opaque organization tokens are tied to organization-specific authorization and do not satisfy the general public API resource-token requirement.
+Logto issues opaque general-purpose access tokens by default when no resource indicator is requested. Requesting a registered API resource produces a JWT, and organization tokens are also JWT-only, so Logto does not satisfy the opaque public-API resource-token requirement.
 
 ### Ory
 
@@ -69,4 +71,4 @@ See more in [Opaque Token Support in LobeHub-Listed Self-Hostable Open-Source Id
 
 ## Consequences
 
-Token validation adds a runtime dependency and network call to ZITADEL, so the backend thoughput is now bottlenecking by the idP. However, the architecture can later adopt a gateway with caching or etc. to boost performance, without changing the external token model. In return, token state and revocation remain centralized, token claims are not exposed to clients
+Token validation adds a runtime dependency and network call to ZITADEL, so IdP latency, availability, and throughput become part of the backend request path. A gateway with introspection caching and horizontal scaling can later reduce this cost without changing the external token model. In return, token state and revocation remain centralized within the documented cache window, and access-token claims are not exposed to clients.

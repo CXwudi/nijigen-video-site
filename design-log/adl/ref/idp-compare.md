@@ -1,6 +1,6 @@
 # Opaque Token Support in LobeHub-Listed Self-Hostable Open-Source IdPs
 
-Below is a per-IdP assessment across three dimensions: **OAuth 2.0/OIDC support**, **true opaque/reference access token support**, and **practical automation/config-as-code or API support**.
+Below is a per-IdP assessment of **OAuth 2.0/OIDC support**, **access-token format and behavior**, **token introspection**, and **practical automation/config-as-code or API support**.
 
 ---
 
