@@ -26,8 +26,14 @@ Initially:
 
 ```mermaid
 flowchart LR
-    C[Third-party client / mobile app] -->|Opaque bearer token| A[Spring API]
-    A -->|Introspect token| Z[ZITADEL]
+    C[Third-party client / mobile app]
+    Z[ZITADEL]
+    A[Spring API]
+
+    C -->|Authorization Code + PKCE| Z
+    Z -->|Opaque access token| C
+    C -->|Opaque bearer token| A
+    A -->|Introspect token| Z
     Z -->|active, sub, aud, scopes, exp| A
 ```
 
