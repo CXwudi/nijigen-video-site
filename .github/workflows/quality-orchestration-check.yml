@@ -1,4 +1,4 @@
-name: 'CI'
+name: 'Quality Checks'
 
 on:
   pull_request:
@@ -41,7 +41,7 @@ jobs:
         with:
           filters: |
             backend:
-              - '.github/workflows/ci.yml'
+              - '.github/workflows/quality-orchestration-check.yml'
               - '.github/workflows/backend-check.yml'
               - 'backend/**'
               - 'infra/compose/**'
@@ -49,7 +49,7 @@ jobs:
               - 'mise.toml'
               - 'backend/docker/mise.toml'
             frontend:
-              - '.github/workflows/ci.yml'
+              - '.github/workflows/quality-orchestration-check.yml'
               - '.github/workflows/frontend-check.yml'
               - 'frontend/**'
               - 'infra/compose/**'
@@ -99,8 +99,8 @@ jobs:
       DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
       DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}'
 
-  ci-gate:
-    name: 'CI Gate'
+  final-gate:
+    name: 'Final Gate'
     runs-on: 'ubuntu-latest'
     timeout-minutes: 5
     permissions: {}
