@@ -1,5 +1,7 @@
 # 0002 - Messaging Broker Choice
 
+**Superseded by:** [ADL-007](./007-rethinking-messaging-broker-pulsar-vs-rocketmq.md)
+
 We triggered a Gemini Deep Research between AutoMQ, RabbitMQ, Apache Pulsar, and
 Apache RocketMQ for the messaging broker choice, given the content of
 [001 - Project Structure Baseline](001-project-structure-baseline.md).
