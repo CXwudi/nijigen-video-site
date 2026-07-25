@@ -37,11 +37,11 @@ The Backend API is intended for public use, so need to allow different external 
 
 ## Decision
 
-Use **ZITADEL** as the IdP and issue opaque bearer access tokens. Initially, each Spring resource server will call ZITADEL's token-introspection endpoint using a private-key JWT client assertion. It will accept only active tokens whose audience includes the resource server and whose scopes and roles authorize the requested operation.
-
-Positive introspection results may be cached by a hash of the opaque token for at most 30 seconds and never beyond token expiration. Revocation may therefore take up to 30 seconds to affect a cached token. Resource servers requiring immediate revocation must disable positive-result caching.
+Use **ZITADEL** as the IdP and issue opaque bearer access tokens. Initially, each Spring resource server will call ZITADEL's token-introspection endpoint.
 
 Do not introduce an API gateway at the beginning. Only add it when it is worth doing so, such as when the project has multiple APIs or time for the refactoring. Right now speed is first.
+
+As a middle ground, a 10-second caching of positive introspection results can be applied at the Spring resource server, given if redis setup is already there. This is fairly easy to achieve compared to adding an API gateway, with a trade-off of losing 10 seconds of immediate revocation. However, at the beginning when implementing, no caching first, only add when the first complete setup is in.
 
 ### Bootstrapping ZITADEL in our Docker Compose setup
 
