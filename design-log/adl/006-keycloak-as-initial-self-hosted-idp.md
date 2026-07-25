@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-05-09
+- **Superseded by:** [ADL-008](./008-zitadel-with-opaque-token-introspection.md)
 - **Related:** [ADL-005](./005-separate-databases-for-idp-and-api.md)
 
 ## Context
