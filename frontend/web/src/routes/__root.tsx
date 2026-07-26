@@ -1,4 +1,5 @@
 import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
+import { getLocale, getTextDirection } from '#/paraglide/runtime.js'
 
 import type { RouterContext } from '../router'
 import appCss from '../styles.css?url'
@@ -29,7 +30,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootDocument({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang={getLocale()} dir={getTextDirection()}>
       <head>
         <HeadContent />
       </head>
