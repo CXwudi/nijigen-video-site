@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": ["src/routeTree.gen.ts"],
+  "ignorePatterns": ["src/routeTree.gen.ts", "src/paraglide/**"],
   "plugins": ["jsx-a11y", "oxc", "react", "typescript", "unicorn", "vitest"],
   "env": {
     "browser": true,

@@ -1,0 +1,12 @@
+{
+  "app_name": "Nijigen Video",
+  "home_heading": "工作区",
+  "home_new_upload": "新建上传",
+  "home_stat_anime_clips": "动画片段",
+  "home_stat_character_edits": "角色剪辑",
+  "home_stat_uploads_waiting": "待上传",
+  "home_review_queue_heading": "审核队列",
+  "home_review_queue_empty": "暂无视频等待审核。",
+  "home_review_queue_badge_empty": "空",
+  "language_switcher_label": "语言"
+}
