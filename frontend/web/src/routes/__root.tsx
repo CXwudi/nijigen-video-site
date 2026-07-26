@@ -1,5 +1,6 @@
 import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
 import { getLocale, getTextDirection } from '#/paraglide/runtime.js'
+import * as m from '#/paraglide/messages.js'
 
 import type { RouterContext } from '../router'
 import appCss from '../styles.css?url'
@@ -15,7 +16,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Nijigen Video',
+        title: m.app_name(),
       },
     ],
     links: [
