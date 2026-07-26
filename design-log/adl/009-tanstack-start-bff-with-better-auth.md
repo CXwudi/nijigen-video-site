@@ -18,9 +18,9 @@ Use TanStack Start as a backend for frontend (BFF) for the first-party web appli
 
 Run Better Auth inside the TanStack Start server runtime. Better Auth will:
 
-- initiate and complete the ZITADEL OIDC authorization-code flow with PKCE;
-- maintain the web application's server-side session;
-- persist session data, ZITADEL opaque access tokens, and ZITADEL refresh tokens in a server-side database; and
+- initiate and complete the ZITADEL OIDC authorization-code flow with PKCE.
+- maintain the web application's server-side session.
+- persist session data, ZITADEL opaque access tokens, and ZITADEL refresh tokens in a server-side database.
 - give the browser only an HttpOnly application-session cookie.
 
 ZITADEL opaque access tokens and refresh tokens must not be exposed to browser JavaScript. The Better Auth application-session cookie is a separate browser credential and is not a ZITADEL opaque access token.
