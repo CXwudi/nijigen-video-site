@@ -8,44 +8,29 @@
  *
  * ## Flow
  *
- * 1. `defineCustomServerStrategy` registers the cookie / `Accept-Language`
- *    resolver from `#/i18n/request-locale` once at module init.
- * 2. `createStartHandler(defaultStreamHandler)` creates the standard TanStack
+ * 1. `createStartHandler(defaultStreamHandler)` creates the standard TanStack
  *    Start request → Response pipeline.
- * 3. The exported `fetch` wraps that pipeline with `paraglideMiddleware`,
- *    which runs the custom strategy, resolves the locale, and invokes the
- *    Start handler inside the request's `AsyncLocalStorage` context.
- * 4. The original request and any additional TanStack handler arguments
+ * 2. The exported `fetch` wraps that pipeline with `paraglideMiddleware`,
+ *    which resolves the locale using the compiled built-in strategy order
+ *    (`cookie` → `preferredLanguage` → `baseLocale`) and invokes the Start
+ *    handler inside the request's `AsyncLocalStorage` context.
+ * 3. The original request and any additional TanStack handler arguments
  *    (e.g. early hints, inline CSS options) are forwarded unchanged.
- * 5. `applyHtmlLocaleHeaders` adds cache-safety headers to every HTML
+ * 4. `applyHtmlLocaleHeaders` adds cache-safety headers to every HTML
  *    response; non-HTML responses (static assets) are passed through.
  */
 
 import { createStartHandler, defaultStreamHandler } from '@tanstack/react-start/server'
-import { defineCustomServerStrategy } from '#/paraglide/runtime.js'
 import { paraglideMiddleware } from '#/paraglide/server.js'
-import { requestLocale } from '#/i18n/request-locale.js'
 import { applyHtmlLocaleHeaders } from '#/i18n/html-response.js'
-
-// ---------------------------------------------------------------------------
-// Register the custom server strategy once at module-init time.
-// The strategy name must match the first entry in the compiled `strategy`
-// array (`custom-requestLocale`).
-// ---------------------------------------------------------------------------
-defineCustomServerStrategy('custom-requestLocale', {
-  getLocale: (request) => {
-    if (!request) return undefined
-    return requestLocale(request)
-  },
-})
 
 // Standard TanStack Start request pipeline.
 const startHandler = createStartHandler(defaultStreamHandler)
 
 /**
- * Custom SSR handler that resolves the request locale, delegates rendering to
- * TanStack Start, and then applies locale-aware cache headers to HTML
- * responses.
+ * Custom SSR handler that delegates locale resolution to Paraglide's built-in
+ * strategies, renders the route via TanStack Start, and then applies
+ * locale-aware cache headers to HTML responses.
  *
  * The original `request` is passed to the Start handler (not the middleware
  * callback's `resolvedRequest`) because this project does not use the `url`

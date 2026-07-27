@@ -65,7 +65,7 @@ The inlang project uses pinned message-format modules and the committed catalogs
 }
 ```
 
-Add an exact `@inlang/paraglide-js` development dependency following the repository's pinned dependency convention. Version `2.23.0` was current when this spec was written.
+Add an exact `@inlang/paraglide-js` development dependency following the repository's pinned dependency convention. Version `2.22.0` is used; do not use a version range.
 
 Configure the Paraglide Vite plugin with:
 
@@ -275,7 +275,8 @@ Plain TypeScript or JSON dictionaries would minimize dependencies for two locale
 There are no blocking product questions.
 
 - The browser bootstrap must install the client `getLocale()` override before any message function renders. An import-order regression could reintroduce a hydration mismatch or create an automatic locale cookie.
-- Paraglide runtime behavior is version-sensitive. The dependency must be pinned according to repository conventions, and tests must protect the no-cookie-before-manual-switch requirement.
+- Paraglide runtime behavior is version-sensitive. The dependency is pinned to `2.22.0`, and tests protect the no-cookie-before-manual-switch requirement.
+- `Accept-Language` negotiation is delegated to the pinned Paraglide implementation. Behaviour for edge cases (e.g. generic `zh`, `q=0`, malformed ranges) may change across Paraglide upgrades; only the supported-locale and cookie-precedence matrix is verified.
 - If a browser blocks preference cookies, manual selection will not persist across document reloads. Header detection and the base locale still provide a valid SSR result.
 - `Accept-Language` can be absent or contain no supported locale. This is expected and resolves to `zh-CN`.
 - `Cache-Control: private, no-store` prevents shared HTML caching and may increase SSR load. Correctness takes precedence until a bounded locale-aware cache design is justified.

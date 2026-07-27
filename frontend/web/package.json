@@ -15,7 +15,7 @@
     "start": "node .output/server/index.mjs",
     "test": "pnpm i18n:compile && vitest run",
     "typecheck": "pnpm i18n:compile && tsc --noEmit",
-    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide --strategy custom-requestLocale cookie baseLocale --emit-ts-declarations"
+    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide --strategy cookie preferredLanguage baseLocale --emit-ts-declarations"
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",

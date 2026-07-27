@@ -8,7 +8,7 @@ Add English and Simplified Chinese localization for frontend-owned UI strings wh
 
 GitHub issue #31 and its locked design comment define the product behavior. The approved design spec is [`../spec/spec-issue-31-tanstack-start-i18n-20260726.md`](../spec/spec-issue-31-tanstack-start-i18n-20260726.md), which is the source of truth for this plan.
 
-Plan review found that Paraglide 2.23.0's built-in `preferredLanguage` strategy does not map a generic `zh` preference upward to the supported regional locale `zh-CN` and does not exclude `q=0` ranges. The user therefore approved one implementation refinement beyond the spec's plugin snippet: a custom server strategy must preserve cookie precedence, perform the explicit language matching below, and leave Paraglide's built-in `cookie` strategy enabled for manual browser persistence.
+The user chose to use Paraglide's built-in server strategy order `cookie, preferredLanguage, baseLocale` rather than a custom request-locale strategy. This keeps the implementation aligned with upstream Paraglide conventions and allows future upgrades to improve `Accept-Language` negotiation. The exact `Accept-Language` parsing behaviour (including `q=0` exclusion, generic `zh` alias mapping, and malformed-range handling) is delegated to the pinned `@inlang/paraglide-js@2.22.0` implementation.
 
 At planning time, `frontend/web/` has one TanStack Start route, a hard-coded `<html lang="en">`, static English metadata and UI strings, Node-environment Vitest tests, and no i18n dependency or custom server/client entry. TanStack Router creates a fresh router and Query client for each server render; the i18n setup must preserve that lifecycle while Paraglide keeps locale state request-scoped.
 
@@ -24,7 +24,7 @@ Implementation succeeds when production SSR returns the correct locale and trans
 
 ## Approach
 
-Use pinned Paraglide JS compiler output as the typed message/runtime boundary, with committed inlang settings and JSON catalogs as translation source. Register a small request-locale strategy for cookie and `Accept-Language` negotiation, wrap the standard TanStack Start server handler in Paraglide middleware, serialize the result through `<html lang>`, and install the browser locale override before React hydration. Add the language switcher only after the compiler, server, and hydration boundaries are independently verified.
+Use pinned Paraglide JS compiler output as the typed message/runtime boundary, with committed inlang settings and JSON catalogs as the translation source. The compiled built-in strategy order (`cookie` → `preferredLanguage` → `baseLocale`) resolves each request's locale inside `paraglideMiddleware`. Wrap the standard TanStack Start server handler in that middleware, serialize the result through `<html lang>`, and install the browser locale override before React hydration. Add the language switcher only after the compiler, server, and hydration boundaries are independently verified.
 
 ## Runtime Flow
 
@@ -50,7 +50,6 @@ sequenceDiagram
 - `frontend/web/src/paraglide/`: ignored compiler output; never edit or commit it.
 - `frontend/web/vite.config.ts` and `frontend/web/package.json`: Paraglide Vite integration and clean-checkout generation commands.
 - `frontend/web/src/server.ts`: request-scoped locale middleware and final HTML response-header boundary.
-- `frontend/web/src/i18n/request-locale.ts`: manual-cookie parsing and explicit `Accept-Language` negotiation for the custom server strategy.
 - `frontend/web/src/i18n/html-response.ts`: small testable helper for HTML cache headers and `Vary` merging.
 - `frontend/web/src/client.tsx` and `frontend/web/src/i18n/client-locale.ts`: pre-hydration locale handoff.
 - `frontend/web/src/routes/__root.tsx`: localized document language, direction, and metadata.
@@ -66,13 +65,13 @@ When executing the plan:
 - After the implementation and verification of each step, spawn a subagent to review the code and fix valuable feedback.
 - Before moving to the next step, commit the changes.
 
-### [ ] Step 1: Establish the Paraglide compiler and catalog boundary
+### [x] Step 1: Establish the Paraglide compiler and catalog boundary
 
 Add the pinned dependency, committed translation inputs, generated-output policy, and clean-checkout generation lifecycle without changing runtime locale behavior yet.
 
 #### Step 1 implementation
 
-1. From the `frontend/` pnpm workspace, add exact dev dependency `@inlang/paraglide-js@2.23.0` to `web` and update `frontend/pnpm-lock.yaml`. Do not introduce a version range.
+1. From the `frontend/` pnpm workspace, add exact dev dependency `@inlang/paraglide-js@2.22.0` to `web` and update `frontend/pnpm-lock.yaml`. Do not introduce a version range.
 2. Create `frontend/web/project.inlang/settings.json` with:
    - schema `https://inlang.com/schema/project-settings`;
    - base locale `zh-CN` and locales ordered as `["zh-CN", "en"]`;
@@ -95,8 +94,8 @@ Add the pinned dependency, committed translation inputs, generated-output policy
 
    Do not add messages for future navigation, forms, validation, upload workflows, or other planned UI until that UI exists.
 
-4. Register `paraglideVitePlugin` in `vite.config.ts` with project `./project.inlang`, output `./src/paraglide`, TypeScript declarations enabled, `message-modules` output, and strategy `["custom-requestLocale", "cookie", "baseLocale"]`. Keep the default cookie name and AsyncLocalStorage; do not add the built-in `preferredLanguage` or `url` strategies, localized route rewrites, or a custom client strategy.
-5. Add an `i18n:compile` command matching the Vite configuration, including `--strategy custom-requestLocale cookie baseLocale` and declaration emission. Prefix the existing `typecheck` and `test` scripts with `pnpm i18n:compile` so either command explicitly generates its prerequisite before Vite has run; keep production generation owned by the Vite plugin during `build`.
+4. Register `paraglideVitePlugin` in `vite.config.ts` with project `./project.inlang`, output `./src/paraglide`, TypeScript declarations enabled, `message-modules` output, and strategy `["cookie", "preferredLanguage", "baseLocale"]`. Keep the default cookie name and AsyncLocalStorage; do not add the `url` strategy, localized route rewrites, or a custom client strategy.
+5. Add an `i18n:compile` command matching the Vite configuration, including `--strategy cookie preferredLanguage baseLocale` and declaration emission. Prefix the existing `typecheck` and `test` scripts with `pnpm i18n:compile` so either command explicitly generates its prerequisite before Vite has run; keep production generation owned by the Vite plugin during `build`.
 6. Add `/web/src/paraglide/` to `frontend/.gitignore`. Also ignore `src/paraglide/**` in the web app's Oxlint and Oxfmt configurations so generated code is neither linted nor reformatted.
 7. Treat the generated directory as disposable output. Imports may target it, but source code, reviews, and translation edits must target the committed catalogs and inlang settings.
 
@@ -114,7 +113,7 @@ Add the pinned dependency, committed translation inputs, generated-output policy
 - Before removing generated output for the clean-checkout check, resolve and verify the exact ignored target. Do not use a broad `git clean` command.
 - The two catalogs must always have the same message identifiers; Paraglide compilation and type checking are the first consistency checks.
 
-### [ ] Step 2: Add request-scoped SSR locale resolution and cache-safe HTML responses
+### [x] Step 2: Add request-scoped SSR locale resolution and cache-safe HTML responses
 
 Run every TanStack Start render inside Paraglide's locale context and apply locale-aware cache headers without affecting static assets.
 
@@ -122,15 +121,9 @@ Run every TanStack Start render inside Paraglide's locale context and apply loca
 
 #### Step 2 implementation
 
-1. Add documented request-locale helpers in `src/i18n/request-locale.ts`. Use generated `cookieName` and `toLocale` rather than duplicating the cookie constant or valid-locale check. The resolver must first read a valid manual preference from the request's `Cookie` header, then parse `Accept-Language`, and return `undefined` when neither source resolves so generated `baseLocale` supplies `zh-CN`.
-2. Parse language ranges case-insensitively, use quality `1` when `q` is absent, keep source order for equal qualities, sort by descending quality, ignore malformed ranges and every range with `q=0`, and continue through unsupported preferences. Match only this approved contract:
-   - exact `en` and English regional tags such as `en-US` resolve to `en`;
-   - `zh`, `zh-CN`, `zh-SG`, `zh-Hans`, and `zh-Hans-*` resolve to `zh-CN`;
-   - `zh-TW`, `zh-HK`, `zh-MO`, `zh-Hant`, and `zh-Hant-*` are Traditional Chinese and do not match `zh-CN`;
-   - `*` and all other unsupported ranges fall through to the next preference and eventually the base locale.
-3. In `src/server.ts`, register `custom-requestLocale` once with generated `defineCustomServerStrategy` before invoking generated `paraglideMiddleware`. The custom resolver intentionally owns both valid-cookie and header precedence because Paraglide 2.23 evaluates registered custom server strategies before its built-in strategies; retaining `cookie` in the compiled strategy keeps normal client `setLocale` persistence available.
-4. Wrap the standard `@tanstack/react-start/server-entry` handler with the middleware. Pass the original request and any additional TanStack handler arguments through unchanged, and call the Start handler inside the middleware callback so route rendering, metadata, and streaming work remain in the request's AsyncLocalStorage context.
-5. After the Start handler returns, pass its response through a documented helper in `src/i18n/html-response.ts`:
+1. Wrap the standard `@tanstack/react-start/server-entry` handler with `paraglideMiddleware`. The middleware evaluates the compiled built-in strategies (`cookie` → `preferredLanguage` → `baseLocale`) to resolve the request-scoped locale. No custom strategy registration is needed.
+2. Pass the original request and any additional TanStack handler arguments through unchanged, and call the Start handler inside the middleware callback so route rendering, metadata, and streaming work remain in the request's `AsyncLocalStorage` context.
+3. After the Start handler returns, pass its response through a documented helper in `src/i18n/html-response.ts`:
    - detect HTML when `Content-Type` contains `text/html`, case-insensitively;
    - for HTML statuses including errors, set `Cache-Control: private, no-store`;
    - merge `Cookie` and `Accept-Language` into `Vary`;
@@ -138,24 +131,21 @@ Run every TanStack Start render inside Paraglide's locale context and apply loca
    - preserve `Vary: *` by itself because it already varies on every request header;
    - preserve status, status text, all other headers, and the original response body/stream;
    - return non-HTML responses unchanged.
-6. Add focused unit tests for the response helper, including HTML `200`, HTML error, mixed-case content type, existing/repeated `Vary` values, preserved `Accept-Encoding`, `Vary: *`, and non-HTML responses.
-7. Add resolver and middleware-level locale tests with stub HTML responses for:
-   - no cookie plus English header;
-   - no cookie plus `zh-CN` header;
-   - weighted and case-insensitive preferences;
-   - generic `zh`, `zh-Hans`, and `zh-SG` mapping to `zh-CN`;
-   - Traditional Chinese followed by supported English resolving to English;
-   - a `q=0` supported range being ignored;
-   - absent or unsupported header falling back to `zh-CN`;
-   - each valid cookie overriding the opposite header;
-   - an invalid cookie falling through to header and base-locale detection;
-   - no `Set-Cookie` response header during automatic detection.
-8. Add a concurrency test that deliberately overlaps English and Chinese middleware callbacks, reads translated output within each async context, and proves neither request changes locale before its response completes.
-9. Document every new exported or non-trivial function. Keep request negotiation, response manipulation, and server-entry orchestration separate so each behavior remains small and testable.
+4. Add focused unit tests for the response helper, including HTML `200`, HTML error, mixed-case content type, existing/repeated `Vary` values, preserved `Accept-Encoding`, `Vary: *`, and non-HTML responses.
+5. Add middleware-level locale tests (`concurrency.test.ts`) for the observable public behaviour:
+   - valid `PARAGLIDE_LOCALE` cookie overrides `Accept-Language`;
+   - `Accept-Language: en` resolves to `en`;
+   - `Accept-Language: zh-CN` resolves to `zh-CN`;
+   - an invalid cookie falls through to header and base-locale detection;
+   - absent or unsupported header falls back to `zh-CN`;
+   - no `Set-Cookie` response header during automatic detection;
+   - concurrent English and Chinese requests are isolated via `AsyncLocalStorage`.
+   Edge-case `Accept-Language` behaviour (e.g. `q=0`, generic `zh` aliasing, malformed ranges) is delegated to the pinned Paraglide implementation.
+6. Document every new exported or non-trivial function. Keep response manipulation and server-entry orchestration separate so each behavior remains small and testable.
 
 #### Step 2 verification
 
-- Run `mise //frontend:test` and expect the cookie/header resolution matrix, Simplified-versus-Traditional cases, response-header cases, and concurrency test to pass repeatedly.
+- Run `mise //frontend:test` and expect the cookie/header resolution matrix and concurrency test to pass repeatedly.
 - Run `mise //frontend:typecheck` and `mise //frontend:lint`.
 - Run `mise //frontend:build` to ensure the custom server entry is selected and bundled into the Nitro production artifact.
 - Inspect `.output/server/index.mjs` or its build manifest and confirm the custom entry and Paraglide middleware are present.
@@ -167,7 +157,7 @@ Run every TanStack Start render inside Paraglide's locale context and apply loca
 - Do not register a custom browser strategy. The client entry owns hydration reads, while Paraglide's compiled built-in cookie strategy remains the manual preference writer.
 - Apply cache headers after the Start response exists so ordinary HTML, streamed HTML, and HTML error responses share one final boundary.
 
-### [ ] Step 3: Hand the SSR locale to hydration and the root document
+### [x] Step 3: Hand the SSR locale to hydration and the root document
 
 Make the rendered `<html>` locale the validated source of truth for the browser's first React render.
 
@@ -197,7 +187,7 @@ Make the rendered `<html>` locale the validated source of truth for the browser'
 - The browser override intentionally bypasses independent `navigator.languages` detection during hydration. The server already used the equivalent request header, and `<html lang>` is the serialized handoff.
 - This override also prevents Paraglide's initial browser resolution from calling `setLocale(..., { reload: false })`, which would violate the manual-only cookie rule.
 
-### [ ] Step 4: Translate the initial UI and add the same-URL language switcher
+### [x] Step 4: Translate the initial UI and add the same-URL language switcher
 
 Replace the current frontend-owned strings with generated message functions and expose a minimal accessible manual switch.
 
@@ -245,7 +235,7 @@ Pause agent-authored implementation work and ask a human to provide the durable 
    - catalog locations and semantic message-ID convention;
    - generated-output ownership and `i18n:compile`;
    - cookie, header, and base-locale precedence;
-   - the approved Simplified Chinese aliases, Traditional Chinese non-matches, and `q=0` behavior;
+   - the cookie, `Accept-Language` header, and base-locale precedence (delegating edge-case `Accept-Language` parsing to Paraglide);
    - SSR-to-hydration handoff through `<html lang>`;
    - normal `setLocale` full-reload switching and same-URL behavior;
    - manual-only cookie creation;
@@ -300,7 +290,7 @@ Prove the complete behavior through the real Nitro artifact and close every vali
 
 - Hydration import order: installing the override after React starts rendering can produce a mismatch or automatic cookie. Keep the client entry tiny and test the browser behavior.
 - Request leakage: disabling AsyncLocalStorage or caching locale in application globals can mix languages under concurrent SSR. Preserve middleware ownership and the overlap test.
-- Negotiation drift: the custom strategy exists because pinned Paraglide matching is insufficient for the approved Chinese aliases and `q=0`. Preserve cookie-first resolution and the explicit Simplified-versus-Traditional test table when upgrading Paraglide.
+- Negotiation drift: `Accept-Language` parsing is delegated to the pinned Paraglide implementation. When upgrading Paraglide, verify the supported-locale and cookie-precedence matrix still passes; upstream changes to edge-case handling (generic `zh`, `q=0`, malformed ranges) are acceptable.
 - Same-URL caching: omitting either varying request header can serve another user's language from a shared cache. Keep `private, no-store` until a separate bounded cache-key design exists.
 - Generated-source drift: editing or committing `src/paraglide/` creates an unreliable second source of truth. Regenerate only from the catalogs and settings.
 - Build-path drift: Vite generation alone does not cover standalone type checking or tests. Preserve the lifecycle prerequisites and the clean-checkout check.
