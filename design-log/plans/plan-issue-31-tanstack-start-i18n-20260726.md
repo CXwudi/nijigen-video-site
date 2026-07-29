@@ -31,14 +31,18 @@ Use pinned Paraglide JS compiler output as the typed message/runtime boundary, w
 ```mermaid
 sequenceDiagram
   participant Browser
-  participant Paraglide as Paraglide middleware
+  participant CSRF as CSRF middleware
+  participant I18n as i18n middleware
   participant Start as TanStack Start SSR
   participant React as Browser hydration
 
-  Browser->>Paraglide: GET same URL with Cookie and Accept-Language
-  Paraglide->>Paraglide: Resolve request-local locale
-  Paraglide->>Start: Render inside AsyncLocalStorage context
-  Start-->>Browser: Localized HTML and html lang
+  Browser->>CSRF: GET same URL with Cookie and Accept-Language
+  CSRF->>I18n: Pass through (non-serverFn)
+  I18n->>I18n: paraglideMiddleware resolves request-local locale
+  I18n->>Start: await next() renders inside AsyncLocalStorage
+  Start-->>I18n: HTML Response
+  I18n->>I18n: Apply locale-aware cache headers
+  I18n-->>Browser: Localized HTML and html lang
   Browser->>React: Read and validate html lang before hydrateRoot
   React->>React: Hydrate with the same locale
   Browser->>Browser: Manual setLocale writes cookie and reloads same URL
@@ -49,7 +53,7 @@ sequenceDiagram
 - `frontend/web/project.inlang/settings.json` and `frontend/web/messages/*.json`: committed configuration and translation source of truth.
 - `frontend/web/src/paraglide/`: ignored compiler output; never edit or commit it.
 - `frontend/web/vite.config.ts` and `frontend/web/package.json`: Paraglide Vite integration and clean-checkout generation commands.
-- `frontend/web/src/server.ts`: request-scoped locale middleware and final HTML response-header boundary.
+- `frontend/web/src/start.ts`: defines `startInstance` via `createStart` with custom `requestMiddleware` containing the restored CSRF middleware and the i18n middleware that wraps `await next()` in `paraglideMiddleware` and applies locale-aware HTML response headers.
 - `frontend/web/src/i18n/html-response.ts`: small testable helper for HTML cache headers and `Vary` merging.
 - `frontend/web/src/client.tsx` and `frontend/web/src/i18n/client-locale.ts`: pre-hydration locale handoff.
 - `frontend/web/src/routes/__root.tsx`: localized document language, direction, and metadata.
@@ -121,17 +125,24 @@ Run every TanStack Start render inside Paraglide's locale context and apply loca
 
 #### Step 2 implementation
 
-1. Wrap the standard `@tanstack/react-start/server-entry` handler with `paraglideMiddleware`. The middleware evaluates the compiled built-in strategies (`cookie` → `preferredLanguage` → `baseLocale`) to resolve the request-scoped locale. No custom strategy registration is needed.
-2. Pass the original request and any additional TanStack handler arguments through unchanged, and call the Start handler inside the middleware callback so route rendering, metadata, and streaming work remain in the request's `AsyncLocalStorage` context.
-3. After the Start handler returns, pass its response through a documented helper in `src/i18n/html-response.ts`:
+1. Define the TanStack Start instance in `src/start.ts` using `createStart` with a custom `requestMiddleware` array. The `i18nMiddleware` created via `createMiddleware().server()` wraps `await next()` inside `paraglideMiddleware` so route rendering, metadata, and streaming work remain in the request's `AsyncLocalStorage` context. No custom strategy registration is needed — the compiled built-in strategies (`cookie` → `preferredLanguage` → `baseLocale`) resolve each request's locale.
+2. Because defining `startInstance` replaces TanStack Start's default request middleware, explicitly restore the default CSRF middleware as the first entry:
+
+   ```ts
+   createCsrfMiddleware({
+     filter: ({ handlerType }) => handlerType === 'serverFn',
+   })
+   ```
+
+   This keeps CSRF protection identical to the default behaviour for server functions while passing document requests through to the i18n middleware.
+3. In the i18n middleware, after `await next()` returns, pass the result through documented helpers in `src/i18n/html-response.ts`:
    - detect HTML when `Content-Type` contains `text/html`, case-insensitively;
-   - for HTML statuses including errors, set `Cache-Control: private, no-store`;
-   - merge `Cookie` and `Accept-Language` into `Vary`;
-   - parse comma-separated `Vary` tokens, de-duplicate case-insensitively, preserve existing token order/spelling such as `Accept-Encoding`, and append only missing tokens;
+   - for successful HTML (2xx), use `@tanstack/react-start/server`'s public `getResponseHeader`/`setResponseHeader` utilities. Merge both the event-context `Vary` (written by `setResponseHeader`) and the returned `Response`'s own `Vary` so neither source is silently overwritten, then set `Cache-Control: private, no-store` and the merged `Vary`;
+   - for non-2xx HTML, the installed H3 2.0.1-rc.22 skips merging prepared event headers into the final non-2xx response ([h3#1481](https://github.com/h3js/h3/issues/1481), fixed by [h3#1486](https://github.com/h3js/h3/pull/1486)). Create a new `Response` that preserves the original body, status, statusText, and all headers while adding `Cache-Control: private, no-store` and a fully merged `Vary`. After a dependency update containing #1486, this reconstruction fallback narrows to status codes ≥400 because H3 intentionally uses only error headers for error responses;
+   - parse comma-separated `Vary` tokens, de-duplicate case-insensitively, preserve existing token order/spelling such as `Accept-Encoding`, and append `Cookie` and `Accept-Language` only when missing;
    - preserve `Vary: *` by itself because it already varies on every request header;
-   - preserve status, status text, all other headers, and the original response body/stream;
    - return non-HTML responses unchanged.
-4. Add focused unit tests for the response helper, including HTML `200`, HTML error, mixed-case content type, existing/repeated `Vary` values, preserved `Accept-Encoding`, `Vary: *`, and non-HTML responses.
+4. Add focused unit tests for the pure response helpers (`html-response.test.ts`), including HTML and non-HTML content types, missing and mixed-case content types, existing/repeated `Vary` values, preserved `Accept-Encoding`, `Vary: *`, empty inputs, and `mergeVarySourcesWithLocale` merging multiple sources. Verify the middleware's status-dependent branches against the production artifact because those branches depend on TanStack Start and H3 response finalization.
 5. Add middleware-level locale tests (`concurrency.test.ts`) for the observable public behaviour:
    - valid `PARAGLIDE_LOCALE` cookie overrides `Accept-Language`;
    - `Accept-Language: en` resolves to `en`;
@@ -139,16 +150,21 @@ Run every TanStack Start render inside Paraglide's locale context and apply loca
    - an invalid cookie falls through to header and base-locale detection;
    - absent or unsupported header falls back to `zh-CN`;
    - no `Set-Cookie` response header during automatic detection;
-   - concurrent English and Chinese requests are isolated via `AsyncLocalStorage`.
+   - concurrent English and Chinese requests are isolated via `AsyncLocalStorage`;
+   - sequential requests do not leak locale state.
    Edge-case `Accept-Language` behaviour (e.g. `q=0`, generic `zh` aliasing, malformed ranges) is delegated to the pinned Paraglide implementation.
-6. Document every new exported or non-trivial function. Keep response manipulation and server-entry orchestration separate so each behavior remains small and testable.
+6. Document every new exported or non-trivial function. Keep HTML response helpers and request-middleware orchestration separate so each behavior remains small and testable.
 
 #### Step 2 verification
 
-- Run `mise //frontend:test` and expect the cookie/header resolution matrix and concurrency test to pass repeatedly.
+- Run `mise //frontend:test` and expect all `html-response.test.ts` and `concurrency.test.ts` cases to pass repeatedly.
 - Run `mise //frontend:typecheck` and `mise //frontend:lint`.
-- Run `mise //frontend:build` to ensure the custom server entry is selected and bundled into the Nitro production artifact.
-- Inspect `.output/server/index.mjs` or its build manifest and confirm the custom entry and Paraglide middleware are present.
+- Run `mise //frontend:build` to ensure the custom `startInstance` is bundled into the Nitro production artifact.
+- Start the production artifact and probe:
+  - concurrent `en` and `zh-CN` SSR requests return correct HTML and the expected `Vary` / `Cache-Control` headers with no `Set-Cookie`;
+  - a Nitro/TanStack Start HTML 404 response passes through the same locale-aware header boundary;
+  - a non-HTML response (e.g. `/favicon.ico`) is returned unchanged without added cache headers.
+- Inspect `.output/server/index.mjs` or its build manifest and confirm the custom `startInstance`, CSRF middleware, i18n middleware, and Paraglide server runtime are present.
 
 #### Step 2 notes
 
@@ -156,6 +172,8 @@ Run every TanStack Start render inside Paraglide's locale context and apply loca
 - Do not disable AsyncLocalStorage or store the locale in a module-level variable, React Context, TanStack Query, or Zustand.
 - Do not register a custom browser strategy. The client entry owns hydration reads, while Paraglide's compiled built-in cookie strategy remains the manual preference writer.
 - Apply cache headers after the Start response exists so ordinary HTML, streamed HTML, and HTML error responses share one final boundary.
+- The non-2xx `Response` reconstruction is a workaround for H3 2.0.1-rc.22 behaviour. A TODO in `src/start.ts` marks the condition that can be relaxed after an H3 update that includes [h3#1486](https://github.com/h3js/h3/pull/1486). Do not remove the TODO or the fallback until that dependency update is verified.
+- The CSRF middleware is explicitly restored with the same `serverFn`-only filter that TanStack Start installs by default. If the upstream default filter changes in a future Start version, this explicit configuration preserves the current behaviour until intentionally reviewed.
 
 ### [x] Step 3: Hand the SSR locale to hydration and the root document
 
@@ -315,3 +333,7 @@ Prove the complete behavior through the real Nitro artifact and close every vali
 | [Paraglide middleware guide](https://paraglidejs.com/middleware) | Request isolation, original-request handling, and manual cookie behavior. | Must Read |
 | [TanStack Start client entry guide](https://tanstack.com/start/latest/docs/framework/react/guide/client-entry-point) | Supported custom browser entry and hydration sequence. | Must Read |
 | [TanStack Start default server entry](https://github.com/TanStack/router/blob/main/packages/react-start/src/default-entry/server.ts) | Standard handler behavior to preserve when adding the custom entry. | Important |
+| [TanStack Start `createStart`](https://github.com/TanStack/router/blob/main/packages/react-start/src/default-entry/start.ts) | Default `startInstance` definition, built-in CSRF request middleware, and `requestMiddleware` contract. | Important |
+| [H3 issue #1481](https://github.com/h3js/h3/issues/1481) | H3 skips prepared response headers for non-2xx status codes. | Important |
+| [H3 PR #1486](https://github.com/h3js/h3/pull/1486) | Merged fix so H3 merges prepared headers for status codes below 400. | Important |
+| [`getResponseHeader` / `setResponseHeader`](https://tanstack.com/start/latest/docs/framework/react/guide/response-headers) | Public TanStack Start server utilities for reading/writing response headers. | Important |

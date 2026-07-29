@@ -99,17 +99,23 @@ Do not configure Paraglide's `url` strategy, localized URL patterns, or TanStack
 
 ### SSR Request Lifecycle
 
-Add a TanStack Start server entry that wraps the standard handler with `paraglideMiddleware`.
+Define the TanStack Start instance at `src/start.ts` through `createStart` with custom `requestMiddleware`. The i18n middleware wraps `await next()` inside `paraglideMiddleware` so every route render and message function executes in the request-scoped `AsyncLocalStorage` context.
+
+Defining `startInstance` replaces TanStack Start's default request middleware. The default server-function-only CSRF middleware (`createCsrfMiddleware({ filter: ({ handlerType }) => handlerType === 'serverFn' })`) must therefore be explicitly restored as the first entry in `requestMiddleware`, followed by the i18n middleware.
 
 ```mermaid
 sequenceDiagram
   participant Browser
-  participant Middleware as Paraglide middleware
-  participant Start as TanStack Start
-  Browser->>Middleware: Document request with Cookie and Accept-Language
-  Middleware->>Middleware: Resolve request-scoped locale
-  Middleware->>Start: Render inside locale AsyncLocalStorage
-  Start-->>Browser: Localized HTML with matching html lang
+  participant CSRF as CSRF middleware
+  participant I18n as i18n middleware
+  participant Start as TanStack Start SSR
+  Browser->>CSRF: Document request with Cookie and Accept-Language
+  CSRF->>I18n: Pass through (non-serverFn)
+  I18n->>I18n: paraglideMiddleware resolves request-scoped locale
+  I18n->>Start: await next() renders inside AsyncLocalStorage
+  Start-->>I18n: HTML Response
+  I18n->>I18n: Apply locale-aware cache headers
+  I18n-->>Browser: Localized HTML with matching html lang
   Browser->>Browser: Hydrate from the rendered html lang
 ```
 
@@ -182,14 +188,22 @@ Stable message identifiers must not be derived from the current source-language 
 
 The HTML representation of a same-URL page varies by `Cookie` and `Accept-Language`. Paraglide adds `Vary: Accept-Language` to locale redirects, but it does not add locale-aware caching headers to ordinary HTML responses.
 
-The server entry must therefore apply these headers to every response whose `Content-Type` contains `text/html`, including HTML error responses:
+The i18n middleware therefore applies locale-aware headers to every response whose `Content-Type` contains `text/html`. Non-HTML responses (static assets, API payloads) are returned unchanged.
+
+#### Successful HTML Responses (2xx)
+
+The middleware uses `@tanstack/react-start/server`'s public `getResponseHeader` and `setResponseHeader` utilities. It merges both the event-context `Vary` (written by `setResponseHeader`) and the returned `Response`'s own `Vary` header so neither source is silently overwritten, then sets:
 
 ```http
-Vary: Cookie, Accept-Language
 Cache-Control: private, no-store
+Vary: [existing tokens, ]Cookie, Accept-Language
 ```
 
-When adding `Cookie` and `Accept-Language` to `Vary`, parse existing comma-separated tokens and perform a case-insensitive union and de-duplication. Do not replace existing tokens such as `Accept-Encoding`.
+#### Non-2xx HTML Responses
+
+The installed H3 2.0.1-rc.22 skips merging prepared event headers into the final non-2xx response ([h3#1481](https://github.com/h3js/h3/issues/1481), fixed by [h3#1486](https://github.com/h3js/h3/pull/1486)). The middleware therefore creates a new `Response` that preserves the original body, status, statusText, and all headers while adding `Cache-Control: private, no-store` and a fully merged `Vary`. After a dependency update that includes the #1486 fix, this reconstruction fallback can narrow to status codes ≥400 — H3 intentionally uses only error headers for error responses, but prepared headers will be merged for all statuses below 400.
+
+When adding `Cookie` and `Accept-Language` to `Vary`, the helper parses existing comma-separated tokens and performs a case-insensitive union and de-duplication. Existing tokens such as `Accept-Encoding` are preserved in their original order and spelling; locale tokens are appended only if missing. `Vary: *` (including as one token among several) is normalised to `*` alone because a wildcard already covers every request header.
 
 This initial policy prioritizes correct SSR language selection and prevents a shared cache from serving one user's locale to another user. It applies to HTML documents, not fingerprinted JavaScript, CSS, fonts, images, or other static assets.
 
@@ -300,3 +314,7 @@ There are no blocking product questions.
 | [Paraglide locale API](https://paraglidejs.com/basics#getting-and-setting-the-locale) | Full-document locale switching and the limitations of reactive switching without reload. | Important |
 | [Paraglide client locale source](https://github.com/opral/paraglide-js/blob/main/src/compiler/runtime/get-locale.js) | Shows initial client resolution, strategy evaluation, and automatic `setLocale` behavior avoided by the client override. | Must Read |
 | [Paraglide server middleware source](https://github.com/opral/paraglide-js/blob/main/src/compiler/server/middleware.js) | Shows request isolation and the limited automatic `Vary` behavior that motivates explicit HTML cache headers. | Must Read |
+| [H3 issue #1481](https://github.com/h3js/h3/issues/1481) | H3 skips prepared response headers for non-2xx status codes. | Important |
+| [H3 PR #1486](https://github.com/h3js/h3/pull/1486) | Merged fix so H3 merges prepared headers for status codes below 400. | Important |
+| [TanStack Start `createStart`](https://github.com/TanStack/router/blob/main/packages/react-start/src/default-entry/start.ts) | Default `startInstance` definition and built-in CSRF request middleware. | Important |
+| [`getResponseHeader` / `setResponseHeader`](https://tanstack.com/start/latest/docs/framework/react/guide/response-headers) | Public TanStack Start server utilities for reading/writing response headers. | Important |
