@@ -1,9 +1,10 @@
 /**
  * HTML response header helpers for locale-aware SSR caching.
  *
- * The server entry applies these functions to every HTML response so that
- * a shared cache cannot serve one user's locale to another user.  Non-HTML
- * responses (static assets, API) are passed through unchanged.
+ * Pure helpers that can be called from TanStack Start request middleware
+ * (using `getResponseHeader` / `setResponseHeader`) without depending on
+ * an H3 request context, keeping the core Vary and HTML-detection logic
+ * unit-testable.
  */
 
 /**
@@ -13,47 +14,54 @@
 const LOCALE_VARY_TOKENS = ['Cookie', 'Accept-Language'] as const
 
 /**
- * Apply locale-aware cache headers to an HTML `Response`.
+ * Returns `true` when a response (or response headers) has a `Content-Type`
+ * that classifies it as an HTML document.
  *
- * When `Content-Type` contains `text/html` (case-insensitive):
- *  - Set `Cache-Control: private, no-store` to prevent shared caching.
- *  - Merge `Cookie` and `Accept-Language` into `Vary` with case-insensitive
- *    de-duplication.  Existing tokens (e.g. `Accept-Encoding`) are preserved
- *    in their original order and spelling.
- *  - `Vary: *` is left untouched because it already varies on every header.
- *
- * Non-HTML responses are returned unchanged.  The original status, status
- * text, headers, and body stream are preserved.
- *
- * @param response - The SSR response returned by the framework handler.
- * @returns A new `Response` with locale-aware headers, or the original.
+ * The check is case-insensitive and matches `text/html` anywhere in the
+ * header value (e.g. `text/html; charset=utf-8`).
  */
-export function applyHtmlLocaleHeaders(response: Response): Response {
-  const contentType = response.headers.get('Content-Type')
-  if (!contentType || !/text\/html/i.test(contentType)) {
-    return response
-  }
+export function isHtmlContentType(headers: { get(name: string): string | null }): boolean {
+  const contentType = headers.get('Content-Type')
+  return contentType != null && /text\/html/i.test(contentType)
+}
 
-  const headers = new Headers(response.headers)
-
-  // Cache-control: prevent shared caches from serving another user's locale.
-  headers.set('Cache-Control', 'private, no-store')
-
-  // Vary: merge locale-aware tokens.
+/**
+ * Merge `Cookie` and `Accept-Language` into an existing `Vary` header value.
+ *
+ * Existing tokens are de-duplicated case-insensitively.  Original order and
+ * spelling of pre-existing tokens are preserved; new tokens are appended.
+ *
+ * When `existingVary` already contains `*` (including as one of several
+ * comma-separated tokens), the result is `*` alone — a wildcard already
+ * covers every request header.
+ *
+ * @param existingVary - The current `Vary` value (may be empty).
+ * @returns A comma-separated `Vary` value including the locale tokens.
+ */
+export function mergeVaryLocaleTokens(existingVary: string): string {
   // `Vary: *` (including as one comma-separated token among others) already
   // covers every request header; normalize to `*` by itself.
-  const rawVary = headers.get('Vary')
-  if (rawVary != null && rawVary.split(',').some((t) => t.trim() === '*')) {
-    headers.set('Vary', '*')
-  } else {
-    headers.set('Vary', mergeVaryTokens(rawVary ?? ''))
+  if (existingVary.split(',').some((t) => t.trim() === '*')) {
+    return '*'
   }
+  return mergeVaryTokens(existingVary)
+}
 
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  })
+/**
+ * Merge two `Vary` header values together (e.g. from event context and
+ * response), de-duplicate case-insensitively, preserve wildcard semantics,
+ * and append locale tokens (`Cookie`, `Accept-Language`).
+ *
+ * @param first - A `Vary` header value or `null`.
+ * @param second - Another `Vary` header value or `null`.
+ * @returns A comma-separated `Vary` value including the locale tokens.
+ */
+export function mergeVarySourcesWithLocale(
+  first: string | null | undefined,
+  second: string | null | undefined,
+): string {
+  const merged = [first, second].filter((v): v is string => v != null && v.length > 0).join(', ')
+  return mergeVaryLocaleTokens(merged)
 }
 
 /**

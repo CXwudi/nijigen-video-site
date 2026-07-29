@@ -1,187 +1,143 @@
 /**
  * Unit tests for `html-response.ts` — locale-aware cache header helpers.
  *
- * Covers HTML 200, HTML errors, mixed-case Content-Type, existing Vary
- * tokens, Vary: *, repeated tokens, non-HTML passthrough, and header
- * preservation.
+ * Covers HTML detection, Vary merging, Vary: * handling, and
+ * case-insensitive de-duplication.  Pure helpers are tested directly
+ * on a `Headers` object without depending on an H3 request context.
  */
 
 import { describe, expect, it } from 'vitest'
-import { applyHtmlLocaleHeaders } from '#/i18n/html-response.js'
+import {
+  isHtmlContentType,
+  mergeVaryLocaleTokens,
+  mergeVarySourcesWithLocale,
+} from '#/i18n/html-response.js'
 
-describe('applyHtmlLocaleHeaders', () => {
-  // -----------------------------------------------------------------------
-  // HTML responses
-  // -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// isHtmlContentType
+// -----------------------------------------------------------------------
 
-  it('adds Cache-Control and Vary to HTML 200', () => {
-    const res = new Response('<html></html>', {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.status).toBe(200)
-    expect(out.headers.get('Content-Type')).toBe('text/html; charset=utf-8')
-    expect(out.headers.get('Cache-Control')).toBe('private, no-store')
-    expect(out.headers.get('Vary')).toBe('Cookie, Accept-Language')
+describe('isHtmlContentType', () => {
+  it('returns true for text/html with charset', () => {
+    const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
+    expect(isHtmlContentType(headers)).toBe(true)
   })
 
-  it('adds headers to HTML error responses', () => {
-    const res = new Response('<html>Not Found</html>', {
-      status: 404,
-      statusText: 'Not Found',
-      headers: { 'Content-Type': 'text/html' },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.status).toBe(404)
-    expect(out.statusText).toBe('Not Found')
-    expect(out.headers.get('Cache-Control')).toBe('private, no-store')
-    expect(out.headers.get('Vary')).toBe('Cookie, Accept-Language')
+  it('returns true for text/html alone', () => {
+    const headers = new Headers({ 'Content-Type': 'text/html' })
+    expect(isHtmlContentType(headers)).toBe(true)
   })
 
   it('matches Content-Type case-insensitively', () => {
-    const res = new Response('ok', {
-      headers: { 'Content-Type': 'TEXT/HTML' },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Cache-Control')).toBe('private, no-store')
+    const headers = new Headers({ 'Content-Type': 'TEXT/HTML' })
+    expect(isHtmlContentType(headers)).toBe(true)
   })
 
-  // -----------------------------------------------------------------------
-  // Vary merging
-  // -----------------------------------------------------------------------
+  it('returns false for application/json', () => {
+    const headers = new Headers({ 'Content-Type': 'application/json' })
+    expect(isHtmlContentType(headers)).toBe(false)
+  })
+
+  it('returns false when Content-Type is missing', () => {
+    const headers = new Headers()
+    expect(isHtmlContentType(headers)).toBe(false)
+  })
+})
+
+// -----------------------------------------------------------------------
+// mergeVaryLocaleTokens
+// -----------------------------------------------------------------------
+
+describe('mergeVaryLocaleTokens', () => {
+  it('returns Cookie, Accept-Language when given empty string', () => {
+    expect(mergeVaryLocaleTokens('')).toBe('Cookie, Accept-Language')
+  })
 
   it('preserves existing Vary tokens and appends missing locale tokens', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: 'Accept-Encoding',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('Accept-Encoding, Cookie, Accept-Language')
+    expect(mergeVaryLocaleTokens('Accept-Encoding')).toBe(
+      'Accept-Encoding, Cookie, Accept-Language',
+    )
   })
 
   it('de-duplicates Vary tokens case-insensitively', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: 'cookie, Accept-Encoding',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('cookie, Accept-Encoding, Accept-Language')
+    expect(mergeVaryLocaleTokens('cookie, Accept-Encoding')).toBe(
+      'cookie, Accept-Encoding, Accept-Language',
+    )
   })
 
   it('does not duplicate tokens that are already present', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: 'Cookie, Accept-Language',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('Cookie, Accept-Language')
+    expect(mergeVaryLocaleTokens('Cookie, Accept-Language')).toBe('Cookie, Accept-Language')
   })
 
-  it('preserves Vary: * as-is', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: '*',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('*')
+  it('returns * when existingVary is exactly *', () => {
+    expect(mergeVaryLocaleTokens('*')).toBe('*')
   })
 
   it('normalizes Vary: * with surrounding whitespace', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: ' * ',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('*')
+    expect(mergeVaryLocaleTokens(' * ')).toBe('*')
   })
 
   it('normalizes Vary containing * plus other tokens: *, Accept-Encoding', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: '*, Accept-Encoding',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('*')
+    expect(mergeVaryLocaleTokens('*, Accept-Encoding')).toBe('*')
   })
 
   it('normalizes Vary containing * plus other tokens: Accept-Encoding, *', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: 'Accept-Encoding, *',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('*')
+    expect(mergeVaryLocaleTokens('Accept-Encoding, *')).toBe('*')
   })
 
   it('normalizes Vary containing * plus other tokens: Accept-Encoding, *, Cookie', () => {
-    const res = new Response('<html></html>', {
-      headers: {
-        'Content-Type': 'text/html',
-        Vary: 'Accept-Encoding, *, Cookie',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('*')
+    expect(mergeVaryLocaleTokens('Accept-Encoding, *, Cookie')).toBe('*')
+  })
+})
+
+// -----------------------------------------------------------------------
+// mergeVarySourcesWithLocale
+// -----------------------------------------------------------------------
+
+describe('mergeVarySourcesWithLocale', () => {
+  it('merges two non-null sources and appends locale tokens', () => {
+    expect(mergeVarySourcesWithLocale('Accept-Encoding', 'User-Agent')).toBe(
+      'Accept-Encoding, User-Agent, Cookie, Accept-Language',
+    )
   })
 
-  it('handles empty Vary header', () => {
-    const res = new Response('<html></html>', {
-      headers: { 'Content-Type': 'text/html' },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(out.headers.get('Vary')).toBe('Cookie, Accept-Language')
+  it('returns locale tokens when both sources are null', () => {
+    expect(mergeVarySourcesWithLocale(null, null)).toBe('Cookie, Accept-Language')
   })
 
-  // -----------------------------------------------------------------------
-  // Non-HTML passthrough
-  // -----------------------------------------------------------------------
-
-  it('returns non-HTML responses unchanged', () => {
-    const original = new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600',
-      },
-    })
-    const out = applyHtmlLocaleHeaders(original)
-    // Should be the same object reference (unchanged).
-    expect(out).toBe(original)
-    expect(out.headers.get('Cache-Control')).toBe('public, max-age=3600')
-    expect(out.headers.get('Vary')).toBeNull()
+  it('returns locale tokens when both sources are empty strings', () => {
+    expect(mergeVarySourcesWithLocale('', '')).toBe('Cookie, Accept-Language')
   })
 
-  it('returns responses with no Content-Type unchanged', () => {
-    const original = new Response('body')
-    const out = applyHtmlLocaleHeaders(original)
-    expect(out).toBe(original)
+  it('handles one null and one non-null source', () => {
+    expect(mergeVarySourcesWithLocale(null, 'Accept-Encoding')).toBe(
+      'Accept-Encoding, Cookie, Accept-Language',
+    )
   })
 
-  // -----------------------------------------------------------------------
-  // Body preservation
-  // -----------------------------------------------------------------------
+  it('de-duplicates tokens across both sources case-insensitively', () => {
+    expect(mergeVarySourcesWithLocale('cookie', 'Cookie')).toBe('cookie, Accept-Language')
+  })
 
-  it('preserves the response body for HTML', async () => {
-    const body = '<!DOCTYPE html><html lang="en"><head></head><body></body></html>'
-    const res = new Response(body, {
-      headers: { 'Content-Type': 'text/html' },
-    })
-    const out = applyHtmlLocaleHeaders(res)
-    expect(await out.text()).toBe(body)
+  it('de-duplicates locale tokens already present in either source', () => {
+    expect(mergeVarySourcesWithLocale('Cookie', 'Accept-Language')).toBe('Cookie, Accept-Language')
+  })
+
+  it('returns * when first source contains *', () => {
+    expect(mergeVarySourcesWithLocale('*', 'Accept-Encoding')).toBe('*')
+  })
+
+  it('returns * when second source contains *', () => {
+    expect(mergeVarySourcesWithLocale('Accept-Encoding', '*')).toBe('*')
+  })
+
+  it('returns * when * appears among other tokens in either source', () => {
+    expect(mergeVarySourcesWithLocale('Accept-Encoding, *', 'Cookie')).toBe('*')
+  })
+
+  it('preserves non-locale tokens from both sources in order', () => {
+    expect(mergeVarySourcesWithLocale('Accept-Encoding', 'User-Agent')).toBe(
+      'Accept-Encoding, User-Agent, Cookie, Accept-Language',
+    )
   })
 })
