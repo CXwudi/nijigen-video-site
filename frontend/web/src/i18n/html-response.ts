@@ -26,61 +26,26 @@ export function isHtmlContentType(headers: { get(name: string): string | null })
 }
 
 /**
- * Merge `Cookie` and `Accept-Language` into an existing `Vary` header value.
+ * Merge `Vary` header values, de-duplicate tokens case-insensitively, preserve
+ * wildcard semantics, and append locale tokens (`Cookie`, `Accept-Language`).
  *
- * Existing tokens are de-duplicated case-insensitively.  Original order and
- * spelling of pre-existing tokens are preserved; new tokens are appended.
- *
- * When `existingVary` already contains `*` (including as one of several
- * comma-separated tokens), the result is `*` alone — a wildcard already
- * covers every request header.
- *
- * @param existingVary - The current `Vary` value (may be empty).
+ * @param sources - Existing `Vary` values, such as event and response headers.
  * @returns A comma-separated `Vary` value including the locale tokens.
  */
-export function mergeVaryLocaleTokens(existingVary: string): string {
-  // `Vary: *` (including as one comma-separated token among others) already
-  // covers every request header; normalize to `*` by itself.
-  if (existingVary.split(',').some((t) => t.trim() === '*')) {
-    return '*'
-  }
-  return mergeVaryTokens(existingVary)
-}
-
-/**
- * Merge two `Vary` header values together (e.g. from event context and
- * response), de-duplicate case-insensitively, preserve wildcard semantics,
- * and append locale tokens (`Cookie`, `Accept-Language`).
- *
- * @param first - A `Vary` header value or `null`.
- * @param second - Another `Vary` header value or `null`.
- * @returns A comma-separated `Vary` value including the locale tokens.
- */
-export function mergeVarySourcesWithLocale(
-  first: string | null | undefined,
-  second: string | null | undefined,
-): string {
-  const merged = [first, second].filter((v): v is string => v != null && v.length > 0).join(', ')
-  return mergeVaryLocaleTokens(merged)
-}
-
-/**
- * Merge `Cookie` and `Accept-Language` into an existing `Vary` header value.
- *
- * Existing tokens are de-duplicated case-insensitively.  Original order and
- * spelling of pre-existing tokens are preserved; new tokens are appended.
- *
- * @param existingVary - The current `Vary` value (may be empty).
- * @returns A comma-separated `Vary` value including the locale tokens.
- */
-function mergeVaryTokens(existingVary: string): string {
+export function mergeVarySourcesWithLocale(...sources: Array<string | null | undefined>): string {
   const tokens: string[] = []
   const seen = new Set<string>()
 
-  // Preserve existing tokens in their original order and spelling.
-  if (existingVary.length > 0) {
-    for (const raw of existingVary.split(',')) {
+  for (const source of sources) {
+    if (source == null) {
+      continue
+    }
+
+    for (const raw of source.split(',')) {
       const token = raw.trim()
+      if (token === '*') {
+        return '*'
+      }
       if (token.length > 0 && !seen.has(token.toLowerCase())) {
         seen.add(token.toLowerCase())
         tokens.push(token)

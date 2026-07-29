@@ -7,11 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import {
-  isHtmlContentType,
-  mergeVaryLocaleTokens,
-  mergeVarySourcesWithLocale,
-} from '#/i18n/html-response.js'
+import { isHtmlContentType, mergeVarySourcesWithLocale } from '#/i18n/html-response.js'
 
 // -----------------------------------------------------------------------
 // isHtmlContentType
@@ -45,56 +41,50 @@ describe('isHtmlContentType', () => {
 })
 
 // -----------------------------------------------------------------------
-// mergeVaryLocaleTokens
+// mergeVarySourcesWithLocale
 // -----------------------------------------------------------------------
 
-describe('mergeVaryLocaleTokens', () => {
-  it('returns Cookie, Accept-Language when given empty string', () => {
-    expect(mergeVaryLocaleTokens('')).toBe('Cookie, Accept-Language')
+describe('mergeVarySourcesWithLocale', () => {
+  it('returns Cookie, Accept-Language when given no sources', () => {
+    expect(mergeVarySourcesWithLocale()).toBe('Cookie, Accept-Language')
   })
 
   it('preserves existing Vary tokens and appends missing locale tokens', () => {
-    expect(mergeVaryLocaleTokens('Accept-Encoding')).toBe(
+    expect(mergeVarySourcesWithLocale('Accept-Encoding')).toBe(
       'Accept-Encoding, Cookie, Accept-Language',
     )
   })
 
   it('de-duplicates Vary tokens case-insensitively', () => {
-    expect(mergeVaryLocaleTokens('cookie, Accept-Encoding')).toBe(
+    expect(mergeVarySourcesWithLocale('cookie, Accept-Encoding')).toBe(
       'cookie, Accept-Encoding, Accept-Language',
     )
   })
 
   it('does not duplicate tokens that are already present', () => {
-    expect(mergeVaryLocaleTokens('Cookie, Accept-Language')).toBe('Cookie, Accept-Language')
+    expect(mergeVarySourcesWithLocale('Cookie, Accept-Language')).toBe('Cookie, Accept-Language')
   })
 
   it('returns * when existingVary is exactly *', () => {
-    expect(mergeVaryLocaleTokens('*')).toBe('*')
+    expect(mergeVarySourcesWithLocale('*')).toBe('*')
   })
 
   it('normalizes Vary: * with surrounding whitespace', () => {
-    expect(mergeVaryLocaleTokens(' * ')).toBe('*')
+    expect(mergeVarySourcesWithLocale(' * ')).toBe('*')
   })
 
   it('normalizes Vary containing * plus other tokens: *, Accept-Encoding', () => {
-    expect(mergeVaryLocaleTokens('*, Accept-Encoding')).toBe('*')
+    expect(mergeVarySourcesWithLocale('*, Accept-Encoding')).toBe('*')
   })
 
   it('normalizes Vary containing * plus other tokens: Accept-Encoding, *', () => {
-    expect(mergeVaryLocaleTokens('Accept-Encoding, *')).toBe('*')
+    expect(mergeVarySourcesWithLocale('Accept-Encoding, *')).toBe('*')
   })
 
   it('normalizes Vary containing * plus other tokens: Accept-Encoding, *, Cookie', () => {
-    expect(mergeVaryLocaleTokens('Accept-Encoding, *, Cookie')).toBe('*')
+    expect(mergeVarySourcesWithLocale('Accept-Encoding, *, Cookie')).toBe('*')
   })
-})
 
-// -----------------------------------------------------------------------
-// mergeVarySourcesWithLocale
-// -----------------------------------------------------------------------
-
-describe('mergeVarySourcesWithLocale', () => {
   it('merges two non-null sources and appends locale tokens', () => {
     expect(mergeVarySourcesWithLocale('Accept-Encoding', 'User-Agent')).toBe(
       'Accept-Encoding, User-Agent, Cookie, Accept-Language',
