@@ -13,8 +13,11 @@
     "lint": "oxlint --deny-warnings .",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",
+    "paraglide": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide --strategy cookie preferredLanguage url baseLocale",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "pretest": "pnpm paraglide",
+    "typecheck": "tsc --noEmit",
+    "pretypecheck": "pnpm paraglide"
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",
