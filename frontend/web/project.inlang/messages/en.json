@@ -1,0 +1,12 @@
+{
+  "app_name": "Nijigen Video",
+  "home_heading": "Workspace",
+  "home_new_upload": "New upload",
+  "home_stat_anime_clips": "Anime clips",
+  "home_stat_character_edits": "Character edits",
+  "home_stat_uploads_waiting": "Uploads waiting",
+  "home_review_queue_heading": "Review queue",
+  "home_review_queue_empty": "No videos are waiting for review yet.",
+  "home_review_queue_badge_empty": "Empty",
+  "language_switcher_label": "Language"
+}
