@@ -6,7 +6,7 @@ import { setLocale, localizeHref, getLocale } from '../paraglide/runtime'
 /** Language switcher component. Uses Paraglide's `setLocale` to switch locale. */
 function LanguageSwitcher() {
   const router = useRouter()
-  const currentPath = router.state.location.pathname
+  const currentHref = router.state.location.href
   const currentLocale = getLocale()
 
   const languages = [
@@ -16,7 +16,7 @@ function LanguageSwitcher() {
 
   return (
     <details className="dropdown dropdown-end" aria-label={m.language_switcher_label()}>
-      <summary className="btn btn-ghost btn-sm gap-2" aria-haspopup="menu">
+      <summary className="btn btn-ghost btn-sm gap-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-4 w-4"
@@ -34,12 +34,11 @@ function LanguageSwitcher() {
         </svg>
         <span>{m.language_switcher_label()}</span>
       </summary>
-      <ul className="menu dropdown-content z-1 w-40 rounded-box bg-base-100 p-2 shadow" role="menu">
+      <ul className="menu dropdown-content z-1 w-40 rounded-box bg-base-100 p-2 shadow">
         {languages.map((lang) => (
-          <li key={lang.code} role="none">
+          <li key={lang.code}>
             <a
-              role="menuitem"
-              href={localizeHref(currentPath, { locale: lang.code })}
+              href={localizeHref(currentHref, { locale: lang.code })}
               aria-current={currentLocale === lang.code ? 'true' : undefined}
               onClick={(e) => {
                 e.preventDefault()

@@ -79,6 +79,16 @@ describe('i18n URL routing', () => {
     expect(localizeHref('/', { locale: 'en' })).toBe('/en/')
     expect(localizeHref('/', { locale: 'zh-CN' })).toBe('/')
   })
+
+  it('localizeHref preserves query string and hash from a TanStack Router location.href', () => {
+    // TanStack Router's ParsedLocation has .search as a parsed object and
+    // .hash without the leading '#'. Always use router.state.location.href,
+    // which is the canonical full-path string (pathname + searchStr + hash).
+    overwriteGetLocale(() => 'en')
+    const locationHref = '/en/some-page?q=search#top'
+    const href = localizeHref(locationHref, { locale: 'zh-CN' })
+    expect(href).toBe('/some-page?q=search#top')
+  })
 })
 
 describe('i18n message output', () => {
