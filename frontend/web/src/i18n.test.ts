@@ -124,43 +124,38 @@ describe('i18n message output', () => {
 })
 
 describe('i18n runtime', () => {
-  it('uses cookie, preferred language, URL, then the base locale', () => {
-    expect(strategy).toEqual(['cookie', 'preferredLanguage', 'url', 'baseLocale'])
+  it('uses URL, cookie, preferred language, then the base locale', () => {
+    expect(strategy).toEqual(['url', 'cookie', 'preferredLanguage', 'baseLocale'])
   })
 
-  it('uses the saved cookie before a locale in the URL', () => {
+  it('uses the URL locale over conflicting cookie and preferred language', () => {
     const request = new Request('http://localhost:3000/en', {
       headers: {
         cookie: 'PARAGLIDE_LOCALE=zh-CN',
+        'accept-language': 'zh-CN',
+      },
+    })
+
+    expect(extractLocaleFromRequest(request)).toBe('en')
+  })
+
+  it('uses the URL locale over a conflicting preferred language', () => {
+    const request = new Request('http://localhost:3000/en', {
+      headers: { 'accept-language': 'zh-CN' },
+    })
+
+    expect(extractLocaleFromRequest(request)).toBe('en')
+  })
+
+  it('uses the unprefixed base-locale URL over fallback preferences', () => {
+    const request = new Request('http://localhost:3000/', {
+      headers: {
+        cookie: 'PARAGLIDE_LOCALE=en',
         'accept-language': 'en',
       },
     })
 
     expect(extractLocaleFromRequest(request)).toBe('zh-CN')
-  })
-
-  it('uses the preferred language before the locale in the URL', () => {
-    const request = new Request('http://localhost:3000/en', {
-      headers: { 'accept-language': 'zh-CN' },
-    })
-
-    expect(extractLocaleFromRequest(request)).toBe('zh-CN')
-  })
-
-  it('uses the preferred language when no cookie is available', () => {
-    const request = new Request('http://localhost:3000/', {
-      headers: { 'accept-language': 'en' },
-    })
-
-    expect(extractLocaleFromRequest(request)).toBe('en')
-  })
-
-  it('uses the URL locale when the preferred language is unsupported', () => {
-    const request = new Request('http://localhost:3000/en', {
-      headers: { 'accept-language': 'fr' },
-    })
-
-    expect(extractLocaleFromRequest(request)).toBe('en')
   })
 
   it('baseLocale is zh-CN', () => {

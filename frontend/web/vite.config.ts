@@ -11,10 +11,9 @@ const config = defineConfig({
     paraglideVitePlugin({
       project: './project.inlang',
       outdir: './src/paraglide',
-      // Preserve saved choices
-      // then for first visitor, use Accept-Language Header (with fallback to URL) to detect the language, then set the cookie
-      // Otherwise, set the cookie to default locale
-      strategy: ['cookie', 'preferredLanguage', 'url', 'baseLocale'],
+      // Keep public URLs authoritative for deterministic SSR, sharing, and CDN caching.
+      // Saved and browser preferences have lower priority if URL routing cannot determine a locale.
+      strategy: ['url', 'cookie', 'preferredLanguage', 'baseLocale'],
     }),
     nitro({ rollupConfig: { external: [/^@sentry\//] } }),
     tailwindcss(),
