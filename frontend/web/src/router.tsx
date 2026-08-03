@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
 
 import { routeTree } from './routeTree.gen'
+import { deLocalizeUrl, localizeUrl } from './paraglide/runtime'
 
 export interface RouterContext {
   queryClient: QueryClient
@@ -22,6 +23,10 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    rewrite: {
+      input: ({ url }) => deLocalizeUrl(url),
+      output: ({ url }) => localizeUrl(url),
+    },
   })
 
   // Connect TanStack Query to the router's SSR lifecycle. The integration

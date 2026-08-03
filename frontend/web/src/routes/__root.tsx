@@ -2,6 +2,7 @@ import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/reac
 
 import type { RouterContext } from '../router'
 import appCss from '../styles.css?url'
+import { getLocale } from '../paraglide/runtime'
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
@@ -29,7 +30,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootDocument({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang={getLocale()}>
       <head>
         <HeadContent />
       </head>
