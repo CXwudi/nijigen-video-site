@@ -1,9 +1,7 @@
 # UI Baseline
 
-## DaisyUI vs Base UI - When to use which
+## daisyUI vs Base UI - How to combine
 
-Generally DaisyUI for the themeing and CSS, Base UI for anything that needs interactivity.
+One sentence: daisyUI provides the theme and CSS, Base UI provides the a11y and interactivity.
 
-- Use DaisyUI by default
-- Add Base UI component when DaisyUI is lacking components that fulfill the interactive needs
-- Apply DaisyUI CSS for Base UI components for theme consistency
+- By default, use Base UI, but make use of the theme and CSS from daisyUI
