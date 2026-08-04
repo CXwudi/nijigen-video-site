@@ -5,16 +5,12 @@ import tailwindcss from '@tailwindcss/vite'
 import viteReact from '@vitejs/plugin-react'
 import { nitro } from 'nitro/vite'
 
+import { paraglideOptions } from './paraglide.config.ts'
+
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
-    paraglideVitePlugin({
-      project: './project.inlang',
-      outdir: './src/paraglide',
-      // Keep public URLs authoritative for deterministic SSR, sharing, and CDN caching.
-      // Saved and browser preferences have lower priority if URL routing cannot determine a locale.
-      strategy: ['url', 'cookie', 'preferredLanguage', 'baseLocale'],
-    }),
+    paraglideVitePlugin(paraglideOptions),
     nitro({ rollupConfig: { external: [/^@sentry\//] } }),
     tailwindcss(),
     tanstackStart(),

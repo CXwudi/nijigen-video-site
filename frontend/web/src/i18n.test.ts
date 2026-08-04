@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import {
   deLocalizeUrl,
+  extractLocaleFromUrl,
   extractLocaleFromRequest,
   localizeUrl,
   localizeHref,
@@ -9,6 +10,7 @@ import {
   overwriteGetLocale,
   baseLocale,
   locales,
+  shouldRedirect,
   strategy,
 } from './paraglide/runtime'
 import * as m from './paraglide/messages'
@@ -26,17 +28,22 @@ describe('i18n URL routing', () => {
     expect(result.pathname).toBe('/')
   })
 
-  it('deLocalizeUrl preserves unprefixed root path (base locale)', () => {
+  it('deLocalizeUrl strips locale prefix from /zh-CN path', () => {
+    const result = deLocalizeUrl('http://localhost:3000/zh-CN')
+    expect(result.pathname).toBe('/')
+  })
+
+  it('deLocalizeUrl preserves unprefixed root as a language negotiation path', () => {
     const result = deLocalizeUrl('http://localhost:3000/')
     expect(result.pathname).toBe('/')
   })
 
-  it('deLocalizeUrl strips locale prefix from /en/some-page', () => {
-    const result = deLocalizeUrl('http://localhost:3000/en/some-page')
+  it('deLocalizeUrl strips locale prefix from localized routes', () => {
+    const result = deLocalizeUrl('http://localhost:3000/zh-CN/some-page')
     expect(result.pathname).toBe('/some-page')
   })
 
-  it('deLocalizeUrl preserves unprefixed /some-page (base locale)', () => {
+  it('deLocalizeUrl preserves unprefixed canonical routes for language negotiation', () => {
     const result = deLocalizeUrl('http://localhost:3000/some-page')
     expect(result.pathname).toBe('/some-page')
   })
@@ -46,14 +53,14 @@ describe('i18n URL routing', () => {
     expect(result.pathname).toBe('/en/')
   })
 
-  it('localizeUrl maps / to / for base locale (zh-CN)', () => {
+  it('localizeUrl maps / to /zh-CN for the base locale', () => {
     const result = localizeUrl('http://localhost:3000/', { locale: 'zh-CN' })
-    expect(result.pathname).toBe('/')
+    expect(result.pathname).toBe('/zh-CN/')
   })
 
-  it('localizeUrl maps /en to / for zh-CN locale', () => {
+  it('localizeUrl switches /en to /zh-CN', () => {
     const result = localizeUrl('http://localhost:3000/en/', { locale: 'zh-CN' })
-    expect(result.pathname).toBe('/')
+    expect(result.pathname).toBe('/zh-CN/')
   })
 
   it('localizeUrl maps /some-page to /en/some-page for en locale', () => {
@@ -68,16 +75,16 @@ describe('i18n URL routing', () => {
     expect(href).toBe('/en/some-page')
   })
 
-  it('localizeHref with base locale preserves unprefixed path', () => {
+  it('localizeHref adds the base locale prefix', () => {
     overwriteGetLocale(() => 'en')
     const href = localizeHref('/en/some-page', { locale: 'zh-CN' })
-    expect(href).toBe('/some-page')
+    expect(href).toBe('/zh-CN/some-page')
   })
 
   it('localizeHref at root switches between locales', () => {
     overwriteGetLocale(() => 'zh-CN')
     expect(localizeHref('/', { locale: 'en' })).toBe('/en/')
-    expect(localizeHref('/', { locale: 'zh-CN' })).toBe('/')
+    expect(localizeHref('/', { locale: 'zh-CN' })).toBe('/zh-CN/')
   })
 
   it('localizeHref preserves query string and hash from a TanStack Router location.href', () => {
@@ -87,7 +94,7 @@ describe('i18n URL routing', () => {
     overwriteGetLocale(() => 'en')
     const locationHref = '/en/some-page?q=search#top'
     const href = localizeHref(locationHref, { locale: 'zh-CN' })
-    expect(href).toBe('/some-page?q=search#top')
+    expect(href).toBe('/zh-CN/some-page?q=search#top')
   })
 })
 
@@ -128,6 +135,12 @@ describe('i18n runtime', () => {
     expect(strategy).toEqual(['url', 'cookie', 'preferredLanguage', 'baseLocale'])
   })
 
+  it('only extracts a URL locale from prefixed routes', () => {
+    expect(extractLocaleFromUrl('http://localhost:3000/some-page')).toBeUndefined()
+    expect(extractLocaleFromUrl('http://localhost:3000/zh-CN/some-page')).toBe('zh-CN')
+    expect(extractLocaleFromUrl('http://localhost:3000/en/some-page')).toBe('en')
+  })
+
   it('uses the URL locale over conflicting cookie and preferred language', () => {
     const request = new Request('http://localhost:3000/en', {
       headers: {
@@ -147,15 +160,43 @@ describe('i18n runtime', () => {
     expect(extractLocaleFromRequest(request)).toBe('en')
   })
 
-  it('uses the unprefixed base-locale URL over fallback preferences', () => {
+  it('uses the saved cookie when the URL is unprefixed', () => {
     const request = new Request('http://localhost:3000/', {
       headers: {
         cookie: 'PARAGLIDE_LOCALE=en',
-        'accept-language': 'en',
+        'accept-language': 'zh-CN',
       },
     })
 
+    expect(extractLocaleFromRequest(request)).toBe('en')
+  })
+
+  it('uses the preferred language when an unprefixed URL has no locale cookie', () => {
+    const request = new Request('http://localhost:3000/some-page', {
+      headers: { 'accept-language': 'en' },
+    })
+
+    expect(extractLocaleFromRequest(request)).toBe('en')
+  })
+
+  it('falls back to the base locale when no request preference is supported', () => {
+    const request = new Request('http://localhost:3000/some-page', {
+      headers: { 'accept-language': 'fr' },
+    })
+
     expect(extractLocaleFromRequest(request)).toBe('zh-CN')
+  })
+
+  it('redirects an unprefixed first visit to the preferred-language URL', async () => {
+    const decision = await shouldRedirect({
+      request: new Request('http://localhost:3000/some-page', {
+        headers: { 'accept-language': 'en' },
+      }),
+    })
+
+    expect(decision.shouldRedirect).toBe(true)
+    expect(decision.locale).toBe('en')
+    expect(decision.redirectUrl?.pathname).toBe('/en/some-page')
   })
 
   it('baseLocale is zh-CN', () => {

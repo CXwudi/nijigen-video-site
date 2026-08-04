@@ -13,7 +13,7 @@
     "lint": "oxlint --deny-warnings .",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",
-    "paraglide": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide --strategy url cookie preferredLanguage baseLocale",
+    "paraglide": "node ./scripts/compile-paraglide.ts",
     "test": "vitest run",
     "pretest": "pnpm paraglide",
     "typecheck": "tsc --noEmit",
