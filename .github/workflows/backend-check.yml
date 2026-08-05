@@ -29,14 +29,14 @@ jobs:
           persist-credentials: false
 
       - name: 'Install mise'
-        uses: 'jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14' # v4.2.3
+        uses: 'jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654' # v4.2.4
         with:
           experimental: true
           install: true
           cache: true
 
       - name: 'Set up Gradle cache and build scans'
-        uses: 'gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92' # v6.2.0
+        uses: 'gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb' # v6.3.0
         with:
           build-scan-publish: true
           build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
