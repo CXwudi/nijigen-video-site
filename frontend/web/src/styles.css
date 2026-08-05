@@ -25,6 +25,15 @@
  */
 
 @import 'tailwindcss';
+
+@theme {
+  /* Prefer these spacing over just numbering */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+}
+
 @plugin "daisyui" {
   themes:
     snowmiku2019-light --default,
