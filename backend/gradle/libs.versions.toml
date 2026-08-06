@@ -4,7 +4,7 @@
 java = "25" # Keep aligned with JDK_VERSION in root mise.toml; this value is the Gradle fallback.
 kotlin = "2.4.10"
 spring-boot = "4.1.0"
-graalvm-native = "1.1.5"
+graalvm-native = "1.1.7"
 develocity = "4.5.0"
 foojay-resolver = "1.0.0"
 
@@ -15,7 +15,7 @@ foojay-resolver = "1.0.0"
 bom-springBoot = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 bom-junit = "org.junit:junit-bom:6.1.2"
 dep-mockk = "io.mockk:mockk:1.14.11"
-dep-springdocOpenapiStarterWebmvcUi = "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3"
+dep-springdocOpenapiStarterWebmvcUi = "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0"
 
 pluginDep-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 pluginDep-kotlinSpring = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
