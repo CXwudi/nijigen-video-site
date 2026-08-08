@@ -20,14 +20,14 @@
     "pretypecheck": "pnpm paraglide"
   },
   "dependencies": {
-    "@base-ui/react": "1.6.0",
-    "@inlang/paraglide-js": "2.22.0",
+    "@base-ui/react": "1.7.0",
+    "@inlang/paraglide-js": "2.23.2",
     "@tailwindcss/vite": "4.3.3",
     "@tanstack/react-query": "5.101.4",
-    "@tanstack/react-router": "1.170.18",
+    "@tanstack/react-router": "1.170.22",
     "@tanstack/react-router-ssr-query": "1.167.1",
-    "@tanstack/react-start": "1.168.34",
-    "daisyui": "5.7.9",
+    "@tanstack/react-start": "1.168.39",
+    "daisyui": "5.7.16",
     "nitro": "3.0.260610-beta",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -35,15 +35,15 @@
     "zustand": "5.0.14"
   },
   "devDependencies": {
-    "@tanstack/router-plugin": "1.168.23",
+    "@tanstack/router-plugin": "1.168.27",
     "@types/node": "26.1.2",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.0.5",
-    "oxfmt": "0.61.0",
-    "oxlint": "1.76.0",
+    "oxfmt": "0.62.0",
+    "oxlint": "1.77.0",
     "typescript": "7.0.2",
-    "vite": "8.2.0",
+    "vite": "8.2.1",
     "vitest": "4.1.10"
   }
 }
