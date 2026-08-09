@@ -3,6 +3,7 @@ import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/reac
 import type { RouterContext } from '../router'
 import appCss from '../styles.css?url'
 import { getLocale } from '../paraglide/runtime'
+import { ThemeProvider } from '../components/theme-provider'
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
@@ -28,14 +29,18 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   shellComponent: RootDocument,
 })
 
+/** SSR document shell: html/head/body with the theme provider. */
 function RootDocument({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang={getLocale()}>
+    // suppressHydrationWarning: the theme script sets .dark before hydration.
+    <html lang={getLocale()} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeProvider defaultTheme="system" storageKey="theme">
+          {children}
+        </ThemeProvider>
         <Scripts />
       </body>
     </html>
