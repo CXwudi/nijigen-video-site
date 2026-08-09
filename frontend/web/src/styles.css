@@ -1,118 +1,173 @@
-/* Snow Miku 2019 - paired light/dark themes (daisyUI v5)
+/* Snow Miku 2019 - paired light/dark themes (shadcn/ui + Base UI, Tailwind v4)
  *
- * light = snowmiku2019-E (default):
- *   B's frozen-sapphire palette on a brighter, de-blued snow canvas.
- *   base-100 is near-pure white (cards), base-200 a whisper of cool, the blue
- *   deepening into the base-300 borders - "pure-white peaks, blue shadows",
- *   the way real snow reads. Same brand tokens as snowmiku2019-B; only the
- *   base ramp moved (brighter + lower chroma on 100/200) to quiet the blue.
- * dark = snowmiku2019-B-dark-2 (prefers-color-scheme: dark):
- *   雪夜 (snow night) - 2019 hues at the bottom of the snow-shadow ramp;
- *   luminous ice primary, literal skirt navy as neutral, coral error.
- * Character-sourced semantics (both):
+ * Two verified themes (light = snowmiku2019-E, dark = snowmiku2019-B-dark-2)
+ * with character-sourced semantics:
  *   success = official Hatsune Miku teal #39C5BB
  *   error   = her warm magenta-red accent, pulled toward true-red
  *   warning = the Snow Miku 2019 gold #efd04d
- * Verified (verify_theme.py THEME_E / THEME_B_DARK2):
- *   every -content pair >= WCAG AA (4.5); cool tokens mutually dE2000 > 10;
- *   base depth steps card/page dE ~3.0, page/border dE ~4.3.
  *
- * Usage (Tailwind v4 + daisyUI v5):
- *   @import "tailwindcss";
- *   @plugin "daisyui";
- *   // then paste both blocks below; light applies by default, dark applies
- *   // automatically when the OS prefers dark.
+ * The palette is expressed as shadcn semantic tokens: the base ramp maps to
+ * background/card/popover/secondary/muted/border, primary stays the ice-blue
+ * brand color, and the info/success/warning tokens are re-exposed as custom
+ * `--color-*` utilities for badges and charts. Light tokens are the default;
+ * `.dark` (class-based, driven by ThemeProvider) applies the 雪夜 (snow night)
+ * ramp.
  */
 
 @import 'tailwindcss';
-@plugin "daisyui" {
-  themes:
-    snowmiku2019-light --default,
-    snowmiku2019-dark --prefersdark;
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Snow Miku extras: informational semantics re-exposed as utilities. */
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@plugin "daisyui/theme" {
-  /* snowmiku2019-E-light */
-  name: 'snowmiku2019-light';
-  default: true;
-  prefersdark: false;
-  color-scheme: light;
-  --color-base-100: oklch(99.7% 0.002 235);
-  --color-base-200: oklch(98% 0.01 235);
-  --color-base-300: oklch(93.5% 0.02 240);
-  --color-base-content: oklch(30% 0.055 258);
-  --color-primary: oklch(55% 0.15 250);
-  --color-primary-content: oklch(99% 0.005 240);
-  --color-secondary: oklch(80% 0.075 230);
-  --color-secondary-content: oklch(30% 0.05 258);
-  --color-accent: oklch(88% 0.075 205);
-  --color-accent-content: oklch(30% 0.05 220);
-  --color-neutral: oklch(34% 0.07 263);
-  --color-neutral-content: oklch(96% 0.01 235);
-  --color-info: oklch(70% 0.12 233);
-  --color-info-content: oklch(28% 0.05 230);
-  --color-success: oklch(72% 0.13 187);
-  --color-success-content: oklch(27% 0.05 200);
-  --color-warning: oklch(85% 0.155 95);
-  --color-warning-content: oklch(33% 0.06 88);
-  --color-error: oklch(57% 0.215 22);
-  --color-error-content: oklch(99% 0 0);
-  --radius-selector: 0.5rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.5rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
+:root {
+  /* snowmiku2019-E-light: frozen sapphire on a bright, de-blued snow canvas. */
+  --radius: 0.5rem;
+  --background: oklch(0.997 0.002 235);
+  --foreground: oklch(0.3 0.055 258);
+  --card: oklch(0.997 0.002 235);
+  --card-foreground: oklch(0.3 0.055 258);
+  --popover: oklch(0.997 0.002 235);
+  --popover-foreground: oklch(0.3 0.055 258);
+  --primary: oklch(0.55 0.15 250);
+  --primary-foreground: oklch(0.99 0.005 240);
+  --secondary: oklch(0.98 0.01 235);
+  --secondary-foreground: oklch(0.3 0.055 258);
+  --muted: oklch(0.98 0.01 235);
+  --muted-foreground: oklch(0.47 0.04 255);
+  --accent: oklch(0.93 0.03 235);
+  --accent-foreground: oklch(0.3 0.055 258);
+  --destructive: oklch(0.54 0.215 22);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.935 0.02 240);
+  --input: oklch(0.88 0.025 240);
+  --ring: oklch(0.55 0.15 250 / 0.35);
+  --chart-1: oklch(0.55 0.15 250);
+  --chart-2: oklch(0.72 0.13 187);
+  --chart-3: oklch(0.85 0.155 95);
+  --chart-4: oklch(0.7 0.12 233);
+  --chart-5: oklch(0.88 0.075 205);
+  --sidebar: oklch(0.98 0.01 235);
+  --sidebar-foreground: oklch(0.3 0.055 258);
+  --sidebar-primary: oklch(0.55 0.15 250);
+  --sidebar-primary-foreground: oklch(0.99 0.005 240);
+  --sidebar-accent: oklch(0.93 0.03 235);
+  --sidebar-accent-foreground: oklch(0.3 0.055 258);
+  --sidebar-border: oklch(0.935 0.02 240);
+  --sidebar-ring: oklch(0.55 0.15 250 / 0.35);
+  --info: oklch(0.7 0.12 233);
+  --info-foreground: oklch(0.28 0.05 230);
+  --success: oklch(0.72 0.13 187);
+  --success-foreground: oklch(0.27 0.05 200);
+  --warning: oklch(0.85 0.155 95);
+  --warning-foreground: oklch(0.33 0.06 88);
 }
 
-@plugin "daisyui/theme" {
-  /* snowmiku2019-B-dark-2 */
-  name: 'snowmiku2019-dark';
-  default: false;
-  prefersdark: true;
-  color-scheme: dark;
-  --color-base-100: oklch(26% 0.04 262);
-  --color-base-200: oklch(23% 0.035 262);
-  --color-base-300: oklch(20% 0.03 263);
-  --color-base-content: oklch(93% 0.015 235);
-  --color-primary: oklch(76% 0.11 245);
-  --color-primary-content: oklch(25% 0.05 255);
-  --color-secondary: oklch(46% 0.085 257);
-  --color-secondary-content: oklch(95% 0.01 235);
-  --color-accent: oklch(85% 0.08 200);
-  --color-accent-content: oklch(25% 0.05 210);
-  --color-neutral: oklch(38% 0.066 263);
-  --color-neutral-content: oklch(95% 0.01 235);
-  --color-info: oklch(63% 0.115 230);
-  --color-info-content: oklch(22% 0.04 235);
-  --color-success: oklch(74% 0.115 188);
-  --color-success-content: oklch(22% 0.04 195);
-  --color-warning: oklch(85% 0.155 95);
-  --color-warning-content: oklch(30% 0.06 88);
-  --color-error: oklch(70% 0.18 22);
-  --color-error-content: oklch(25% 0.08 25);
-  --radius-selector: 0.5rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.5rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
+.dark {
+  /* snowmiku2019-B-dark-2: 雪夜 (snow night) - luminous ice on navy. */
+  --background: oklch(0.26 0.04 262);
+  --foreground: oklch(0.93 0.015 235);
+  --card: oklch(0.26 0.04 262);
+  --card-foreground: oklch(0.93 0.015 235);
+  --popover: oklch(0.26 0.04 262);
+  --popover-foreground: oklch(0.93 0.015 235);
+  --primary: oklch(0.76 0.11 245);
+  --primary-foreground: oklch(0.25 0.05 255);
+  --secondary: oklch(0.23 0.035 262);
+  --secondary-foreground: oklch(0.93 0.015 235);
+  --muted: oklch(0.23 0.035 262);
+  --muted-foreground: oklch(0.72 0.02 235);
+  --accent: oklch(0.32 0.04 262);
+  --accent-foreground: oklch(0.93 0.015 235);
+  --destructive: oklch(0.77 0.18 22);
+  --destructive-foreground: oklch(0.25 0.08 25);
+  --border: oklch(0.34 0.035 262);
+  --input: oklch(0.38 0.04 260);
+  --ring: oklch(0.76 0.11 245 / 0.4);
+  --chart-1: oklch(0.76 0.11 245);
+  --chart-2: oklch(0.74 0.115 188);
+  --chart-3: oklch(0.85 0.155 95);
+  --chart-4: oklch(0.63 0.115 230);
+  --chart-5: oklch(0.85 0.08 200);
+  --sidebar: oklch(0.23 0.035 262);
+  --sidebar-foreground: oklch(0.93 0.015 235);
+  --sidebar-primary: oklch(0.76 0.11 245);
+  --sidebar-primary-foreground: oklch(0.25 0.05 255);
+  --sidebar-accent: oklch(0.32 0.04 262);
+  --sidebar-accent-foreground: oklch(0.93 0.015 235);
+  --sidebar-border: oklch(0.34 0.035 262);
+  --sidebar-ring: oklch(0.76 0.11 245 / 0.4);
+  --info: oklch(0.63 0.115 230);
+  --info-foreground: oklch(0.22 0.04 235);
+  --success: oklch(0.74 0.115 188);
+  --success-foreground: oklch(0.22 0.04 195);
+  --warning: oklch(0.85 0.155 95);
+  --warning-foreground: oklch(0.3 0.06 88);
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#app {
-  min-height: 100%;
-}
-
-body {
-  margin: 0;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }
