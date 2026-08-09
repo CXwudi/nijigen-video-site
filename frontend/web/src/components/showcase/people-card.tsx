@@ -19,7 +19,7 @@ function stepLabel(key: PipelineStep['key']) {
   }
 }
 /** One pipeline step with an animated progress bar (client-only ticker). */
-function PipelineBar({ label, initial }: { label: string; initial: number }) {
+function PipelineBar({ label, initial }: { readonly label: string; readonly initial: number }) {
   const [value, setValue] = useState(initial)
 
   useEffect(() => {

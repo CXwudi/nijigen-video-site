@@ -1,12 +1,12 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { ScriptOnce } from '@tanstack/react-router'
 
 export type Theme = 'dark' | 'light' | 'system'
 
 type ThemeProviderProps = {
-  children: React.ReactNode
-  defaultTheme?: Theme
-  storageKey?: string
+  readonly children: React.ReactNode
+  readonly defaultTheme?: Theme
+  readonly storageKey?: string
 }
 
 type ThemeProviderState = {
@@ -28,18 +28,20 @@ const ThemeProviderContext = createContext<ThemeProviderState>({
   setTheme: () => {},
 })
 
+/** Resolve a theme to its effective `dark`/`light` class, honoring the system preference. */
+function resolveTheme(theme: Theme): 'dark' | 'light' {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return theme
+}
+
 /** Apply a theme to the document root (`.dark` class drives the CSS tokens). */
 function applyTheme(theme: Theme) {
   const root = document.documentElement
   root.classList.remove('light', 'dark')
 
-  const resolved =
-    theme === 'system'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-      : theme
-
+  const resolved = resolveTheme(theme)
   root.classList.add(resolved)
   root.style.colorScheme = resolved
 }
@@ -78,13 +80,19 @@ export function ThemeProvider({
     return () => media.removeEventListener('change', onChange)
   }, [theme, mounted])
 
-  const setTheme = (next: Theme) => {
-    localStorage.setItem(storageKey, next)
-    setThemeState(next)
-  }
+  const value = useMemo(
+    () => ({
+      theme,
+      setTheme: (next: Theme) => {
+        localStorage.setItem(storageKey, next)
+        setThemeState(next)
+      },
+    }),
+    [theme, storageKey],
+  )
 
   return (
-    <ThemeProviderContext value={{ theme, setTheme }}>
+    <ThemeProviderContext value={value}>
       <ScriptOnce>{getThemeScript(storageKey, defaultTheme)}</ScriptOnce>
       {children}
     </ThemeProviderContext>
