@@ -13,6 +13,7 @@ const config = defineConfig({
     paraglideVitePlugin(paraglideOptions),
     nitro({ rollupConfig: { external: [/^@sentry\//] } }),
     tailwindcss(),
+    // Keep components.json "rsc" consistent with TanStack Start's RSC setting.
     tanstackStart(),
     viteReact(),
   ],

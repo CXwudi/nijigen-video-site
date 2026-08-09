@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Bell, Copy, Search, Settings } from 'lucide-react'
 
 import * as m from '../../paraglide/messages'
@@ -43,6 +43,29 @@ function IconToolbar() {
 export function MenuCard() {
   const [showProcessing, setShowProcessing] = useState(true)
   const [copied, setCopied] = useState(false)
+  const copyResetTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimer.current !== null) {
+        window.clearTimeout(copyResetTimer.current)
+      }
+    }
+  }, [])
+
+  /** Restarts the copy confirmation interval after each click. */
+  function handleCopy() {
+    setCopied(true)
+
+    if (copyResetTimer.current !== null) {
+      window.clearTimeout(copyResetTimer.current)
+    }
+
+    copyResetTimer.current = window.setTimeout(() => {
+      setCopied(false)
+      copyResetTimer.current = null
+    }, 1500)
+  }
 
   return (
     <Card className="shadow-sm">
@@ -63,12 +86,7 @@ export function MenuCard() {
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Miku — Snow Waltz</DropdownMenuLabel>
                   <DropdownMenuItem>{m.menu_view_details()}</DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setCopied(true)
-                      window.setTimeout(() => setCopied(false), 1500)
-                    }}
-                  >
+                  <DropdownMenuItem onClick={handleCopy}>
                     <Copy aria-hidden="true" />
                     {copied ? m.menu_copy_link_done() : m.menu_copy_link()}
                   </DropdownMenuItem>
