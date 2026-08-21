@@ -3,8 +3,8 @@
 # Keep single-use versions inline in the entry itself for clarity.
 java = "25" # Keep aligned with JDK_VERSION in root mise.toml; this value is the Gradle fallback.
 kotlin = "2.4.10"
-spring-boot = "4.1.0"
-graalvm-native = "1.1.9"
+spring-boot = "4.1.1"
+graalvm-native = "1.1.10"
 develocity = "4.5.0"
 foojay-resolver = "1.0.0"
 
