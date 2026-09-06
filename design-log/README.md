@@ -15,6 +15,8 @@ Grammatical fixes or link updates are allowed, but the core content should remai
 
 For any new updates, a new reference document should be created to capture the new design history, the old one can have a link to the new one for traceability.
 
+**Exception**: `plans/` and `spec/` were previously part of this folder but are no longer tracked — rigid plan/spec artifacts can confuse AI agents, especially the newer, stronger models like Fable and Astro.
+
 ## Structure
 
 - [`adl/`](adl/): architecture decision logs and related rationale notes

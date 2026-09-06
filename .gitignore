@@ -15,8 +15,5 @@ gha-creds-*.json
 .temp/
 
 ### Personal design artifacts (kept outside version control) ###
-design-log/plans/
-design-log/spec/
-
-plans/
-spec/
+/plans/
+/spec/
