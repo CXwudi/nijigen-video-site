@@ -19,18 +19,6 @@ Meanwhile, the assumption kept dragging speculative, unverifiable configuration 
 
 ## Decision
 
-**Defer production deployment platform selection.** Docker Compose is explicitly a **local development / CI / integration tool only**. The claimed production Compose deployment is removed:
+**Remove production deployment powered by Docker Compose.** Docker Compose is explicitly a **local development / CI / integration tool only**.
 
-- Removed: `infra/compose/compose.prod.yml`, `infra/compose/prod.env.example`, `infra/compose/mise.toml`, and the obsolete `infra/compose` env ignores in `infra/.gitignore`; `infra/compose` is dropped from the root `mise.toml` monorepo `config_roots`.
-- Removed: the speculative production-specific provisioning path — the OpenTofu provider is simplified to PAT-only (local/CI); the `auth_mode` and `jwt_profile_path` variables and `TF_VAR_auth_mode` are deleted.
-- Removed: speculative migration execution from the frontend runtime image startup command (`frontend/docker/Dockerfile` is restored to its Step 5 reviewed state).
-- Kept: the independent backend runtime-image repair (`api-jvm-runtime` now builds on the official `jre-${JDK_VERSION}-glibc` base because no JDK 25 CRaC image exists, with the CRaC TODO reworded; `RUN chmod 0755 /app/api` guarantees the distZip start-script exec bit; direct `ENTRYPOINT ["/app/api"]` is restored).
-- Kept: **platform-neutral, portable runtime images** as the deployment boundary. The Dockerfiles still produce self-contained JVM/native API images and a node web runtime image that any future platform can run unchanged.
-- Kept: all local/CI Compose behavior — the shared bases in `infra/compose/common-services.yml` (including `network_mode: service:zitadel` on the shared `zitadel-provision-base`), both concrete local stacks, the local PAT bootstrap, and the authentication architecture of ADL-008/ADL-009.
-- Deferred (not chosen): the production platform — Railway, Kubernetes, managed Neon/Upstash, or anything else. Also deferred: migration/release lifecycle for production (when to apply Flyway/Drizzle migrations), which the future platform's release process decides; the checked-in `db:migrate`/`build:migrate` scripts remain.
-
-## Consequences
-
-- Positive: no unverifiable production configuration claims remain in active files; local/CI configuration is the only Compose contract and stays fully exercised; the runtime images remain the stable, portable hand-off boundary for a future deployment decision.
-- The issue #57 plan is revised accordingly: Step 6 becomes the reviewed cleanup/deployable-image step (production Compose removed, runtime-image repair verified), and its remaining steps/audit/risks no longer carry production-Compose acceptance criteria. ADL-004/008/009 remain the authority on module layout, the ZITADEL + opaque-token architecture, and the BFF design; only their production-Compose deployment assumption is superseded.
-- When a real target, traffic, budget, and operator exist, a new ADL will select the platform and define the production topology, secret handling, and release/migration lifecycle; this decision deliberately does not constrain that choice.
+Any further Docker Compose refactoring is deferred to the issue #72 implementation.
