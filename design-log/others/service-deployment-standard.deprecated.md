@@ -1,10 +1,11 @@
-# Service Deployment Standard
+# Service Deployment Standard (Deprecated)
 
-This document is a local copy of the shared deployment standard referenced by
-issue `#8`.
+This document is a local copy of the shared deployment standard referenced by issue `#8`.
 
 Source:
 [service-deployment-standard.md](https://github.com/user-attachments/files/26337055/service-deployment-standard.md)
+
+However, this documentation is **outdated** by 2026 September, for both AI Agent and Human Dev don't refer to it. The doc is still kept due to Write-ahead-log policy in this `design-log` folder
 
 ## File Structure
 

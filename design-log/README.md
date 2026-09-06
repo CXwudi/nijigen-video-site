@@ -1,6 +1,6 @@
 # References
 
-This folder captures design history, decision rationale, implementation plans, and specs.
+This folder captures design history and decision rationale.
 
 AI agents and humans should use [`../docs/`](../docs/README.md) and the app-local docs it links to as the single-source-of-truth documentation.
 
@@ -18,6 +18,4 @@ For any new updates, a new reference document should be created to capture the n
 ## Structure
 
 - [`adl/`](adl/): architecture decision logs and related rationale notes
-- [`plans/`](plans/): implementation plans and work breakdowns
-- [`spec/`](spec/): design specs, problem framing, and option analysis
 - [`others/`](others/): any other supporting materials

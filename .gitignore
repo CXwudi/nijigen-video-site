@@ -13,3 +13,10 @@ Thumbs.db
 gha-creds-*.json
 .codex
 .temp/
+
+### Personal design artifacts (kept outside version control) ###
+design-log/plans/
+design-log/spec/
+
+plans/
+spec/
