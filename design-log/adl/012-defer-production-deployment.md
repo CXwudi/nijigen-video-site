@@ -13,6 +13,7 @@ That assumption was not justified. Three reasons:
 
 1. **Docker Compose is normally serving quick bring-up and testing here.** In this repository, Compose is the tool for quickly bringing up the stack and testing against it (local development, CI, integration); using it as an assumed production mechanism goes beyond that role and is unjustified.
 2. **Real production will likely use managed PostgreSQL/Redis or equivalent cloud services.** A real deployment will probably run stateful services on managed offerings (for example Neon/Upstash — named only as examples, not chosen here), because this project cannot currently operate and scale stateful services responsibly on its own.
+   1. More importantly, if a managed service even provides a dev environment — e.g., Neon — there is no need to manage it via Docker Compose at all, although setting up the dev environment of a managed service is itself an effort worth considering.
 3. **The shared-Compose rationale is speculative.** Sharing local and production Compose was intended to reduce "works locally but not in cloud" drift, but it is uncertain how often that benefit actually materializes, while a speculative production topology can itself create false confidence.
 
 Meanwhile, the assumption kept dragging speculative, unverifiable configuration into the codebase (public-DNS/TLS postures, machine-key expiry rotation paths, ingress header-stripping rules, prod placeholders) that could not be exercised in this environment.
