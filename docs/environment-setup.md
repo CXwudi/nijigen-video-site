@@ -65,7 +65,7 @@ Environment variables set by root [`mise.toml`](../mise.toml) have higher priori
 
 One thing this project is proud of is the unified environment setup by Docker Compose.
 
-Development, CI, and production all share the same Docker Compose setup, ensuring consistency across all environments and eliminating environmental surprises.
+Local development, CI, and integration testing share Docker Compose service bases to keep their environments consistent. Production deployment platform selection is deferred; see [ADL-012](../design-log/adl/012-defer-production-deployment.md).
 
 Specifically:
 

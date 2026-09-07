@@ -1,6 +1,7 @@
 # Docker Setup Explain
 
 This document explains the Docker setup in this repository.
+Docker Compose is used for local development, CI, and integration testing only. Production deployment platform selection is deferred; see [ADL-012](../design-log/adl/012-defer-production-deployment.md).
 For more info, see [`ADL-0004: Component-Owned Docker Modules with Shared Compose Service Bases`](../design-log/adl/004-component-owned-docker-modules.md).
 However, over time, this ADL may become outdated. Always use this document as the source of truth.
 
@@ -19,19 +20,13 @@ For application services, things are more complicated.
 ## Application Services Setup
 
 Each application service, for example, the `api` service on the backend side.
-There are 4 scenarios we need to support:
+There are 3 scenarios we need to support:
 
 1. Developers running commands, like gradle task or pnpm run
 2. CI running tests
 3. Temporarily bring up the stack
-4. Production launch
 
-However, looking at all 4 scenarios, except the last one, all others can be reduced into one:
-
-1. Running a build tool command, whether it is a Gradle task, a pnpm command, a test command, or a server launch command
-2. Production launch
-
-Production launch is the outlier because the final image built only contains running artifacts with no knowledge of source code or build tools.
+All 3 scenarios reduce to running a build tool command, whether it is a Gradle task, a pnpm command, a test command, or a server launch command.
 
 So, each application service, for example, the `api` service on the backend side, is designed around being able to run any build tool command. Hence the service is set up as:
 
