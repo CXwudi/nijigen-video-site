@@ -1,5 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from 'react'
 import { ScriptOnce } from '@tanstack/react-router'
+
+import { createThemeStore } from './theme-store'
 
 export type Theme = 'dark' | 'light' | 'system'
 
@@ -55,22 +57,28 @@ export function ThemeProvider({
   defaultTheme = 'system',
   storageKey = 'theme',
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(defaultTheme)
-  const [mounted, setMounted] = useState(false)
+  // Create our own theme store based on localStorage
+  const store = useMemo(
+    () => createThemeStore(storageKey, defaultTheme),
+    [storageKey, defaultTheme],
+  )
+  // Bridge React's state to our own theme store
+  const savedTheme = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getServerSnapshot,
+  )
+  const theme = savedTheme ?? defaultTheme
+  const mounted = savedTheme !== null
 
-  useEffect(() => {
-    const stored = localStorage.getItem(storageKey)
-    setThemeState(
-      stored === 'light' || stored === 'dark' || stored === 'system' ? stored : defaultTheme,
-    )
-    setMounted(true)
-  }, [defaultTheme, storageKey])
-
+  // Main effect for applying the theme, mostly triggered by the `setTheme` setter below
+  // Is also triggered once after hydration.
   useEffect(() => {
     if (!mounted) return
     applyTheme(theme)
   }, [theme, mounted])
 
+  // Main effect for responding to system preference changes, while selected theme is `system`.
   useEffect(() => {
     if (!mounted || theme !== 'system') return
 
@@ -83,12 +91,9 @@ export function ThemeProvider({
   const value = useMemo(
     () => ({
       theme,
-      setTheme: (next: Theme) => {
-        localStorage.setItem(storageKey, next)
-        setThemeState(next)
-      },
+      setTheme: store.setTheme,
     }),
-    [theme, storageKey],
+    [theme, store],
   )
 
   return (
