@@ -19,7 +19,7 @@ config_roots = [
 # See docs/docker-setup-explain.md for the shared container-based development/CI environment
 JDK_VERSION = "25" # keep aligned with java in backend/gradle/libs.versions.toml
 NODE_VERSION = "24"
-PNPM_VERSION = "11"
+PNPM_VERSION = "12"
 # Downstream consumers include:
 # - mise [tools] for the host JDK, Node.js, and pnpm installs
 # - Docker Compose image tags, container environment, and build.args
