@@ -4,7 +4,7 @@
 java = "25" # Keep aligned with JDK_VERSION in root mise.toml; this value is the Gradle fallback.
 kotlin = "2.4.20"
 spring-boot = "4.1.1"
-graalvm-native = "1.1.13"
+graalvm-native = "1.1.14"
 develocity = "4.5.1"
 foojay-resolver = "1.0.0"
 
@@ -32,4 +32,4 @@ kotlinSpring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotli
 graalvmNative = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-native" }
 develocity = { id = "com.gradle.develocity", version.ref = "develocity" }
 foojayResolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver" }
-buildConfig = { id = "com.github.gmazzo.buildconfig", version = "6.1.0" }
+buildConfig = { id = "com.github.gmazzo.buildconfig", version = "6.1.1" }
