@@ -46,8 +46,10 @@ RUN set -eux; \
     mkdir -p /workspace/dist; \
     cp "$binary_path" /workspace/dist/api
 
-FROM ghcr.io/bell-sw/hardened-base:glibc AS api-native-runtime
+FROM ghcr.io/bell-sw/hardened-base:nonroot-glibc AS api-native-runtime
 WORKDIR /app
 COPY --from=api-native-build /workspace/dist/api /app/api
+# The nonroot base image runs as appuser by default, but explicitly setting here to satisfy SonarCloud
+USER appuser
 EXPOSE 8080
 ENTRYPOINT ["/app/api"]

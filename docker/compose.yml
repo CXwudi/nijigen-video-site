@@ -1,0 +1,122 @@
+# Shared development stack. Profiles select services within the same project.
+
+name: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}
+
+services:
+  api:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    image: ghcr.io/bell-sw/liberica-native-image-kit-container:jdk-${JDK_VERSION:?JDK_VERSION must be provided, likely from mise.toml}-nik-${JDK_VERSION:?JDK_VERSION must be provided, likely from mise.toml}-glibc
+    working_dir: /workspace/backend
+    user: "${HOST_UID:?HOST_UID must be provided}:${HOST_GID:?HOST_GID must be provided}"
+    environment:
+      SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB in .env}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      GRADLE_USER_HOME: /gradle-home
+      JDK_VERSION: ${JDK_VERSION:?JDK_VERSION must be provided, likely from mise.toml}
+      CI: ${CI:-}
+    entrypoint: ["./gradlew", "--no-daemon"]
+    command: [":apps:api:bootRun"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "-T", "3", "http://127.0.0.1:8080/actuator/health"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+      # Cold Gradle downloads and compilation happen before Spring starts.
+      start_period: 5m
+    restart: "no"
+    volumes:
+      - ../backend:/workspace/backend
+      - ${HOST_GRADLE_USER_HOME:-${GRADLE_USER_HOME:-${HOME}/.gradle}}:/gradle-home
+    profiles:
+      - backend
+      - frontend-deps
+      - full
+    ports:
+      - ${API_HTTP_PORT:-8080}:8080
+
+  postgres:
+    extends:
+      file: common-services.yml
+      service: postgres-base
+    ports:
+      - ${POSTGRES_HOST_PORT:-5432}:5432
+
+  redis:
+    extends:
+      file: common-services.yml
+      service: redis-base
+    ports:
+      - ${REDIS_HOST_PORT:-6379}:6379
+
+  flyway:
+    extends:
+      file: common-services.yml
+      service: flyway-base
+    environment:
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline,filesystem:/flyway/sql/local
+    volumes:
+      - ../infra/flyway/sql/local:/flyway/sql/local:ro
+
+  # Initialize ownership of dependency volumes seeded by the shared pnpm image.
+  web-init:
+    extends:
+      file: common-services.yml
+      service: web-pnpm-base
+    profiles:
+      - frontend-deps
+      - full
+    user: "0:0"
+    entrypoint: ["sh", "-ceu"]
+    command:
+      - |
+        mkdir -p \
+          /workspace/frontend/node_modules \
+          /workspace/frontend/web/node_modules \
+          /pnpm/store
+        chown -R "${HOST_UID:?HOST_UID must be provided}:${HOST_GID:?HOST_GID must be provided}" \
+          /workspace/frontend/node_modules \
+          /workspace/frontend/web/node_modules \
+          /pnpm/store
+    volumes:
+      - frontend-node-modules:/workspace/frontend/node_modules
+      - web-node-modules:/workspace/frontend/web/node_modules
+      - frontend-pnpm-store:/pnpm/store
+
+  web:
+    extends:
+      file: common-services.yml
+      service: web-pnpm-base
+    profiles:
+      - full
+    depends_on:
+      api:
+        condition: service_healthy
+      web-init:
+        condition: service_completed_successfully
+    user: "${HOST_UID:?HOST_UID must be provided}:${HOST_GID:?HOST_GID must be provided}"
+    entrypoint: ["pnpm"]
+    command: ["--filter", "web", "dev", "--host", "0.0.0.0"]
+    ports:
+      - ${FRONTEND_HTTP_PORT:-5173}:3000
+    volumes:
+      - ../frontend:/workspace/frontend
+      - frontend-node-modules:/workspace/frontend/node_modules
+      - web-node-modules:/workspace/frontend/web/node_modules
+      - frontend-pnpm-store:/pnpm/store
+
+volumes:
+  postgres-data:
+  redis-data:
+  frontend-node-modules:
+  web-node-modules:
+  frontend-pnpm-store:

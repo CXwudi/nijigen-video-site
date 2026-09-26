@@ -2,29 +2,14 @@
   "folders": [
     {
       // this must be front so that AI Agent inside a vscode plugin won't frake out
-      "path": "."
-    },
-    {
-      "path": ".agents"
-    },
-    {
-      "path": ".github"
-    },
-    {
-      "path": "design-log"
-    },
-    {
-      "name": "common-docs",
-      "path": "docs"
+      "path": ".",
+      "name": "root"
     },
     {
       "path": "backend"
     },
     {
       "path": "frontend"
-    },
-    {
-      "path": "infra"
     },
   ],
   "settings": {

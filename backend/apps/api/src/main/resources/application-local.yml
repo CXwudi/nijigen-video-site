@@ -1,5 +1,5 @@
 # Profile used when connecting to external services via port forwarding in Compose files.
-# Backend local Docker defaults live in backend/docker/.env.
+# Local Docker defaults live in the repository's docker/.env.
 
 spring:
   datasource:

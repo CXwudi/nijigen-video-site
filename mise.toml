@@ -8,9 +8,8 @@ experimental = true
 # Automatic mise.toml discovery is deprecated, so config roots are listed explicitly.
 config_roots = [
   "backend",
-  "backend/docker",
+  "docker",
   "frontend",
-  "frontend/docker",
   "frontend/web",
 ]
 

@@ -39,15 +39,16 @@ This repository uses mise monorepo tasks. This is similar to Bazel.
 For example, from the repository root:
 
 ```bash
-mise //backend/docker:config-check
-mise //backend/docker:run --rm api :apps:api:test
-mise //frontend/docker:config-check
+cp docker/.env.example docker/.env
+mise //docker:config-check
+mise //docker:run --rm api :apps:api:test
+mise //docker:up-full
 ```
 
 From a task's own directory, use the local task name:
 
 ```bash
-cd backend/docker
+cd docker
 mise :config-check
 mise :run --rm api :apps:api:test
 ```
@@ -61,15 +62,20 @@ To change a major version, update `[env]` in the root `mise.toml`.
 
 Environment variables set by root [`mise.toml`](../mise.toml) have higher priority than `.env` / `.env.example` files.
 
+Docker configuration lives in the untracked `docker/.env`. Mise Docker tasks detect the current host UID/GID unless explicitly exported, and consistently resolve the Gradle cache directory. For direct Compose runs, set `HOST_UID` and `HOST_GID` in that env file to the host user's values and supply the runtime versions through mise. The default ports are API `8080`, web `5173`, PostgreSQL `5432`, and Redis `6379`.
+
+For a custom Gradle cache path in mise tasks, export `HOST_GRADLE_USER_HOME`; otherwise the wrapper uses `GRADLE_USER_HOME` or `$HOME/.gradle`. Setting that path only in `docker/.env` applies to direct Compose invocations, since the wrapper exports its host-resolved path before calling Compose.
+
 ## Unified Environment by Docker Compose
 
-One thing this project is proud of is the unified environment setup by Docker Compose.
+One Compose entrypoint manages a shared development project for the whole repository.
 
-Local development, CI, and integration testing share Docker Compose service bases to keep their environments consistent. Production deployment platform selection is deferred; see [ADL-012](../design-log/adl/012-defer-production-deployment.md).
+Local development, CI, and integration testing share Docker Compose service bases to keep their environments consistent. Production deployment platform selection is deferred.
 
 Specifically:
 
-- [`infra/compose/common-services.yml`](../infra/compose/common-services.yml) defines reusable service bases
-- All other Docker Compose files build on top of the common services
+- [`docker/compose.yml`](../docker/compose.yml) explicitly declares the stack and its profiles.
+- [`docker/common-services.yml`](../docker/common-services.yml) defines reusable service bases.
+- Local development defaults to project `nijigen-video-site`; CI overrides `COMPOSE_PROJECT_NAME` per workflow run and job. Separate worktrees can also override the project name and host ports.
 
 See [`Docker Setup Explain`](docker-setup-explain.md) for more explanation.

@@ -1,0 +1,62 @@
+# Reusable service definitions for local development, CI, and integration tests.
+# compose.yml explicitly declares the services and top-level resources it uses.
+
+services:
+  web-pnpm-base:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      target: web-pnpm-base
+      args:
+        NODE_VERSION: ${NODE_VERSION:?NODE_VERSION must be provided, likely from mise.toml}
+        PNPM_VERSION: ${PNPM_VERSION:?PNPM_VERSION must be provided, likely from mise.toml}
+    image: ${WEB_PNPM_IMAGE:-nijigen-video-site-web-pnpm:local}
+    working_dir: /workspace/frontend
+    environment:
+      PNPM_CONFIG_STORE_DIR: /pnpm/store
+    restart: "no"
+
+  postgres-base:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis-base:
+    image: redis:8
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  flyway-base:
+    image: flyway/flyway:11
+    command: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB in .env}
+      FLYWAY_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      FLYWAY_CONNECT_RETRIES: "60"
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline
+    restart: "no"
+    volumes:
+      - ../infra/flyway/sql/baseline:/flyway/sql/baseline:ro

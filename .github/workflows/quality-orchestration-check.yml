@@ -44,15 +44,14 @@ jobs:
               - '.github/workflows/quality-orchestration-check.yml'
               - '.github/workflows/backend-check.yml'
               - 'backend/**'
-              - 'infra/compose/**'
+              - 'docker/**'
               - 'infra/flyway/**'
               - 'mise.toml'
-              - 'backend/docker/mise.toml'
             frontend:
               - '.github/workflows/quality-orchestration-check.yml'
               - '.github/workflows/frontend-check.yml'
               - 'frontend/**'
-              - 'infra/compose/**'
+              - 'docker/**'
               - 'infra/flyway/**'
               - 'mise.toml'
 
