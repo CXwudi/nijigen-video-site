@@ -1,21 +1,17 @@
 # Docker Setup Explain
 
 This document explains the Docker setup in this repository.
-Docker Compose is used for local development, CI, and integration testing only. Production deployment platform selection is deferred; see [ADL-012](../design-log/adl/012-defer-production-deployment.md).
-For more info, see [`ADL-0004: Component-Owned Docker Modules with Shared Compose Service Bases`](../design-log/adl/004-component-owned-docker-modules.md).
-However, over time, this ADL may become outdated. Always use this document as the source of truth.
+Docker Compose is used for local development, CI, and integration testing only. Production deployment platform selection is deferred.
 
 ## Unification by `extends` keyword
 
-There are multiple ways to reuse services in Docker Compose, but the `extends` keyword is chosen for:
+[`docker/compose.yml`](../docker/compose.yml) is the only stack entrypoint. It defines the API service directly and imports reusable dependency and pnpm definitions from [`docker/common-services.yml`](../docker/common-services.yml) using `extends`:
 
 - You can still modify any field from extended services.
-- Enforce the caller Compose file to explicitly declare all the services it uses.
-  - This helps both developers and AI agents understand what will be launched, which is less clear with override Compose files or `include`.
-  - This also means some redundant declarations in each caller, but we accept that tradeoff for clarity.
+- The entrypoint explicitly declares every service and top-level volume it uses.
+- Service definitions share image settings and dependencies without creating separate frontend and backend projects.
 
-`extends` works extremely well for dependencies like Postgres and Redis.
-For application services, things are more complicated.
+Profiles select services within the same project. They do not create isolated environments or inherit other profiles. API and web-init therefore belong to every scenario that needs them. The default project name is `nijigen-video-site`, with no fixed container names or globally named volumes.
 
 ## Application Services Setup
 

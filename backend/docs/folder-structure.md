@@ -18,10 +18,7 @@ backend/
 |
 ├─ docs/
 |
-├─ docker/
-│  ├─ compose.local.yml
-│  ├─ Dockerfile
-│  └─ mise.toml
+├─ Dockerfile
 |
 ├─ gradle/
 │  ├─ libs.versions.toml
@@ -77,16 +74,6 @@ Holds reusable backend modules that can be shared across apps.
 Currently implemented:
 
 - `common/`
-
-### `docker/`
-
-Holds Docker assets for local development and CI-like tool runs.
-
-Currently implemented:
-
-- `compose.local.yml` local service composition
-- `Dockerfile` backend runtime image definition
-- `mise.toml` mise tasks for running any build tool commands (including testing commands), as well as bringing up the whole backend stack for developing or testing
 
 ### Root-Level Gradle Files
 

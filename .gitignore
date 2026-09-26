@@ -13,6 +13,7 @@ Thumbs.db
 gha-creds-*.json
 .codex
 .temp/
+/docker/.env
 
 ### Personal design artifacts (kept outside version control) ###
 /plans/

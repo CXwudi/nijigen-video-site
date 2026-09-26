@@ -1,32 +1,20 @@
-# Shared Docker Compose service bases for nijigen-video-site.
-#
-# Concrete Compose files own their stack entrypoints and top-level resources.
-# These bases only hold settings that are genuinely shared across stacks.
-
-x-shared-spring-env: &shared-spring-env
-  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB in .env}
-  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
-  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
-  SPRING_DATA_REDIS_HOST: redis
-  SPRING_DATA_REDIS_PORT: "6379"
+# Reusable service definitions for local development, CI, and integration tests.
+# compose.yml explicitly declares the services and top-level resources it uses.
 
 services:
-  api-compose-base:
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      flyway:
-        condition: service_completed_successfully
+  web-pnpm-base:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      target: web-pnpm-base
+      args:
+        NODE_VERSION: ${NODE_VERSION:?NODE_VERSION must be provided, likely from mise.toml}
+        PNPM_VERSION: ${PNPM_VERSION:?PNPM_VERSION must be provided, likely from mise.toml}
+    image: ${WEB_PNPM_IMAGE:-nijigen-video-site-web-pnpm:local}
+    working_dir: /workspace/frontend
     environment:
-      SPRING_APPLICATION_NAME: ${COMPOSE_PROJECT_NAME:-nijigen-video-site}-${API_APPLICATION_NAME:-apps-api}
-      <<: *shared-spring-env
-
-  web-compose-base:
-    depends_on:
-      api:
-        condition: service_started
+      PNPM_CONFIG_STORE_DIR: /pnpm/store
+    restart: "no"
 
   postgres-base:
     image: postgres:17
@@ -80,4 +68,4 @@ services:
       FLYWAY_LOCATIONS: filesystem:/flyway/sql/baseline
     restart: "no"
     volumes:
-      - ../flyway/sql/baseline:/flyway/sql/baseline:ro
+      - ../infra/flyway/sql/baseline:/flyway/sql/baseline:ro

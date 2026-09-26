@@ -1,0 +1,94 @@
+[vars]
+compose = "bash ./compose.sh"
+
+[tasks.up]
+description = "Start backend dependencies only: postgres, redis, and flyway."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} up -d
+'''
+
+[tasks.up-backend]
+description = "Start backend dependencies and the Gradle-backed API."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile backend up -d
+'''
+
+[tasks.up-frontend-deps]
+description = "Start the backend and initialize frontend dependency volume ownership."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile frontend-deps up -d --build
+'''
+
+[tasks.up-full]
+description = "Start the full development stack."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile full up -d --build
+'''
+
+[tasks.down]
+description = "Stop the shared development stack while preserving named volumes."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile '*' down --remove-orphans
+'''
+
+[tasks.config]
+description = "Print the resolved Compose configuration for all services."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} --profile '*' config
+'''
+
+[tasks.config-check]
+description = "Validate each supported Compose profile and the complete configuration."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_PROFILES=
+{{ vars.compose }} config --quiet
+for profile in backend frontend-deps full '*'; do
+  {{ vars.compose }} --profile "$profile" config --quiet
+done
+'''
+
+[tasks.run]
+description = "Run arbitrary commands in a Compose service; dependency services remain running."
+raw_args = true
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'printf "\nShared services may still be running. Run: mise //docker:down when you are done.\n"' EXIT
+{{ vars.compose }} run "$@"
+'''
+
+[tasks.clean-dependency-volumes]
+description = "Remove frontend dependency volumes while preserving postgres and redis data."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+# Resolve actual names so environment and Compose project overrides are respected.
+volume_names="$({{ vars.compose }} --profile full config --format json | node -e '
+  const config = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+  for (const volume of ["frontend-node-modules", "web-node-modules", "frontend-pnpm-store"]) {
+    console.log(config.volumes[volume].name);
+  }
+')"
+{{ vars.compose }} --profile full rm --stop --force --volumes web web-init
+while IFS= read -r volume_name; do
+  if docker volume inspect "$volume_name" >/dev/null 2>&1; then
+    docker volume rm "$volume_name"
+  else
+    printf 'Volume not found, skipping: %s\n' "$volume_name"
+  fi
+done <<< "$volume_names"
+'''

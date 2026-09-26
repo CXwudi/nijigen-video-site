@@ -20,6 +20,7 @@ jobs:
     permissions:
       contents: 'read'
     env:
+      COMPOSE_PROJECT_NAME: 'nijigen-backend-${{ github.run_id }}-${{ github.run_attempt }}'
       DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
       DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}'
     steps:
@@ -62,25 +63,25 @@ jobs:
           password: '${{ env.DOCKERHUB_TOKEN }}'
 
       - name: 'Prepare Compose env file'
-        run: 'cp backend/docker/.env.example backend/docker/.env'
+        run: 'cp docker/.env.example docker/.env'
 
       - name: 'Render backend Compose stack'
-        run: 'mise //backend/docker:config-check'
+        run: 'mise //docker:config-check'
 
       - name: 'Run api test'
-        run: 'mise //backend/docker:run --rm api :apps:api:test'
+        run: 'mise //docker:run --rm api :apps:api:test'
 
       # Unsure if we should enable running any time-consuming native compilation or native test in CI
 
       # - name: 'Run api nativeCompile'
-      #   run: 'mise //backend/docker:run --rm api :apps:api:nativeCompile'
+      #   run: 'mise //docker:run --rm api :apps:api:nativeCompile'
 
       # - name: 'Run api nativeTest'
-      #   run: 'mise //backend/docker:run --rm api :apps:api:nativeTest'
+      #   run: 'mise //docker:run --rm api :apps:api:nativeTest'
 
       - name: 'Clean backend Compose stack'
         if: 'always()'
-        run: 'mise //backend/docker:down'
+        run: 'mise //docker:down'
 
       - name: 'Upload api build reports'
         uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a' # v7.0.1

@@ -20,6 +20,7 @@ jobs:
     permissions:
       contents: 'read'
     env:
+      COMPOSE_PROJECT_NAME: 'nijigen-frontend-${{ github.run_id }}-${{ github.run_attempt }}'
       DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
       DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}'
     steps:
@@ -58,10 +59,10 @@ jobs:
           password: '${{ env.DOCKERHUB_TOKEN }}'
 
       - name: 'Prepare Compose env file'
-        run: 'cp frontend/docker/.env.example frontend/docker/.env'
+        run: 'cp docker/.env.example docker/.env'
 
       - name: 'Render frontend Compose stack'
-        run: 'mise //frontend/docker:config-check'
+        run: 'mise //docker:config-check'
 
       - name: 'Resolve frontend runtime versions'
         id: 'runtime_versions'
@@ -128,7 +129,7 @@ jobs:
         uses: 'docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc' # v7.4.0
         with:
           context: 'frontend'
-          file: 'frontend/docker/Dockerfile'
+          file: 'frontend/Dockerfile'
           target: 'web-pnpm-base'
           tags: 'nijigen-video-site-web-pnpm:local'
           load: true
@@ -140,24 +141,31 @@ jobs:
           cache-to: 'type=gha,scope=${{ steps.buildkit_cache.outputs.scope }},mode=max'
 
       - name: 'Initialize frontend dependency volumes'
-        run: 'mise //frontend/docker:run --rm --no-deps web-init'
+        run: 'mise //docker:run --rm --no-deps web-init'
 
       - name: 'Run web format check'
-        run: 'mise //frontend/docker:run --rm --no-deps web --filter web format:check'
+        run: 'mise //docker:run --rm --no-deps web --filter web format:check'
 
       - name: 'Run web lint'
-        run: 'mise //frontend/docker:run --rm --no-deps web --filter web lint'
+        run: 'mise //docker:run --rm --no-deps web --filter web lint'
 
       - name: 'Run web typecheck'
-        run: 'mise //frontend/docker:run --rm --no-deps web --filter web typecheck'
+        run: 'mise //docker:run --rm --no-deps web --filter web typecheck'
 
       # Tests may require backend stack services to be available.
+      - name: 'Wait for the API before integration tests'
+        run: |
+          mise //docker:up-backend
+          curl --fail --silent --show-error --max-time 5 \
+            --retry 60 --retry-delay 2 --retry-all-errors \
+            http://localhost:8080/actuator/health
+
       - name: 'Run web test'
-        run: 'mise //frontend/docker:run --rm web --filter web test'
+        run: 'mise //docker:run --rm web --filter web test'
 
       - name: 'Run web build'
-        run: 'mise //frontend/docker:run --rm --no-deps web --filter web build'
+        run: 'mise //docker:run --rm --no-deps web --filter web build'
 
       - name: 'Clean frontend Compose stack'
         if: 'always()'
-        run: 'mise //frontend/docker:down'
+        run: 'mise //docker:down'
