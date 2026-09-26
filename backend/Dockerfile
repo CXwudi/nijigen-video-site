@@ -46,7 +46,8 @@ RUN set -eux; \
     mkdir -p /workspace/dist; \
     cp "$binary_path" /workspace/dist/api
 
-FROM ghcr.io/bell-sw/hardened-base:glibc AS api-native-runtime
+FROM ghcr.io/bell-sw/hardened-base:nonroot-glibc AS api-native-runtime
+# The nonroot base image runs as appuser by default.
 WORKDIR /app
 COPY --from=api-native-build /workspace/dist/api /app/api
 EXPOSE 8080
