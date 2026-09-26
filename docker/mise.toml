@@ -1,7 +1,7 @@
 [vars]
 compose = "bash ./compose.sh"
 
-[tasks.up]
+[tasks.up-backend-deps]
 description = "Start backend dependencies only: postgres, redis, and flyway."
 run = '''
 #!/usr/bin/env bash

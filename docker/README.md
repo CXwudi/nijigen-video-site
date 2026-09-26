@@ -4,7 +4,7 @@ Run these tasks from the repository root after copying `docker/.env.example` to 
 
 | Task | Profile | Services selected |
 | --- | --- | --- |
-| `mise //docker:up` | None | postgres, redis, flyway |
+| `mise //docker:up-backend-deps` | None | postgres, redis, flyway |
 | `mise //docker:up-backend` | backend | Dependencies + api |
 | `mise //docker:up-frontend-deps` | frontend-deps | Dependencies + api + web-init |
 | `mise //docker:up-full` | full | Dependencies + api + web-init + web |
