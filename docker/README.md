@@ -37,4 +37,6 @@ mise //docker:run --rm --no-deps web-init
 mise //docker:run --rm --no-deps web --filter web lint
 ```
 
-CI uses this same entrypoint with a unique `COMPOSE_PROJECT_NAME` for each run/job. Frontend static checks bypass backend startup; tests that use the backend wait for `/actuator/health` before running. The web service's `service_started` dependency only orders container startup and is not an API readiness check.
+The API uses a non-hardened Liberica Native Image Kit JDK image for development, tests, and CI. Its health check requires an HTTP 200 response from `/actuator/health`.
+
+CI uses this same entrypoint with a unique `COMPOSE_PROJECT_NAME` for each run/job. Frontend static checks bypass backend startup; tests that use the backend wait for the same Compose health check. The frontend job restores Gradle caches and prints container status and recent backend logs on failure before cleanup.

@@ -23,9 +23,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     healthcheck:
-      test:
-        - CMD-SHELL
-        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       interval: 2s
       timeout: 3s
       retries: 20
@@ -36,15 +34,9 @@ services:
 
   redis-base:
     image: redis:8
-    command:
-      - redis-server
-      - --appendonly
-      - "yes"
+    command: ["redis-server", "--appendonly", "yes"]
     healthcheck:
-      test:
-        - CMD
-        - redis-cli
-        - ping
+      test: ["CMD", "redis-cli", "ping"]
       interval: 2s
       timeout: 3s
       retries: 20
@@ -55,8 +47,7 @@ services:
 
   flyway-base:
     image: flyway/flyway:11
-    command:
-      - migrate
+    command: ["migrate"]
     depends_on:
       postgres:
         condition: service_healthy

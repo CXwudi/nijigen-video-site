@@ -10,11 +10,11 @@ set -euo pipefail
 '''
 
 [tasks.up-backend]
-description = "Start backend dependencies and the Gradle-backed API."
+description = "Start backend dependencies and wait for the Gradle-backed API to be healthy."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-{{ vars.compose }} --profile backend up -d
+{{ vars.compose }} --profile backend up --wait --wait-timeout 600
 '''
 
 [tasks.up-frontend-deps]

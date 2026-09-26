@@ -29,7 +29,7 @@ So, each application service, for example, the `api` service on the backend side
 1. Mount the source code
 2. Mount directories that are worth caching. E.g. `~/.gradle` for Gradle, so that we can reuse caches in CI
     - The frontend uses named volumes because pnpm relies on symlinks.
-3. Since source code is mounted, the image would need to be based on standard public image. E.g. Liberica Hardened JDK image for backend services
+3. Since source code is mounted, the image uses a standard public development image. The API uses the non-hardened Liberica Native Image Kit JDK image to satisfy the backend's native-image-capable Gradle toolchain. Hardened application images in `backend/Dockerfile` are separate and are not used by Compose.
 4. Since source code is mounted, the user ID and group ID should match the host
 5. The `entrypoint` will use the build tool command. E.g. `./gradlew --no-daemon` for backend services
 6. The `command` defaults to the launch command. E.g. `:apps:api:bootRun` for the API service to make `./gradlew --no-daemon :apps:api:bootRun`
