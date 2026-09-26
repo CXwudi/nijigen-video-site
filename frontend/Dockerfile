@@ -14,14 +14,14 @@ WORKDIR /workspace/frontend
 FROM frontend-pnpm-base AS web-pnpm-base
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY web/package.json web/package.json
-# Seed the pnpm store and temporary node_modules artifacts.
-# Compose uses a root-run init service to chown the mounted volumes
-# before the source-mounted pnpm service runs as HOST_UID:HOST_GID.
+# Preinstall dependencies to seed fresh Compose volumes instead of relying on
+# pnpm 12's automatic run/exec install (verifyDepsBeforeRun=install).
+# web-init adjusts volume ownership before the source-mounted service runs.
 RUN pnpm fetch
+RUN pnpm install --offline --frozen-lockfile
 
 FROM web-pnpm-base AS web-build
 COPY . ./
-RUN pnpm install --offline --frozen-lockfile
 RUN pnpm --filter web build
 
 # BellSoft's hardened Node.js image on GHCR requires authentication.
