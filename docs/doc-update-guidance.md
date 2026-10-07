@@ -9,11 +9,9 @@ Updates to documentation should be made in a way that benefits both AI agents an
 - Readable and Understandable for Human
 - Token efficient for AI (No verbose explanation if concise sentences can do the job)
 
-## Baseline 2: Human thinks, AI writes
+## Baseline 2: Doc update guarded by Human
 
-Only humans can write/update headers, that is any line starting with `#`. Humans should decide the structure of the documentation.
-
-While the documentation can be updated by both AI agents and humans, AI agents are not allowed to write/update headers, but they can update the content under the headers.
+For AI Agent, all documentation update/creation/deletion shall be approved by Human. Explain your intented update before you update so.
 
 ## The update
 

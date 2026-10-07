@@ -4,7 +4,7 @@ ARG JDK_VERSION
 
 ## Shared Gradle build stage
 
-FROM ghcr.io/bell-sw/hardened-liberica-native-image-kit-container:jdk-${JDK_VERSION}-nik-${JDK_VERSION}-glibc AS gradle-base
+FROM ghcr.io/bell-sw/liberica-native-image-kit-container:jdk-${JDK_VERSION}-nik-${JDK_VERSION}-glibc AS gradle-base
 ARG JDK_VERSION
 ENV JDK_VERSION="${JDK_VERSION}"
 WORKDIR /workspace/backend

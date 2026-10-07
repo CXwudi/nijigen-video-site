@@ -144,33 +144,33 @@ jobs:
           cache-to: 'type=gha,scope=${{ steps.buildkit_cache.outputs.scope }},mode=max'
 
       - name: 'Initialize frontend dependency volumes'
-        run: 'mise //docker:run --rm --no-deps web-init'
+        run: 'mise //docker:run --rm --no-deps frontend-dep-init'
 
       - name: 'Run web format check'
-        run: 'mise //docker:run --rm --no-deps web --filter web format:check'
+        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web format:check'
 
       - name: 'Run web lint'
-        run: 'mise //docker:run --rm --no-deps web --filter web lint'
+        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web lint'
 
       - name: 'Run web typecheck'
-        run: 'mise //docker:run --rm --no-deps web --filter web typecheck'
+        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web typecheck'
 
       # Tests may require backend stack services to be available.
       - name: 'Wait for the API before integration tests'
         run: 'mise //docker:up-backend'
 
       - name: 'Run web test'
-        run: 'mise //docker:run --rm web --filter web test'
+        run: 'mise //docker:run --rm frontend-app-web --filter web test'
 
       - name: 'Run web build'
-        run: 'mise //docker:run --rm --no-deps web --filter web build'
+        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web build'
 
       - name: 'Show container diagnostics on failure'
         if: 'failure()'
         run: |
           mise exec -- bash docker/compose.sh --profile '*' ps --all
           mise exec -- bash docker/compose.sh --profile '*' logs \
-            --no-color --timestamps --tail 300 api postgres redis flyway
+            --no-color --timestamps --tail 300 backend-app-api backend-dep-postgres backend-dep-redis backend-dep-flyway
 
       - name: 'Clean frontend Compose stack'
         if: 'always()'
