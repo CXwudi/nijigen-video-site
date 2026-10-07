@@ -11,7 +11,7 @@ Updates to documentation should be made in a way that benefits both AI agents an
 
 ## Baseline 2: Doc update guarded by Human
 
-For AI Agent, all documentation update/creation/deletion shall be approved by Human. Explain your intented update before you update so.
+For AI Agent, all documentation update/creation/deletion shall be approved by Human. Explain your intended update to obtain human approval.
 
 ## The update
 

@@ -2,7 +2,7 @@
 
 This folder captures design history and decision rationale.
 
-AI agents and humans should use [`../docs/`](../docs/README.md) and the app-local docs it links to as the single-source-of-truth documentation. Do not trade anything inside here as the confirmed dicision.
+AI agents and humans should use [`../docs/`](../docs/README.md) and the app-local docs it links to as the single-source-of-truth documentation. Do not trade anything inside here as the confirmed decision.
 
 This folder is just to log the design history behind the docs.
 
