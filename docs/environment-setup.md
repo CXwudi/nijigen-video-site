@@ -41,7 +41,7 @@ For example, from the repository root:
 ```bash
 cp docker/.env.example docker/.env
 mise //docker:config-check
-mise //docker:run --rm api :apps:api:test
+mise //docker:run --rm backend-app-api :apps:api:test
 mise //docker:up-full
 ```
 
@@ -50,7 +50,7 @@ From a task's own directory, use the local task name:
 ```bash
 cd docker
 mise :config-check
-mise :run --rm api :apps:api:test
+mise :run --rm backend-app-api :apps:api:test
 ```
 
 ### `mise` environment variables
@@ -62,20 +62,8 @@ To change a major version, update `[env]` in the root `mise.toml`.
 
 Environment variables set by root [`mise.toml`](../mise.toml) have higher priority than `.env` / `.env.example` files.
 
-Docker configuration lives in the untracked `docker/.env`. Mise Docker tasks detect the current host UID/GID unless explicitly exported, and consistently resolve the Gradle cache directory. For direct Compose runs, set `HOST_UID` and `HOST_GID` in that env file to the host user's values and supply the runtime versions through mise. The default ports are API `8080`, web `5173`, PostgreSQL `5432`, and Redis `6379`.
+## Docker Compose environment for development, testing and CI
 
-For a custom Gradle cache path in mise tasks, export `HOST_GRADLE_USER_HOME`; otherwise the wrapper uses `GRADLE_USER_HOME` or `$HOME/.gradle`. Setting that path only in `docker/.env` applies to direct Compose invocations, since the wrapper exports its host-resolved path before calling Compose.
-
-## Unified Environment by Docker Compose
-
-One Compose entrypoint manages a shared development project for the whole repository.
-
-Local development, CI, and integration testing share Docker Compose service bases to keep their environments consistent. Production deployment platform selection is deferred.
-
-Specifically:
-
-- [`docker/compose.yml`](../docker/compose.yml) explicitly declares the stack and its profiles.
-- [`docker/common-services.yml`](../docker/common-services.yml) defines reusable service bases.
-- Local development defaults to project `nijigen-video-site`; CI overrides `COMPOSE_PROJECT_NAME` per workflow run and job. Separate worktrees can also override the project name and host ports.
+`docker/` folder is created as a shared environment for developmenting this project, running command, and testing.
 
 See [`Docker Setup Explain`](docker-setup-explain.md) for more explanation.

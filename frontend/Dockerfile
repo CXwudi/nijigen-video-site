@@ -12,12 +12,14 @@ RUN pnpm config set store-dir /pnpm/store
 WORKDIR /workspace/frontend
 
 FROM frontend-pnpm-base AS web-pnpm-base
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY web/package.json web/package.json
-# Preinstall dependencies to seed fresh Compose volumes instead of relying on
-# pnpm 12's automatic run/exec install (verifyDepsBeforeRun=install).
-# web-init adjusts volume ownership before the source-mounted service runs.
+# Keep manifests out of the fetch layer so script-only changes reuse its cache.
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm fetch
+
+COPY package.json ./
+COPY web/package.json web/package.json
+# Preinstall dependencies to seed fresh Compose volumes instead of relying on pnpm 12's automatic run/exec install.
+# The preinstallation is ran by root user. frontend-dep-init will adjust the ownership before frontend-app-web runs.
 RUN pnpm install --offline --frozen-lockfile
 
 FROM web-pnpm-base AS web-build
