@@ -36,9 +36,6 @@ jobs:
           install: true
           cache: true
 
-      - name: 'Set up Docker Buildx'
-        uses: 'docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069' # v4.4.1
-
       - name: 'Set up Gradle cache'
         uses: 'gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6' # v6.4.0
 
@@ -67,8 +64,8 @@ jobs:
       - name: 'Render frontend Compose stack'
         run: 'mise //docker:config-check'
 
-      - name: 'Resolve frontend runtime versions'
-        id: 'runtime_versions'
+      - name: 'Resolve frontend runtimes and pnpm cache paths'
+        id: 'pnpm'
         run: |
           node_version="$(mise exec -- printenv NODE_VERSION)"
           pnpm_version="$(mise exec -- printenv PNPM_VERSION)"
@@ -79,91 +76,44 @@ jobs:
           {
             echo "node_version=${node_version}"
             echo "pnpm_version=${pnpm_version}"
+            echo "store_path=$(pnpm --dir frontend store path)"
+            echo "cache_path=$(pnpm --dir frontend cache path)"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: 'Resolve BuildKit cache scope'
-        id: 'buildkit_cache'
-        env:
-          EVENT_NAME: '${{ github.event_name }}'
-          PR_NUMBER: '${{ github.event.pull_request.number }}'
-          REF: '${{ github.ref }}'
-          REF_NAME: '${{ github.ref_name }}'
-        run: |
-          case "${EVENT_NAME}" in
-            pull_request)
-              # PR caches are merge-ref isolated. Restore this PR first, then
-              # use the trusted main cache as a read-only fallback.
-              scope="frontend-web-pr-${PR_NUMBER}"
-              cache_from="type=gha,scope=${scope}
-          type=gha,scope=frontend-web-main"
-              ;;
-            push)
-              # Only a push to main may update the trusted main cache. Keep
-              # this check even if the workflow trigger is widened later.
-              if [[ "${REF}" != 'refs/heads/main' ]]; then
-                echo "::error::Push cache writes are restricted to refs/heads/main."
-                exit 1
-              fi
-              scope='frontend-web-main'
-              cache_from="type=gha,scope=${scope}"
-              ;;
-            workflow_dispatch)
-              # Manual runs use a branch-local scope. Remove BuildKit CSV
-              # delimiter characters before embedding the branch in scope=.
-              safe_ref_name="$(printf '%s' "${REF_NAME}" | tr -c 'A-Za-z0-9._-' '-')"
-              scope="frontend-web-manual-${safe_ref_name}"
-              cache_from="type=gha,scope=${scope}
-          type=gha,scope=frontend-web-main"
-              ;;
-            *)
-              # Unsupported event type. 
-              echo "::error::Unsupported event type: ${EVENT_NAME}"
-              exit 1
-              ;;
-          esac
-          {
-            echo "scope=${scope}"
-            echo 'cache_from<<EOF'
-            echo "${cache_from}"
-            echo 'EOF'
-          } >> "${GITHUB_OUTPUT}"
-
-      - name: 'Build frontend pnpm image'
-        uses: 'docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc' # v7.4.0
+      - name: 'Restore frontend pnpm cache'
+        id: 'pnpm_cache'
+        uses: 'actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf' # v4.2.2
         with:
-          context: 'frontend'
-          file: 'frontend/Dockerfile'
-          target: 'web-pnpm-base'
-          tags: 'nijigen-video-site-web-pnpm:local'
-          load: true
-          push: false
-          build-args: |
-            NODE_VERSION=${{ steps.runtime_versions.outputs.node_version }}
-            PNPM_VERSION=${{ steps.runtime_versions.outputs.pnpm_version }}
-          cache-from: '${{ steps.buildkit_cache.outputs.cache_from }}'
-          cache-to: 'type=gha,scope=${{ steps.buildkit_cache.outputs.scope }},mode=max'
-
-      - name: 'Initialize frontend dependency volumes'
-        run: 'mise //docker:run --rm --no-deps frontend-dep-init'
-
-      - name: 'Run web format check'
-        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web format:check'
-
-      - name: 'Run web lint'
-        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web lint'
-
-      - name: 'Run web typecheck'
-        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web typecheck'
+          path: |
+            ${{ steps.pnpm.outputs.store_path }}
+            ${{ steps.pnpm.outputs.cache_path }}
+          key: "pnpm-cache-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.pnpm.outputs.node_version }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-${{ hashFiles('frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml') }}"
+          restore-keys: |
+            pnpm-cache-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.pnpm.outputs.node_version }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-
 
       # Tests may require backend stack services to be available.
       - name: 'Wait for the API before integration tests'
         run: 'mise //docker:up-backend'
 
-      - name: 'Run web test'
-        run: 'mise //docker:run --rm frontend-app-web --filter web test'
+      - name: 'Install dependencies and check frontend'
+        run: |
+          mise //docker:run --rm --no-deps frontend-app-web --config.verify-deps-before-run=false exec sh -ec '
+            pnpm install --frozen-lockfile
+            for check in format:check lint typecheck test build; do
+              printf "::group::%s\n" "$check"
+              pnpm --filter web "$check"
+              printf "::endgroup::\n"
+            done
+          '
 
-      - name: 'Run web build'
-        run: 'mise //docker:run --rm --no-deps frontend-app-web --filter web build'
+      - name: 'Save frontend pnpm cache'
+        if: "${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.pnpm_cache.outputs.cache-hit != 'true' }}"
+        uses: 'actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf' # v4.2.2
+        with:
+          path: |
+            ${{ steps.pnpm.outputs.store_path }}
+            ${{ steps.pnpm.outputs.cache_path }}
+          key: "pnpm-cache-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.pnpm.outputs.node_version }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-${{ hashFiles('frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml') }}"
 
       - name: 'Show container diagnostics on failure'
         if: 'failure()'

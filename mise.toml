@@ -23,7 +23,7 @@ PNPM_VERSION = "12"
 # - mise [tools] for the host JDK, Node.js, and pnpm installs
 # - Docker Compose image tags, container environment, and build.args
 # - Dockerfiles via ARG (Compose or CLI --build-arg must supply them)
-# - frontend CI, which reads the values through mise exec and passes Docker build args
+# - frontend CI, which reads the values through mise exec to formulate cache keys
 # - the backend Gradle included-plugin build, which overlays JDK_VERSION onto the imported catalog when present
 
 [tools]

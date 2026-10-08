@@ -5,7 +5,7 @@ ARG PNPM_VERSION
 
 FROM ghcr.io/pnpm/pnpm:${PNPM_VERSION} AS frontend-pnpm-base
 ARG NODE_VERSION
-# Use a direct Node executable so non-root Compose users do not need root's shim state.
+# Use direct Node binary without shim state.
 RUN pnpm config set --global --json globalShims false
 RUN pnpm runtime set node "${NODE_VERSION}" -g
 RUN pnpm config set store-dir /pnpm/store
@@ -18,8 +18,7 @@ RUN pnpm fetch
 
 COPY package.json ./
 COPY web/package.json web/package.json
-# Preinstall dependencies to seed fresh Compose volumes instead of relying on pnpm 12's automatic run/exec install.
-# The preinstallation is ran by root user. frontend-dep-init will adjust the ownership before frontend-app-web runs.
+# Preinstall dependencies for the production application build.
 RUN pnpm install --offline --frozen-lockfile
 
 FROM web-pnpm-base AS web-build

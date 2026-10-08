@@ -18,11 +18,11 @@ set -euo pipefail
 '''
 
 [tasks.up-frontend-deps]
-description = "Start the backend and initialize frontend dependency volume ownership."
+description = "Start backend prerequisites for frontend development."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-{{ vars.compose }} --profile frontend-deps up -d --build
+{{ vars.compose }} --profile frontend-deps up -d
 '''
 
 [tasks.up-full]
@@ -30,11 +30,11 @@ description = "Start the full development stack."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-{{ vars.compose }} --profile full up -d --build
+{{ vars.compose }} --profile full up -d
 '''
 
 [tasks.down]
-description = "Stop the shared development stack while preserving named volumes."
+description = "Stop the shared development stack while preserving named volumes and pnpm cache."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
@@ -72,23 +72,27 @@ trap 'printf "\nShared services may still be running. Run: mise //docker:down wh
 '''
 
 [tasks.clear-frontend-node-volumes]
-description = "Remove frontend dependency volumes while preserving postgres and redis data."
+description = "Reset disposable frontend dependency volumes while preserving postgres, redis, and pnpm cache."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-# Resolve actual names so environment and Compose project overrides are respected.
-volume_names="$({{ vars.compose }} --profile full config --format json | node -e '
-  const config = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
-  for (const volume of ["frontend-node-modules", "frontend-app-web-node-modules", "frontend-pnpm-store"]) {
-    console.log(config.volumes[volume].name);
+# Recreated containers can adopt anonymous volumes as named mounts, so resolve
+# their exact names before removing the container instead of relying on rm -v.
+container_id="$({{ vars.compose }} --profile full ps --all --quiet frontend-app-web)"
+if [[ -z "$container_id" ]]; then
+  exit 0
+fi
+volume_names="$(docker inspect "$container_id" | node -e '
+  const [container] = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+  const paths = ["/workspace/frontend/node_modules", "/workspace/frontend/web/node_modules"];
+  for (const mount of container.Mounts) {
+    if (mount.Type === "volume" && paths.includes(mount.Destination)) console.log(mount.Name);
   }
 ')"
-{{ vars.compose }} --profile full rm --stop --force --volumes frontend-app-web frontend-dep-init
-while IFS= read -r volume_name; do
-  if docker volume inspect "$volume_name" >/dev/null 2>&1; then
-    docker volume rm "$volume_name"
-  else
-    printf 'Volume not found, skipping: %s\n' "$volume_name"
+{{ vars.compose }} --profile full rm --stop --force frontend-app-web
+while IFS= read -r volume; do
+  if [[ -n "$volume" ]]; then
+    docker volume rm "$volume"
   fi
 done <<< "$volume_names"
 '''
