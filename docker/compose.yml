@@ -108,15 +108,11 @@ services:
       - ./frontend-entrypoint.sh:/docker/frontend-entrypoint.sh:ro
       - ${HOST_PNPM_STORE_DIR:?Run through docker/compose.sh}:/pnpm/store
       - ${HOST_PNPM_CACHE_DIR:?Run through docker/compose.sh}:/pnpm/cache
-      - type: volume
-        target: /workspace/frontend/node_modules
-        volume:
-          nocopy: true
-      - type: volume
-        target: /workspace/frontend/web/node_modules
-        volume:
-          nocopy: true
+      - frontend-node-modules:/workspace/frontend/node_modules
+      - frontend-web-node-modules:/workspace/frontend/web/node_modules
 
 volumes:
   backend-dep-postgres-data:
   backend-dep-redis-data:
+  frontend-node-modules:
+  frontend-web-node-modules:

@@ -1,6 +1,16 @@
 [vars]
 compose = "bash ./compose.sh"
 
+[tasks.compose]
+description = "Run arbitrary Docker Compose commands with the shared development configuration."
+raw_args = true
+raw = true
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+{{ vars.compose }} "$@"
+'''
+
 [tasks.up-backend-deps]
 description = "Start backend dependencies only: postgres, redis, and flyway."
 run = '''
@@ -76,22 +86,17 @@ description = "Reset disposable frontend dependency volumes while preserving pos
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-# Recreated containers can adopt anonymous volumes as named mounts, so resolve
-# their exact names before removing the container instead of relying on rm -v.
-container_id="$({{ vars.compose }} --profile full ps --all --quiet frontend-app-web)"
-if [[ -z "$container_id" ]]; then
-  exit 0
-fi
-volume_names="$(docker inspect "$container_id" | node -e '
-  const [container] = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
-  const paths = ["/workspace/frontend/node_modules", "/workspace/frontend/web/node_modules"];
-  for (const mount of container.Mounts) {
-    if (mount.Type === "volume" && paths.includes(mount.Destination)) console.log(mount.Name);
+# Named volumes survive container removal; resolve their project-specific names
+# from Compose so cleanup also works after the frontend container is removed.
+volume_names="$({{ vars.compose }} --profile full config --format json | node -e '
+  const config = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+  for (const key of ["frontend-node-modules", "frontend-web-node-modules"]) {
+    console.log(config.volumes[key].name);
   }
 ')"
 {{ vars.compose }} --profile full rm --stop --force frontend-app-web
 while IFS= read -r volume; do
-  if [[ -n "$volume" ]]; then
+  if docker volume inspect "$volume" > /dev/null 2>&1; then
     docker volume rm "$volume"
   fi
 done <<< "$volume_names"
