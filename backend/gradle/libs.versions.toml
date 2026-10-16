@@ -2,7 +2,7 @@
 # Add a version here only when it is reused in more than one place.
 # Keep single-use versions inline in the entry itself for clarity.
 java = "25" # Keep aligned with JDK_VERSION in root mise.toml; this value is the Gradle fallback.
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 spring-boot = "4.1.1"
 graalvm-native = "1.1.14"
 develocity = "4.6.0"
