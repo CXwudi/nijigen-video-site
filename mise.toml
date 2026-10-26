@@ -32,7 +32,7 @@ PNPM_VERSION = "12"
 java = "{{ env.JDK_VERSION }}"
 
 # Frontend
-pnpm = "{{ env.PNPM_VERSION }}"
+pnpm = "{{ env.PNPM_VERSION }}" # pnpm will manager the nodejs via devEngines.runtime
 
 # Others
 uv = "latest"
