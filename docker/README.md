@@ -11,7 +11,7 @@ mise //docker:up-backend-deps
 # bring up the backend stack, using the `backend` profile
 mise //docker:up-backend
 
-# bring up the backend stack and initialize frontend dependency volumes, using the `frontend-deps` profile
+# bring up the backend stack and the stack of frontend dependencies, using the `frontend-deps` profile
 mise //docker:up-frontend-deps
 
 # bring up the full backend and frontend stack, using the `full` profile
@@ -21,7 +21,7 @@ mise //docker:up-full
 mise //docker:config-check
 
 # print the resolved Compose configuration for all services, including environment values
-mise //docker:config
+mise //docker:config-print
 
 # stop the stack across all profiles, preserving named volumes
 mise //docker:down
@@ -45,7 +45,10 @@ mise //docker:run --rm frontend-app-web --filter web test  # Runs `pnpm --filter
 mise //docker:run --rm --entrypoint sh backend-app-api -c 'java -version'
 ```
 
-Explicitly targeting `backend-app-api` or `frontend-app-web` enables the relevant service and its declared dependencies without requiring a profile flag. `run` does not publish the target service's ports by default; use `--service-ports` for a one-off server that needs host access. `--no-deps` skips every dependency, including `frontend-dep-init`, so initialize frontend dependency volumes before independent checks:
+Explicitly targeting `backend-app-api` or `frontend-app-web` enables the relevant service and its declared dependencies without requiring a profile flag.
+`docker compose run` does not publish the target service's ports by default. use `--service-ports` for a one-off server that needs host access.
+
+`--no-deps` skips every dependency, including `frontend-dep-init`, so initialize frontend dependency volumes before independent checks:
 
 ```bash
 mise //docker:run --rm --no-deps frontend-dep-init

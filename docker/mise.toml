@@ -51,7 +51,7 @@ set -euo pipefail
 {{ vars.compose }} --profile '*' down --remove-orphans
 '''
 
-[tasks.config]
+[tasks.config-print]
 description = "Print the resolved Compose configuration for all services."
 run = '''
 #!/usr/bin/env bash
