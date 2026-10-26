@@ -76,6 +76,7 @@ services:
   # ------------------------------------------------------- #
 
   frontend-app-web:
+    # Again, the image needs to be aligned with the one used in frontend-pnpm-base stage from the Dockerfile in frontend/
     image: ghcr.io/pnpm/pnpm:${PNPM_VERSION:?PNPM_VERSION must be provided, likely from mise.toml}
     profiles:
       - full
@@ -92,13 +93,10 @@ services:
       PNPM_CONFIG_STORE_DIR: /pnpm/store
       PNPM_CONFIG_CACHE_DIR: /pnpm/cache
       CI: ${CI:-}
-    # Supply Node from pnpm's cache using the same version as the host mise setup.
+    # pnpm installs the Node runtime declared by the frontend workspace.
     entrypoint:
       - sh
       - /docker/frontend-entrypoint.sh
-      - --package=node@runtime:${NODE_VERSION:?NODE_VERSION must be provided, likely from mise.toml}
-      - dlx
-      - pnpm
     command: ["--filter", "web", "dev", "--host", "0.0.0.0"]
     restart: "no"
     ports:
@@ -106,8 +104,8 @@ services:
     volumes:
       - ../frontend:/workspace/frontend
       - ./frontend-entrypoint.sh:/docker/frontend-entrypoint.sh:ro
-      - ${HOST_PNPM_STORE_DIR:?Run through docker/compose.sh}:/pnpm/store
-      - ${HOST_PNPM_CACHE_DIR:?Run through docker/compose.sh}:/pnpm/cache
+      - ${HOST_PNPM_STORE_DIR:?HOST_PNPM_STORE_DIR not provided, please run through docker/compose.sh}:/pnpm/store
+      - ${HOST_PNPM_CACHE_DIR:?HOST_PNPM_CACHE_DIR not provided, please run through docker/compose.sh}:/pnpm/cache
       - frontend-node-modules:/workspace/frontend/node_modules
       - frontend-web-node-modules:/workspace/frontend/web/node_modules
 

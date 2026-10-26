@@ -17,10 +17,9 @@ config_roots = [
 # Centralized major versions of important runtimes consumed by Dockerfiles and Compose files
 # See docs/docker-setup-explain.md for the shared container-based development/CI environment
 JDK_VERSION = "25" # keep aligned with java in backend/gradle/libs.versions.toml
-NODE_VERSION = "24"
 PNPM_VERSION = "12"
 # Downstream consumers include:
-# - mise [tools] for the host JDK, Node.js, and pnpm installs
+# - mise [tools] for the host JDK and pnpm installs
 # - Docker Compose image tags, container environment, and build.args
 # - Dockerfiles via ARG (Compose or CLI --build-arg must supply them)
 # - frontend CI, which reads the values through mise exec to formulate cache keys
@@ -33,7 +32,6 @@ PNPM_VERSION = "12"
 java = "{{ env.JDK_VERSION }}"
 
 # Frontend
-node = "{{ env.NODE_VERSION }}"
 pnpm = "{{ env.PNPM_VERSION }}"
 
 # Others

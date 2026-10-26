@@ -88,7 +88,7 @@ run = '''
 set -euo pipefail
 # Named volumes survive container removal; resolve their project-specific names
 # from Compose so cleanup also works after the frontend container is removed.
-volume_names="$({{ vars.compose }} --profile full config --format json | node -e '
+volume_names="$({{ vars.compose }} --profile full config --format json | pnpm --dir ../frontend --reporter=silent exec node -e '
   const config = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
   for (const key of ["frontend-node-modules", "frontend-web-node-modules"]) {
     console.log(config.volumes[key].name);

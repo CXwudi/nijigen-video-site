@@ -1,13 +1,10 @@
 # syntax=docker/dockerfile:1
 
-ARG NODE_VERSION
+# Keep the default aligned with package.json's devEngines.runtime.version.
+ARG NODE_VERSION=24
 ARG PNPM_VERSION
 
 FROM ghcr.io/pnpm/pnpm:${PNPM_VERSION} AS frontend-pnpm-base
-ARG NODE_VERSION
-# Use direct Node binary without shim state.
-RUN pnpm config set --global --json globalShims false
-RUN pnpm runtime set node "${NODE_VERSION}" -g
 RUN pnpm config set store-dir /pnpm/store
 WORKDIR /workspace/frontend
 

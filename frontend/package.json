@@ -1,5 +1,12 @@
 {
   "name": "@nijigen-video-site/frontend",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "24",
+      "onFail": "download"
+    }
+  }
 }

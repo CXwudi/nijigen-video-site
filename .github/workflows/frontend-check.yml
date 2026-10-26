@@ -64,17 +64,15 @@ jobs:
       - name: 'Render frontend Compose stack'
         run: 'mise //docker:config-check'
 
-      - name: 'Resolve frontend runtimes and pnpm cache paths'
+      - name: 'Resolve pnpm version and cache paths'
         id: 'pnpm'
         run: |
-          node_version="$(mise exec -- printenv NODE_VERSION)"
           pnpm_version="$(mise exec -- printenv PNPM_VERSION)"
-          if [[ -z "${node_version}" || -z "${pnpm_version}" ]]; then
-            echo '::error::NODE_VERSION and PNPM_VERSION must resolve through mise.'
+          if [[ -z "${pnpm_version}" ]]; then
+            echo '::error::PNPM_VERSION must resolve through mise.'
             exit 1
           fi
           {
-            echo "node_version=${node_version}"
             echo "pnpm_version=${pnpm_version}"
             echo "store_path=$(pnpm --dir frontend store path)"
             echo "cache_path=$(pnpm --dir frontend cache path)"
@@ -87,9 +85,9 @@ jobs:
           path: |
             ${{ steps.pnpm.outputs.store_path }}
             ${{ steps.pnpm.outputs.cache_path }}
-          key: "pnpm-cache-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.pnpm.outputs.node_version }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-${{ hashFiles('frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml') }}"
+          key: "pnpm-cache-${{ runner.os }}-${{ runner.arch }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-${{ hashFiles('frontend/package.json', 'frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml') }}"
           restore-keys: |
-            pnpm-cache-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.pnpm.outputs.node_version }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-
+            pnpm-cache-${{ runner.os }}-${{ runner.arch }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-
 
       # Tests may require backend stack services to be available.
       - name: 'Wait for the API before integration tests'
@@ -113,7 +111,7 @@ jobs:
           path: |
             ${{ steps.pnpm.outputs.store_path }}
             ${{ steps.pnpm.outputs.cache_path }}
-          key: "pnpm-cache-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.pnpm.outputs.node_version }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-${{ hashFiles('frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml') }}"
+          key: "pnpm-cache-${{ runner.os }}-${{ runner.arch }}-pnpm-${{ steps.pnpm.outputs.pnpm_version }}-${{ hashFiles('frontend/package.json', 'frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml') }}"
 
       - name: 'Show container diagnostics on failure'
         if: 'failure()'
